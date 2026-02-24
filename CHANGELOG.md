@@ -26,7 +26,5 @@ Primera configuración del entorno de desarrollo y estructura base.
     - `navbar and footer`
     - `interfaces`
     - `components/`
-    - `services/`
-    - `validators/`
 - Conexión inicial con API backend
 
