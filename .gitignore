@@ -1,0 +1,57 @@
+###############
+# PYTHON BACKEND
+###############
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+.env
+.env.*
+*.log
+
+###############
+# FASTAPI
+###############
+*.db
+*.sqlite
+instance/
+.mypy_cache/
+.pytest_cache/
+
+###############
+# NODE / ANGULAR
+###############
+node_modules/
+dist/
+.angular/
+.cache/
+coverage/
+
+###############
+# EDITORES
+###############
+.vscode/
+.idea/
+*.swp
+*.swo
+
+###############
+# SISTEMA
+###############
+.DS_Store
+Thumbs.db
+
+###############
+# BUILD
+###############
+build/
+out/
+target/
+
+###############
+# SECRETOS
+###############
+.env.local
+.env.production
