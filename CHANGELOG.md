@@ -28,3 +28,16 @@ Primera configuración del entorno de desarrollo y estructura base.
     - `components/`
 - Conexión inicial con API backend
 
+---
+
+## [0.2.0] - 03/02/2026
+### ✨ Añadido – Página de inicio
+
+### 🖥️ Backend
+- Mejora en estructura de rutas
+
+### 🌐 Frontend
+- Creación del componente home/
+- Diseño y maquetación de la página principal
+- Implementación de sección hero con imagen principal
+- Ajustes visuales en navbar para adaptarse al inicio
