@@ -44,7 +44,7 @@ Primera configuración del entorno de desarrollo y estructura base.
 
 ---
 
-## [0.2.0] - 01/03/2026
+## [0.3.0] - 01/03/2026
 ### ✨ Añadido – Página de sobre nosotros
 
 ### 🖥️ Backend
