@@ -6,7 +6,7 @@ Formato basado en: https://keepachangelog.com/es-ES/1.0.0/
 
 ---
 
-## [0.1.0] - 02/02/2026
+## [0.1.0] - 24/02/2026
 ### 🎉 Inicio del proyecto
 Primera configuración del entorno de desarrollo y estructura base.
 
@@ -30,7 +30,7 @@ Primera configuración del entorno de desarrollo y estructura base.
 
 ---
 
-## [0.2.0] - 03/02/2026
+## [0.2.0] - 27/02/2026
 ### ✨ Añadido – Página de inicio
 
 ### 🖥️ Backend
@@ -41,3 +41,24 @@ Primera configuración del entorno de desarrollo y estructura base.
 - Diseño y maquetación de la página principal
 - Implementación de sección hero con imagen principal
 - Ajustes visuales en navbar para adaptarse al inicio
+
+---
+
+## [0.2.0] - 01/03/2026
+### ✨ Añadido – Página de sobre nosotros
+
+### 🖥️ Backend
+
+- Creación de tabla `philosophies` en MariaDB para almacenar los valores corporativos.
+- Inserción de los 6 registros iniciales (seed de datos).
+- Implementación del endpoint:
+    - `GET /philosophies` → Obtiene las 6 filosofías ordenadas.
+- Aplicación de regla de negocio: solo se permiten IDs del 1 al 6.
+
+---
+
+### 🌐 Frontend
+- Creación de `PhilosophyService` para consumir la API.
+    - Método `getPhilosophies()`
+- Definición de la interfaz `Philosophy`.
+- Integración dinámica de las filosofías en la página "About Us".
