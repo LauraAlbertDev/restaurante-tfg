@@ -63,6 +63,8 @@ Primera configuración del entorno de desarrollo y estructura base.
 - Definición de la interfaz `Philosophy`.
 - Integración dinámica de las filosofías en la página "About Us".
 
+---
+
 ## [0.4.0] - 05/03/2026
 ### ✨ Añadido – Gestión de Contacto y Comentarios
 
