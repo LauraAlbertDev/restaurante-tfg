@@ -55,8 +55,6 @@ Primera configuración del entorno de desarrollo y estructura base.
     - `GET /philosophies` → Obtiene las 6 filosofías ordenadas.
 - Aplicación de regla de negocio: solo se permiten IDs del 1 al 6.
 
----
-
 ### 🌐 Frontend
 - Creación de `PhilosophyService` para consumir la API.
     - Método `getPhilosophies()`
