@@ -1,0 +1,43 @@
+<mat-sidenav-container class="vh-100">
+  <mat-sidenav mode="side" opened="true" class="bg-dark d-flex">
+    <div class="d-flex flex-column align-items-center text-center h-100 p-4 gap-4 w-100">
+      <div class="mb-5">
+        <img src="assets/images/logo.png" width="150" class="img-fluid" alt="">
+      </div>
+      <nav class="d-flex flex-column w-100 gap-2">
+        @for (page of pages; track $index){
+          <a mat-button [routerLink]='page.link' class="nav-btn text-uppercase">{{ page.name }}</a>
+        }
+      </nav>
+      <button class="btn btn-outline-warning mt-auto w-100 fw-semibold text-uppercase"
+              routerLink="/reservas">
+        RESERVA
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="position-relative overflow-hidden">
+    <p-carousel
+      [value]="slides"
+      [numVisible]="1"
+      [numScroll]="1"
+      [circular]="true"
+      [autoplayInterval]="6000"
+      [showIndicators]="false"
+      [showNavigators]="false"
+      class="hero-carousel"
+    >
+      @for (slide of slides; track $index){
+        <ng-template pTemplate="item" let-slide>
+          <img
+            class="w-100 vh-100 object-fit-cover"
+            [src]='slide.image'
+          >
+
+        </ng-template>
+      }
+
+    </p-carousel>
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

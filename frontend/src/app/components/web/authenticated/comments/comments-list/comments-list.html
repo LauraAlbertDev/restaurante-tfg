@@ -1,0 +1,64 @@
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <button class="btn"
+            [class.btn-outline-success]="!showArchived"
+            [class.btn-outline-warning]="showArchived"
+            (click)="toggleViewArchived()">
+      <i class="bi" [class.bi-archive]="!showArchived" [class.bi-eye]="showArchived"></i>
+      {{ showArchived ? ' Ver activos' : ' Ver archivados' }}
+    </button>
+
+    <h3 class="fw-bold">Comentarios {{ showArchived ? '(Archivados)' : '' }}</h3>
+
+    <div style="width:140px" class="d-none d-md-block"></div>
+  </div>
+
+  <div class="row g-4">
+    @for (c of comments; track c.id) {
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title mb-1 text-primary">
+              <i class="bi bi-person-circle me-2"></i>{{ c.name }}
+            </h5>
+            <small class="text-muted mb-1"><i class="bi bi-phone me-1"></i>{{ c.tel }}</small>
+            <small class="text-muted mb-3"><i class="bi bi-envelope me-1"></i>{{ c.email }}</small>
+
+            <p class="card-text flex-grow-1 text-secondary italic">
+              "{{ c.message }}"
+            </p>
+
+            @if(c.note) {
+              <div class="mt-2">
+                <span class="badge bg-light text-dark border">
+                  ⭐ Nota: {{ c.note }}
+                </span>
+              </div>
+            }
+          </div>
+
+          <div class="card-footer bg-light border-0 d-flex justify-content-end gap-2">
+            <button class="btn btn-sm btn-light shadow-sm"
+                    title="Cambiar estado de archivo"
+                    (click)="toggleArchive(c.id, c.archived)">
+              <i class="bi"
+                 [class.bi-archive-fill]="!c.archived"
+                 [class.bi-arrow-counterclockwise]="c.archived"></i>
+            </button>
+
+            <a class="btn btn-sm btn-outline-primary shadow-sm"
+               [routerLink]="['/comments/detail', c.id]">
+              <i class="bi bi-pencil-square"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-chat-left-dots display-1 text-muted"></i>
+        <p class="mt-3 text-muted">No hay comentarios para mostrar.</p>
+      </div>
+    }
+  </div>
+</div>

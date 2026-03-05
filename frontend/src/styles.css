@@ -1,0 +1,54 @@
+:root{
+  /* BRAND */
+  --color-primary:#e7d8b1;
+  --color-accent:#c6a969;
+
+  /* BACKGROUNDS */
+  --color-bg-main:#071c24;
+  --color-bg-secondary:#0c2a33;
+
+  /* TEXT */
+  --color-text-main:#e7d8b1;
+  --color-text-muted:#9aa5a8;
+  --color-text-dark:#000;
+
+  /* BORDERS */
+  --color-border-primary:#e0b84c;
+  --color-border-soft:#8f6f08;
+
+  /* HOVER */
+  --color-hover:#d4a017;
+}
+html, body, footer {
+  font-family: "Soria", serif;
+  background:var(--color-bg-main);
+  color:var(--color-text-main);
+}
+
+a{
+  color:var(--color-primary);
+}
+
+a:hover{
+  color:var(--color-hover);
+}
+
+.form-control, .form-select{
+  background: var(--color-bg-main) !important;
+  border-color:var(--color-border-primary);
+  color:var(--color-text-main);
+}
+
+.form-control::placeholder{
+  color:var(--color-text-muted);
+}
+
+label, .form-control{
+  color:var(--color-text-muted) !important;
+}
+
+
+
+footer{
+  border-top:1px solid var(--color-border-soft);
+}

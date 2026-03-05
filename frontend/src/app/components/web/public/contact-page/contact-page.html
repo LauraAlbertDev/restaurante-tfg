@@ -1,0 +1,104 @@
+<div class="container py-5">
+  <div class="ratio ratio-21x9 mb-5 shadow-sm rounded overflow-hidden">
+    <iframe
+      class="border-0 map-frame"
+      src="https://www.google.com/maps/embed?pb=..."
+      loading="lazy"
+      title="Ubicación del restaurante">
+    </iframe>
+  </div>
+
+  <div class="row gy-4">
+    <div class="col-md-6">
+      <h1 class="text-center mb-4 fw-bold">CONTÁCTENOS</h1>
+
+      <form [formGroup]="commentForm" (ngSubmit)="onSubmit()" novalidate>
+
+        <div class="mb-3">
+          <input type="text" formControlName="name" class="form-control"
+                 placeholder="Nombre"
+                 [class.is-invalid]="f['name'].touched && f['name'].invalid"
+                 [class.is-valid]="f['name'].valid">
+
+          @if (f['name'].invalid && f['name'].touched) {
+            <div class="invalid-feedback d-block">
+              @if (f['name'].errors?.['required']) { <span>El nombre es obligatorio</span> }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <input type="text" formControlName="tel" class="form-control"
+                 placeholder="Teléfono (9 dígitos)"
+                 [class.is-invalid]="f['tel'].touched && f['tel'].invalid"
+                 [class.is-valid]="f['tel'].valid">
+
+          @if (f['tel'].invalid && f['tel'].touched) {
+            <div class="invalid-feedback d-block">
+              @if (f['tel'].errors?.['required']) { <span>Teléfono requerido</span> }
+              @if (f['tel'].errors?.['pattern']) { <span>Debe tener exactamente 9 números</span> }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <input type="email" formControlName="email" class="form-control"
+                 placeholder="Correo electrónico"
+                 [class.is-invalid]="f['email'].touched && f['email'].invalid"
+                 [class.is-valid]="f['email'].valid">
+
+          @if (f['email'].invalid && f['email'].touched) {
+            <div class="invalid-feedback d-block">
+              @if (f['email'].errors?.['required']) { <span>Email requerido</span> }
+              @if (f['email'].errors?.['email']) { <span>Formato de email no válido</span> }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <textarea formControlName="message" class="form-control" rows="3"
+                    placeholder="Tu mensaje"
+                    [class.is-invalid]="f['message'].touched && f['message'].invalid"
+                    [class.is-valid]="f['message'].valid"></textarea>
+
+          @if (f['message'].invalid && f['message'].touched) {
+            <div class="invalid-feedback d-block">
+              @if (f['message'].errors?.['required']) { <span>El mensaje no puede estar vacío</span> }
+            </div>
+          }
+        </div>
+
+        <div class="text-center">
+          <button class="btn btn-dark px-5 py-2 shadow-sm" type="submit" [disabled]="commentForm.invalid">
+            Enviar Mensaje
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- LOCALES -->
+    <div class="col-md-6">
+      <div class="row text-center gy-4 mt-4">
+        <div class="col-12">
+          <div class="fw-semibold text-uppercase local">
+            Grau de Gandia
+          </div>
+
+          <a
+            class="d-block"
+            href="tel:+349651234578">
+            +34 965 123 578
+          </a>
+
+          <a
+            class="d-block"
+            href="mailto:correo@correo.com">
+            correo@correo.com
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>

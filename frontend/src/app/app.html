@@ -1,0 +1,14 @@
+<!-- 🏠 HOME (sin navbar ni container) -->
+@if (isHome) {
+  <router-outlet/>
+} @else if (isMenu) {
+  <app-navbar/>
+  <router-outlet/>
+  <app-footer/>
+} @else {
+  <div class="container">
+    <app-navbar/>
+    <router-outlet/>
+    <app-footer/>
+  </div>
+}

@@ -1,0 +1,10 @@
+.philosophy-card {
+  transition: all 0.35s ease;
+  backdrop-filter: blur(6px);
+}
+
+.philosophy-card:hover {
+  transform: translateY(-10px);
+  border-color: var(--secondary);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
