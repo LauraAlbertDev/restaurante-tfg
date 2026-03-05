@@ -39,15 +39,26 @@ Configuración de la arquitectura base y entornos de ejecución.
 ### ✨ Añadido – Filosofía Corporativa (About Us)
 
 ### 🖥️ Backend
+<<<<<<< HEAD
 - **Base de Datos**: Creación y persistencia de la tabla `philosophies` en MariaDB para el almacenamiento de valores de marca.
 - **Endpoints**:
     - `GET /philosophies`: Implementación de lógica de obtención de datos ordenados.
 - **Reglas de Negocio**: Aplicación de validaciones de integridad para asegurar la consistencia de los registros corporativos.
+=======
+
+- Creación de tabla `philosophies` en MariaDB para almacenar los valores corporativos.
+- Inserción de los 6 registros iniciales (seed de datos).
+- Implementación del endpoint:
+    - `GET /philosophies` → Obtiene las 6 filosofías ordenadas.
+- Aplicación de regla de negocio: solo se permiten IDs del 1 al 6.
+>>>>>>> d2863790c2cd0cd85e9b076205a8130e46976175
 
 ### 🌐 Frontend
 - **Servicios**: Implementación de `PhilosophyService` para el consumo de datos asíncronos mediante `HttpClient`.
 - **Modelos**: Definición de la interfaz `Philosophy` para asegurar un tipado estricto de los datos recibidos.
 - **Componente AboutUs**: Integración dinámica de datos mediante directivas estructurales y renderizado condicional.
+
+---
 
 ---
 
@@ -66,6 +77,7 @@ Configuración de la arquitectura base y entornos de ejecución.
 ### 🌐 Frontend
 - **Servicios**: Creación de `ContactService` centralizando las peticiones HTTP relativas a la mensajería del usuario.
 - **Componente CommentsList**:
+<<<<<<< HEAD
     - Visualización administrativa mediante **Cards dinámicas** de Bootstrap.
     - Implementación de lógica de archivado en tiempo real con actualización reactiva del estado local.
     - Sistema de filtrado toggle para la gestión eficiente de comentarios.
@@ -87,3 +99,11 @@ Configuración de la arquitectura base y entornos de ejecución.
     - Creación de una funcionalidad de **Vista Previa dinámica** vinculada en tiempo real a los controles del formulario.
     - Gestión avanzada de estados de carga mediante `patchValue` e inyección de datos contextuales vía `@Input`.
 - **UI/UX**: Refinamiento estético mediante **Floating Labels** y feedback visual instantáneo para mejorar la usabilidad en tareas de edición.
+=======
+    - Visualización dinámica de comentarios mediante tarjetas (Cards).
+    - Implementación de lógica para archivar/restaurar registros en tiempo real.
+    - Filtro toggle para alternar entre vistas de comentarios activos y archivados.
+- **Mejoras de Código**:
+    - Renombrado de interfaces para evitar conflictos con tipos nativos del navegador.
+    - Implementación de carga defensiva de datos y manejo de errores en subscripciones.
+>>>>>>> d2863790c2cd0cd85e9b076205a8130e46976175
