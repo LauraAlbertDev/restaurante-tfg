@@ -1,70 +1,25 @@
-from fastapi import APIRouter, HTTPException
-from database import get_connection
+from fastapi import APIRouter, HTTPException, Depends
+from database import get_db
 from pydantic import BaseModel
+
+from models.philosophies import PhilosophyUpdate
+from repositories.philosophy_repository import PhilosophyRepository
 
 router = APIRouter(prefix="/philosophies", tags=["Philosophies"])
 
-
-# 🔹 Modelo para update
-class PhilosophyUpdate(BaseModel):
-    icon: str
-    title: str
-    message: str
-
-
-############# GET ALL #############
-
 @router.get("/")
-def get_philosophies():
-
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("SELECT * FROM philosophies ORDER BY id ASC")
-    data = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return data
-
-
-############# UPDATE #############
+def get_philosophies(db=Depends(get_db)):
+    return PhilosophyRepository(db).get_all()
 
 @router.put("/{philosophy_id}")
-def update_philosophy(philosophy_id: int, philosophy: PhilosophyUpdate):
+def update_philosophy(
+        philosophy_id: int,
+        philosophy: PhilosophyUpdate,
+        db=Depends(get_db)
+):
+    repo = PhilosophyRepository(db)
+    if not repo.get_by_id(philosophy_id):
+        raise HTTPException(status_code=404, detail="Filosofía no encontrada")
 
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        cursor.execute("""
-                       UPDATE philosophies
-                       SET icon=%s,
-                           title=%s,
-                           message=%s
-                       WHERE id=%s
-                       """, (
-                           philosophy.icon,
-                           philosophy.title,
-                           philosophy.message,
-                           philosophy_id
-                       ))
-
-        conn.commit()
-
-        if cursor.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Philosophy not found")
-
-        # devolver registro actualizado
-        cursor.execute("SELECT * FROM philosophies WHERE id=%s", (philosophy_id,))
-        updated = cursor.fetchone()
-
-        cursor.close()
-        conn.close()
-
-        return updated
-
-    except Exception as e:
-        print("🔥 MYSQL ERROR:", e)
-        raise HTTPException(status_code=500, detail=str(e))
+    updated = repo.update(philosophy_id, philosophy.model_dump())
+    return updated

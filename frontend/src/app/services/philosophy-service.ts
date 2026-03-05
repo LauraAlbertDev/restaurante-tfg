@@ -19,9 +19,20 @@ export class PhilosophyService {
   }
 
   updatePhilosophy(id: number, data: PhilosophyUpdate): Observable<Philosophy> {
-    return this.http.put<Philosophy>(
-      `${this.apiUrl}philosophies/${id}`,
-      data
-    );
+    // 1. Aseguramos que la URL sea correcta (evitamos el error de la barra)
+    const url = `${this.apiUrl}/philosophies/${id}`.replace(/([^:]\/)\/+/g, "$1");
+
+    // 2. Limpiamos el objeto para enviar SOLO lo que pide el DTO de Python
+    // Si envías algo que no está en el modelo Pydantic, FastAPI lanza el 422
+    const body = {
+      icon: data.icon,
+      title: data.title,
+      message: data.message
+    };
+
+    console.log('Enviando a:', url);
+    console.log('Cuerpo del delito:', body);
+
+    return this.http.put<Philosophy>(url, body);
   }
 }

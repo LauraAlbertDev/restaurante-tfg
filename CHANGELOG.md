@@ -87,3 +87,24 @@ Configuración de la arquitectura base y entornos de ejecución.
     - Creación de una funcionalidad de **Vista Previa dinámica** vinculada en tiempo real a los controles del formulario.
     - Gestión avanzada de estados de carga mediante `patchValue` e inyección de datos contextuales vía `@Input`.
 - **UI/UX**: Refinamiento estético mediante **Floating Labels** y feedback visual instantáneo para mejorar la usabilidad en tareas de edición.
+
+--- 
+
+## [0.6.0] - 05/03/2026
+### ✨ Añadido – Refactorización SOLID y Edición de Filosofía
+
+### 🖥️ Backend
+- **Dependency Injection**: Implementación de un generador de sesiones (`get_db`) con `yield` para garantizar el cierre automático de conexiones y optimizar el pool.
+- **Patrón Repositorio**:
+    - Refactorización del `PhilosophyRepository` eliminando parámetros de control ("strings mágicos") en favor de métodos explícitos (`fetchall`, `fetchone`).
+    - Implementación de **Manejo de Transacciones** con `commit()` y `rollback()` para asegurar la integridad atómica de los datos.
+- **Esquemas Pydantic**: Creación de `PhilosophyUpdate` para la validación estricta del cuerpo de las peticiones (Body) en el endpoint `PUT`.
+- **Clean Code**: Uso de parámetros nombrados en SQL (`%(key)s`) para mejorar la legibilidad y seguridad contra inyecciones.
+
+### 🌐 Frontend
+- **Servicios**: Refactorización de `PhilosophyService` para realizar un "limpiado" de datos (payload mapping) antes del envío, evitando errores 422 por envío de campos excedentes.
+- **Tipado**: Uso de tipos de utilidad de TypeScript (`Omit`, `Pick`) para definir `PhilosophyUpdate` a partir de la interfaz base, garantizando coherencia en el flujo de datos.
+- **Robustez**: Implementación de manejo de errores HTTP y validación de URLs dinámicas para prevenir fallos por barras diagonales duplicadas o faltantes.
+- **TypeScript**: Corrección de errores de asignación de tipos mediante operadores de afirmación no nula (`!`) y opcionalidad controlada en las plantillas.
+
+---

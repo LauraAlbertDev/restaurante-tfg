@@ -11,79 +11,65 @@ import {PhilosophyService} from '../../../../services/philosophy-service';
   templateUrl: './about-us-page.html',
   styleUrl: './about-us-page.css',
 })
-export class AboutUsPage implements OnInit {
-
+export class AboutUsPage implements  OnInit {
   private readonly philosophyService = inject(PhilosophyService);
-  private readonly formBuilder = inject(FormBuilder);
+  private readonly fb = inject(FormBuilder);
 
   philosophies: Philosophy[] = [];
-  me: any;
+  editForm: FormGroup = this.initForm();
+  selectedPhilosophyId: number | null = null;
+  private modalInstance: Modal | null = null;
 
-  editForm!: FormGroup;
-  selectedPhilosophyId!: number;
+  get f() { return this.editForm.controls; }
 
-  get icon() { return this.editForm.get('icon'); }
-  get title() { return this.editForm.get('title'); }
-  get message() { return this.editForm.get('message'); }
 
   ngOnInit(): void {
-
-
     this.loadPhilosophies();
+  }
 
-    this.editForm = this.formBuilder.group({
+  private initForm(): FormGroup {
+    return this.fb.group({
       icon: ['', Validators.required],
       title: ['', [Validators.required, Validators.minLength(3)]],
       message: ['', [Validators.required, Validators.minLength(10)]],
     });
   }
 
-  private loadPhilosophies(): void {
-    this.philosophyService
-      .getPhilosophies()
-      .subscribe(data => this.philosophies = data);
+  loadPhilosophies(): void {
+    this.philosophyService.getPhilosophies().subscribe({
+      next: (data) => this.philosophies = data,
+      error: (err) => console.error("Error cargando filosofías", err)
+    });
   }
 
   openEditModal(philosophy: Philosophy): void {
     this.selectedPhilosophyId = philosophy.id;
+    this.editForm.patchValue(philosophy);
 
-    this.editForm.patchValue({
-      icon: philosophy.icon,
-      title: philosophy.title,
-      message: philosophy.message
-    });
-
-    const modalElement = document.getElementById('editModal');
-    if (!modalElement) return;
-
-    const modal = new Modal(modalElement);
-    modal.show();
+    const el = document.getElementById('editModal');
+    if (el) {
+      this.modalInstance = new Modal(el);
+      this.modalInstance.show();
+    }
   }
 
-
   save(): void {
-    if (this.editForm.invalid) return;
+    if (this.editForm.invalid || !this.selectedPhilosophyId) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
 
     this.philosophyService
       .updatePhilosophy(this.selectedPhilosophyId, this.editForm.value)
-      .subscribe(updated => {
-
-        const index = this.philosophies.findIndex(
-          p => p.id === updated.id
-        );
-
-        if (index !== -1) {
-          this.philosophies[index] = updated;
-        }
-
-        const modalElement = document.getElementById('editModal');
-        if (!modalElement) return;
-
-        const modalInstance = Modal.getInstance(modalElement);
-        modalInstance?.hide();
+      .subscribe({
+        next: (updated) => {
+          // Actualización inmutable del array (Clean Code)
+          this.philosophies = this.philosophies.map(p =>
+            p.id === updated.id ? updated : p
+          );
+          this.modalInstance?.hide();
+        },
+        error: (err) => alert("Error al guardar: " + err.message)
       });
   }
-
-
-
 }

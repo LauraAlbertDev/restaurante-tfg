@@ -1,5 +1,4 @@
 <section class="py-5 text-white">
-
   <div class="text-center mb-5">
     <h2 class="display-5 fw-bold mb-3">Más que un restaurante</h2>
     <p class="fs-4 text-light fst-italic">
@@ -8,35 +7,28 @@
   </div>
 
   <div class="row align-items-center g-5">
-
     <div class="col-md-6">
       <img src="assets/images/about-us.png"
            class="img-fluid rounded-4 shadow-lg"
-           alt="Experiencia gastronómica">
+           alt="Experiencia gastronómica en el restaurante">
     </div>
 
     <div class="col-md-6">
-
       <p class="fs-5 mb-4">
         Nuestro proyecto nace del respeto por la tradición y del deseo de reinterpretarla con sensibilidad contemporánea.
         Creemos en la cocina honesta, en los sabores que emocionan y en el poder de compartir una mesa.
       </p>
-
       <p class="fs-5 mb-4">
         Cada ingrediente es seleccionado con criterio y cercanía. Trabajamos con productores locales, respetando los ciclos naturales y priorizando la calidad por encima de todo.
       </p>
-
       <p class="fs-5">
         No buscamos solo servir comida, sino crear una experiencia completa: ambiente acogedor, servicio atento y una propuesta gastronómica que invita a disfrutar sin prisas.
       </p>
-
     </div>
   </div>
 </section>
 
-
-<section class="py-5   text-white rounded-4">
-
+<section class="py-5 text-white">
   <div class="text-center mb-5">
     <h2 class="fw-bold mb-3">Nuestra Filosofía</h2>
     <p class="fs-5 text-light">
@@ -45,104 +37,96 @@
   </div>
 
   <div class="row g-4">
-
-    @for (f of philosophies; track $index) {
-
+    @for (philosophy of philosophies; track philosophy.id) {
       <div class="col-md-4">
-        <div class="p-4 h-100 rounded-4 border border-light border-opacity-25 text-center philosophy-card">
+        <div class="p-4 h-100 rounded-4 border border-light border-opacity-25 text-center philosophy-card transition-hover">
+          <div class="fs-2 mb-3">{{ philosophy.icon }}</div>
+          <h5 class="fw-bold text-uppercase tracking-wider">{{ philosophy.title }}</h5>
+          <p class="text-light-emphasis">{{ philosophy.message }}</p>
 
-          <div class="fs-2 mb-3">{{ f.icon }}</div>
-
-          <h5 class="fw-bold">{{ f.title }}</h5>
-
-          <p>{{ f.message }}</p>
-
-          <button
-            class="btn btn-sm btn-outline-light mt-3"
-            (click)="openEditModal(f)">
+          <button type="button"
+                  class="btn btn-sm btn-outline-light mt-3"
+                  (click)="openEditModal(philosophy)">
             ✏️ Editar
           </button>
-
         </div>
       </div>
-
+    } @empty {
+      <div class="col-12 text-center text-light-emphasis">
+        <p>Cargando los pilares de nuestra filosofía...</p>
+      </div>
     }
-
   </div>
-
 </section>
 
-
 <section class="py-5 text-center text-white">
-  <p class="fs-4 fst-italic mb-3">
-    La cocina es memoria, emoción y encuentro.
-  </p>
+  <blockquote class="blockquote">
+    <p class="fs-4 fst-italic mb-3">
+      "La cocina es memoria, emoción y encuentro."
+    </p>
+  </blockquote>
   <p class="fs-5">
     Te invitamos a vivirla con nosotros.
   </p>
 </section>
 
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white border-secondary">
 
-<div class="modal fade" id="editModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content bg-dark text-white">
-
-      <div class="modal-header">
-        <h5 class="modal-title">Editar filosofía</h5>
-        <button type="button"
-                class="btn-close btn-close-white"
-                data-bs-dismiss="modal">
-        </button>
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title fw-bold">Editar Pilar de Filosofía</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
-      <form [formGroup]="editForm" (ngSubmit)="save()">
-
+      <form [formGroup]="editForm" (ngSubmit)="save()" novalidate>
         <div class="modal-body">
 
           <div class="mb-3">
-            <label class="form-label">Icono</label>
-            <input
-              type="text"
-              class="form-control"
-              formControlName="icon">
+            <label class="form-label">Icono (Emoji)</label>
+            <input type="text"
+                   class="form-control"
+                   formControlName="icon"
+                   [class.is-invalid]="f['icon'].invalid && f['icon'].touched">
+            <div class="invalid-feedback">El icono es obligatorio.</div>
           </div>
 
           <div class="mb-3">
             <label class="form-label">Título</label>
-            <input
-              type="text"
-              class="form-control"
-              formControlName="title">
+            <input type="text"
+                   class="form-control"
+                   formControlName="title"
+                   [class.is-invalid]="f['title'].invalid && f['title'].touched">
+
+            <div class="invalid-feedback">
+              @if (f['title'].errors?.['required']) { Título obligatorio. }
+              @if (f['title'].errors?.['minlength']) { Mínimo 3 caracteres. }
+            </div>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Mensaje</label>
+            <label class="form-label">Mensaje / Descripción</label>
             <textarea
               class="form-control"
-              rows="3"
-              formControlName="message">
+              rows="4"
+              formControlName="message"
+              [class.is-invalid]="f['message'].invalid && f['message'].touched">
             </textarea>
+
+            <div class="invalid-feedback">
+              @if (f['message'].errors?.['required']) { El mensaje es obligatorio. }
+              @if (f['message'].errors?.['minlength']) { Mínimo 10 caracteres. }
+            </div>
           </div>
-
         </div>
 
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal">
-            Cancelar
-          </button>
-
-          <button
-            type="submit"
-            class="btn btn-primary">
-            Guardar
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary px-4" [disabled]="editForm.invalid">
+            Guardar Cambios
           </button>
         </div>
-
       </form>
-
     </div>
   </div>
 </div>

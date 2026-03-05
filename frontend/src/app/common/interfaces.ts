@@ -6,12 +6,13 @@ export interface Philosophy {
 }
 
 export interface UserComment {
-  id?: number;
+  id: number;
   name: string;
   tel: string;
   email: string;
   message: string;
   note?: string;
+  archived: boolean;
 }
 export type UpdateCommentDTO = Omit<UserComment, 'id'>;
 

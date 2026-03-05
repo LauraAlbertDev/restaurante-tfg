@@ -13,3 +13,11 @@ connection_pool = pooling.MySQLConnectionPool(
 
 def get_connection():
     return connection_pool.get_connection()
+
+def get_db():
+    db = get_connection()
+    try:
+        yield db
+    finally:
+        if db.is_connected():
+            db.close()
