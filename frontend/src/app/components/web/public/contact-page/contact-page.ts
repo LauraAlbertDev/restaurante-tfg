@@ -37,7 +37,7 @@ export class ContactPage {
       ...formValue,
       id: 0,
       archived: false,
-      note: formValue.note || '' // Aseguramos que no sea null
+      note: formValue.note || ''
     };
 
     this.contactService.postComment(newComment).subscribe({

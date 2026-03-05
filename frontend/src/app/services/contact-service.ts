@@ -16,7 +16,7 @@ export class ContactService {
     return this.http.get<UserComment[]>(`${this.baseUrl}/?archived=${status}`).pipe(map(res => res ?? []));
   }
 
-  postComment(comment: UserComment): Observable<any>{
+  postComment(comment: UserComment): Observable<UserComment>{
     return this.http.post<UserComment>(`${this.baseUrl}/add_comment`, comment);
   }
 
@@ -24,5 +24,11 @@ export class ContactService {
     return this.http.put<CommentUpdateResponse>(`${this.baseUrl}/archive/${id}`, {});
   }
 
+  getCommentById(id: number): Observable<UserComment> {
+    return this.http.get<UserComment>(`${this.baseUrl}/${id}`);
+  }
 
+  updateComment(id: number, comment: UserComment): Observable<UserComment> {
+    return this.http.put<UserComment>(`${this.baseUrl}/update/${id}`, comment);
+  }
 }

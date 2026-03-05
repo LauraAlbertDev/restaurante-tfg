@@ -6,19 +6,17 @@ export interface Philosophy {
 }
 
 export interface UserComment {
-  id: number;
+  id?: number;
   name: string;
   tel: string;
   email: string;
   message: string;
   note?: string;
-  archived: boolean;
-  created_at?: string;
 }
+export type UpdateCommentDTO = Omit<UserComment, 'id'>;
 
 
 export type PhilosophyUpdate = Omit<Philosophy, 'id'>;
-export type CommentUpdate = Partial<Omit<Comment, 'id'>>;
 
 export interface ApiResponse {
   status: 'success' | 'error';

@@ -1,87 +1,89 @@
 # 📦 Changelog – Restaurante Web App
 ### Backend & Frontend – Laura Albert (Solvam)
 
-Historial de cambios del proyecto.  
-Formato basado en: https://keepachangelog.com/es-ES/1.0.0/
+Historial de cambios del proyecto basado en los estándares de [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
 ## [0.1.0] - 24/02/2026
 ### 🎉 Inicio del proyecto
-Primera configuración del entorno de desarrollo y estructura base.
+Configuración de la arquitectura base y entornos de ejecución.
 
 ### 🖥️ Backend
-- Inicialización proyecto FastAPI
-- Configuración entorno virtual Python
-- Conexión a base de datos MySQL
-- Creación estructura inicial:
-    - Carpeta `models/`
-    - Carpeta `routes/`
-    - Archivo `database.py`
-- Configuración servidor Uvicorn
+- **Core**: Inicialización de la API mediante el framework **FastAPI**.
+- **Infraestructura**: Configuración de entorno virtual Python y drivers de conexión para **MySQL**.
+- **Arquitectura**: Definición de la estructura de directorios siguiendo un patrón modular (`models/`, `routes/`, `services/`).
+- **Servidor**: Configuración de **Uvicorn** para el despliegue en el entorno de desarrollo.
 
 ### 🌐 Frontend
-- Inicialización proyecto Angular
-- Creación estructura base:
-    - `navbar and footer`
-    - `interfaces`
-    - `components/`
-- Conexión inicial con API backend
+- **Core**: Inicialización del proyecto con **Angular** utilizando **Standalone Components**.
+- **Estructura**: Implementación de componentes globales de navegación (`Navbar`, `Footer`) y tipado mediante interfaces.
+- **Entorno**: Configuración de `environments/` para la gestión centralizada de las URLs de la API.
 
 ---
 
 ## [0.2.0] - 27/02/2026
-### ✨ Añadido – Página de inicio
+### ✨ Añadido – Home Page & Routing
 
 ### 🖥️ Backend
-- Mejora en estructura de rutas
+- **Routing**: Refactorización del sistema de rutas para permitir escalabilidad en futuros módulos.
 
 ### 🌐 Frontend
-- Creación del componente home/
-- Diseño y maquetación de la página principal
-- Implementación de sección hero con imagen principal
-- Ajustes visuales en navbar para adaptarse al inicio
+- **Componente Home**: Creación y maquetación de la landing page principal.
+- **UI/UX**: Implementación de sección *Hero* con diseño responsivo y optimización de recursos visuales.
+- **Navegación**: Configuración de `AppRoutes` para la gestión de la navegación Single Page Application (SPA).
 
 ---
 
 ## [0.3.0] - 01/03/2026
-### ✨ Añadido – Página de sobre nosotros
+### ✨ Añadido – Filosofía Corporativa (About Us)
 
 ### 🖥️ Backend
-
-- Creación de tabla `philosophies` en MariaDB para almacenar los valores corporativos.
-- Inserción de los 6 registros iniciales (seed de datos).
-- Implementación del endpoint:
-    - `GET /philosophies` → Obtiene las 6 filosofías ordenadas.
-- Aplicación de regla de negocio: solo se permiten IDs del 1 al 6.
-
----
+- **Base de Datos**: Creación y persistencia de la tabla `philosophies` en MariaDB para el almacenamiento de valores de marca.
+- **Endpoints**:
+    - `GET /philosophies`: Implementación de lógica de obtención de datos ordenados.
+- **Reglas de Negocio**: Aplicación de validaciones de integridad para asegurar la consistencia de los registros corporativos.
 
 ### 🌐 Frontend
-- Creación de `PhilosophyService` para consumir la API.
-    - Método `getPhilosophies()`
-- Definición de la interfaz `Philosophy`.
-- Integración dinámica de las filosofías en la página "About Us".
+- **Servicios**: Implementación de `PhilosophyService` para el consumo de datos asíncronos mediante `HttpClient`.
+- **Modelos**: Definición de la interfaz `Philosophy` para asegurar un tipado estricto de los datos recibidos.
+- **Componente AboutUs**: Integración dinámica de datos mediante directivas estructurales y renderizado condicional.
+
+---
 
 ## [0.4.0] - 05/03/2026
 ### ✨ Añadido – Gestión de Contacto y Comentarios
 
 ### 🖥️ Backend
-- **Arquitectura**: Implementación del **Patrón Repositorio** (`CommentRepository`) para una gestión limpia de la base de datos siguiendo principios SOLID.
-- **Modelos**: Uso de **Pydantic** con la clase `UserComment` para validación de datos.
+- **Arquitectura**: Implementación del **Patrón Repositorio** (`CommentRepository`) para desacoplar la lógica de persistencia de la lógica de negocio (SOLID).
+- **Modelos**: Definición de esquemas de validación y serialización mediante **Pydantic** (`UserComment`).
 - **Endpoints**:
-    - `POST /add_comment`: Creación de comentarios.
-    - `GET /comments/`: Listado dinámico con filtro de archivados.
-    - `PUT /archive/{id}`: Lógica para conmutar el estado de archivado.
-- **CORS**: Configuración de seguridad para permitir la comunicación con el Frontend.
+    - `POST /comments`: Creación de nuevos registros de contacto.
+    - `GET /comments`: Listado con soporte para filtrado dinámico de estado (archivados/activos).
+    - `PUT /comments/archive/{id}`: Implementación de lógica de conmutación de estado (toggle).
+- **Seguridad**: Configuración de **Middleware CORS** para habilitar la comunicación segura con el dominio del Frontend.
 
 ### 🌐 Frontend
-- **Servicios**: Creación de `ContactService` para la gestión de mensajes de usuario.
-- **Componente Contact**: Formulario para el envío de datos al backend.
+- **Servicios**: Creación de `ContactService` centralizando las peticiones HTTP relativas a la mensajería del usuario.
 - **Componente CommentsList**:
-    - Visualización dinámica de comentarios mediante tarjetas (Cards).
-    - Implementación de lógica para archivar/restaurar registros en tiempo real.
-    - Filtro toggle para alternar entre vistas de comentarios activos y archivados.
-- **Mejoras de Código**:
-    - Renombrado de interfaces para evitar conflictos con tipos nativos del navegador.
-    - Implementación de carga defensiva de datos y manejo de errores en subscripciones.
+    - Visualización administrativa mediante **Cards dinámicas** de Bootstrap.
+    - Implementación de lógica de archivado en tiempo real con actualización reactiva del estado local.
+    - Sistema de filtrado toggle para la gestión eficiente de comentarios.
+- **Clean Code**: Refactorización de interfaces para prevenir colisiones de tipos y manejo defensivo de flujos observables (`RxJS`).
+
+---
+
+## [0.5.0] - 05/03/2026
+### ✨ Añadido – Edición de Comentarios y Vista Previa
+
+### 🖥️ Backend
+- **Patrón Repositorio**: Optimización de los métodos `update()` y `get_by_id()` garantizando la integridad referencial en las consultas SQL.
+- **Conectividad**: Implementación de **Pooling de conexiones** para optimizar el rendimiento y la reutilización de recursos de la base de datos.
+- **Clean Code**: Unificación de métodos en el repositorio siguiendo el principio **DRY (Don't Repeat Yourself)** y uso de parámetros nombrados para prevenir inyecciones SQL.
+
+### 🌐 Frontend
+- **Componente CommentsEdit**:
+    - Implementación de **Formularios Reactivos** (`ReactiveFormsModule`) con validaciones de estado y longitud.
+    - Creación de una funcionalidad de **Vista Previa dinámica** vinculada en tiempo real a los controles del formulario.
+    - Gestión avanzada de estados de carga mediante `patchValue` e inyección de datos contextuales vía `@Input`.
+- **UI/UX**: Refinamiento estético mediante **Floating Labels** y feedback visual instantáneo para mejorar la usabilidad en tareas de edición.

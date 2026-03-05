@@ -37,3 +37,12 @@ def toggle_archive(comment_id: int):
         new_status = repo.toggle_archive(comment_id)
         check_exists(new_status) # Si no existe, lanza el 404
         return repo.get_all(archived=0)
+
+@router.put("/update/{comment_id}")
+def update_comment(comment_id: int, comment_data: UserComment):
+    with get_connection() as conn:
+        repo = CommentRepository(conn)
+        check_exists(repo.get_by_id(comment_id))
+
+        repo.update(comment_id, comment_data)
+        return {"status": "success", "message": "Comentario actualizado correctamente"}
