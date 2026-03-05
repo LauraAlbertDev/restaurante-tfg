@@ -5,3 +5,7 @@ class Philosophy(BaseModel):
     title: str
     message: str
 
+class PhilosophyUpdate(BaseModel):
+    icon: str
+    title: str
+    message: str

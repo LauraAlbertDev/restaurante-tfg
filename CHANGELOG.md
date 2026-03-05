@@ -62,3 +62,26 @@ Primera configuración del entorno de desarrollo y estructura base.
     - Método `getPhilosophies()`
 - Definición de la interfaz `Philosophy`.
 - Integración dinámica de las filosofías en la página "About Us".
+
+## [0.4.0] - 05/03/2026
+### ✨ Añadido – Gestión de Contacto y Comentarios
+
+### 🖥️ Backend
+- **Arquitectura**: Implementación del **Patrón Repositorio** (`CommentRepository`) para una gestión limpia de la base de datos siguiendo principios SOLID.
+- **Modelos**: Uso de **Pydantic** con la clase `UserComment` para validación de datos.
+- **Endpoints**:
+    - `POST /add_comment`: Creación de comentarios.
+    - `GET /comments/`: Listado dinámico con filtro de archivados.
+    - `PUT /archive/{id}`: Lógica para conmutar el estado de archivado.
+- **CORS**: Configuración de seguridad para permitir la comunicación con el Frontend.
+
+### 🌐 Frontend
+- **Servicios**: Creación de `ContactService` para la gestión de mensajes de usuario.
+- **Componente Contact**: Formulario para el envío de datos al backend.
+- **Componente CommentsList**:
+    - Visualización dinámica de comentarios mediante tarjetas (Cards).
+    - Implementación de lógica para archivar/restaurar registros en tiempo real.
+    - Filtro toggle para alternar entre vistas de comentarios activos y archivados.
+- **Mejoras de Código**:
+    - Renombrado de interfaces para evitar conflictos con tipos nativos del navegador.
+    - Implementación de carga defensiva de datos y manejo de errores en subscripciones.
