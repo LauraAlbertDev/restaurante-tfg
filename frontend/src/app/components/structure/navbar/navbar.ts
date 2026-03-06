@@ -1,72 +1,48 @@
-import {Component, inject} from '@angular/core';
-import {Router, RouterLink} from '@angular/router';
+import {Component, inject, OnInit} from '@angular/core';
+import {Router, RouterLink, RouterLinkActive} from '@angular/router';
 import {AuthService} from '../../../services/auth-service';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
   imports: [
-    RouterLink
+    RouterLink,
+    RouterLinkActive,
+    CommonModule
   ],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
-export class Navbar {
+export class Navbar  {
+  activeMenu: 'admin' | 'user' | null = null;
+
   pages = [
-    {
-      name: 'Inicio',
-      link: '/'
-    },
-    {
-      name: 'Menu',
-      link: 'menu'
-    },
-    {
-      name: 'Nosotros',
-      link: 'nosotros'
-    },
-    {
-      name: 'Contacto',
-      link: 'contacto'
-    },
-    {
-      name: 'Reservas',
-      link: 'reservas'
-    }
+    { name: 'Inicio', link: '/' },
+    { name: 'Nosotros', link: '/nosotros' },
+    { name: 'Menú', link: '/menu' },
+    { name: 'Contacto', link: '/contacto'}
   ];
+
   adminPages = [
-    {
-      name: 'Usuarios',
-      link: '/admin/users',
-      icon: 'people-fill',
-    },
-    {
-      name: 'Categorias',
-      link: '/admin/categorias',
-      icon: 'bookmark',
-    },
-    {
-      name: 'Añadir Producto',
-      link: '/product/add',
-      icon: 'plus-lg',
-    },
-    {
-      name: 'Dashboard',
-      link: '/admin/dashboard',
-      icon: 'bar-chart-fill',
-    },
-    {
-      name: 'Comentarios',
-      link: '/comments/list',
-      icon: 'chat-left-text-fill',
-    }
-  ]
+    { name: 'Usuarios', link: '/admin/users', icon: 'people' },
+    { name: 'Comentarios', link: 'admin/comments-list', icon: 'people' }
+  ];
 
   auth = inject(AuthService);
   router = inject(Router);
 
   logOut(){
     this.auth.logout();
+    this.closeMenus();
     this.router.navigate(['/login']);
+  }
+
+  closeMenus() {
+    this.activeMenu = null;
+  }
+
+  toggleMenu(menu: 'admin' | 'user') {
+    this.activeMenu = this.activeMenu === menu ? null : menu;
   }
 
 }

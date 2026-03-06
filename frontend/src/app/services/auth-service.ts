@@ -1,4 +1,4 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Injectable, signal} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../environment/environment';
 import {tap} from 'rxjs';
@@ -8,13 +8,38 @@ import {Router} from '@angular/router';
   providedIn: 'root',
 })
 export class AuthService {
+  userType = signal<string | null>(localStorage.getItem('type'));
+  private http : HttpClient = inject(HttpClient);
   private router : Router = inject(Router);
 
-   logout(){
+  // LOG-IN/LOG-OUT
+  login(email: string, password: string){
+    return this.http.post<any>(environment.apiUrl + 'auth/login', {
+      email,
+      password
+    }).pipe(
+      tap(res => {
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('name', res.name);
+        localStorage.setItem('type', res.type);
+        this.redirectByRole(res.type);
+      })
+    )
+  }
+
+  logout(){
     localStorage.clear();
     this.router.navigate(['/login']);
   }
 
+  // GETTERS
+  getToken(){
+    return localStorage.getItem('token') || '';
+  }
+
+  getType(){
+    return localStorage.getItem('type') || '';
+  }
 
   // USER LOGGED?
   isAuthenticated(): boolean {
@@ -32,8 +57,25 @@ export class AuthService {
 
   // ROLES
   isAdmin(){
-    return localStorage.getItem('type') === 'admin';
+    return this.userType() === 'admin';
   }
 
+  isEmployee(){
+    return localStorage.getItem('type') === 'employee';
+  }
 
+  redirectByRole(role: string) {
+    if(role === 'admin'){
+      this.router.navigate(['/']);
+      return;
+    }
+
+    if(role === 'employee'){
+      this.router.navigate(['/']);
+      return;
+    }
+
+    // fallback
+    this.router.navigate(['/']);
+  }
 }

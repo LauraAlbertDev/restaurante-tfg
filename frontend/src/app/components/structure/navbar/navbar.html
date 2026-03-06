@@ -1,16 +1,82 @@
-<nav class="navbar navbar-expand-lg  navbar-dark">
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
   <div class="container-fluid">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse justify-content-center w-100" id="navbarNav">
-      <ul class="navbar-nav">
-        @for (page of pages; track $index) {
+
+    <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+      <ul class="navbar-nav align-items-center">
+
+        @for (page of pages; track page.link) {
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" [routerLink]='page.link'>{{ page.name }}</a>
+            <a class="nav-link"
+               [routerLink]="page.link"
+               routerLinkActive="active fw-bold"
+               [routerLinkActiveOptions]="{exact: true}"
+               (click)="closeMenus()">
+              {{ page.name }}
+            </a>
           </li>
         }
+
+        @if (auth.isAdmin()) {
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" role="button"
+               (click)="toggleMenu('admin')"
+               [class.show]="activeMenu === 'admin'">
+              <i class="bi bi-shield-lock me-1"></i> Admin
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-dark shadow"
+                [class.show]="activeMenu === 'admin'">
+              @for (adminPage of adminPages; track adminPage.link) {
+                <li>
+                  <a class="dropdown-item d-flex align-items-center"
+                     [routerLink]="adminPage.link"
+                     (click)="closeMenus()">
+                    <i [class]="'bi bi-' + adminPage.icon + ' me-2'"></i>
+                    {{ adminPage.name }}
+                  </a>
+                </li>
+              }
+            </ul>
+          </li>
+        }
+
+        @if (!auth.isAuthenticated()) {
+          <li class="nav-item ms-lg-3">
+            <a class="btn btn-outline-light btn-sm px-3" routerLink="/login" (click)="closeMenus()">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Login
+            </a>
+          </li>
+        } @else {
+          <li class="nav-item dropdown ms-lg-3">
+            <a class="nav-link dropdown-toggle d-flex align-items-center"
+               role="button"
+               (click)="toggleMenu('user')"
+               [class.show]="activeMenu === 'user'">
+              <i class="bi bi-person-circle fs-5"></i>
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow"
+                [class.show]="activeMenu === 'user'">
+              <li class="dropdown-header text-uppercase small text-muted">Mi Cuenta</li>
+              <li>
+                <a class="dropdown-item" routerLink="/perfil" (click)="closeMenus()">
+                  <i class="bi bi-person-fill-gear me-2"></i> Mi Perfil
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-danger" (click)="logOut()" role="button">
+                  <i class="bi bi-box-arrow-left me-2"></i> Cerrar Sesión
+                </a>
+              </li>
+            </ul>
+          </li>
+        }
+
       </ul>
     </div>
   </div>

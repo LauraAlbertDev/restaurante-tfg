@@ -26,6 +26,18 @@ export class FormValidators {
     return null;
   }
 
+  static emailDominio(dominio: string) {
+    return (control: FormControl): ValidationErrors | null => {
+      const email = control.value;
 
+      if (!email) return null;
+
+      if (!email.toLowerCase().endsWith('@' + dominio.toLowerCase())) {
+        return { emailDominio: true };
+      }
+
+      return null;
+    };
+  }
 
 }

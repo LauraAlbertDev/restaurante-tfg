@@ -28,3 +28,14 @@ export interface ApiResponse {
 export interface CommentUpdateResponse extends ApiResponse {
   archived_status: boolean;
 }
+
+export interface User{
+  id:number;
+  name: string;
+  email: string;
+  password: string;
+  type: string;
+  active: boolean;
+  created_at: Date;
+}
+

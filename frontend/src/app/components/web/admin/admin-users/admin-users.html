@@ -1,0 +1,134 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between mb-3">
+    <h3>Panel empleados</h3>
+
+    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addUserModal" (click)="isEditing = false; formUsers.reset()">
+      <i class="bi bi-person-plus-fill"></i> Añadir usuario
+    </button>
+  </div>
+
+  <table class="table table-hover">
+    <thead class="table-dark">
+    <tr>
+      <th>Nombre</th>
+      <th>Email</th>
+      <th>Tipo</th>
+      <th>Creado el</th>
+      <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody>
+      @for(u of users; track u.id){
+        <tr>
+          <td>{{u.name}}</td>
+          <td>{{u.email}}</td>
+          <td class="text-capitalize">{{u.type}}</td>
+          <td>{{ u.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-2" (click)="openEditModal(u)" data-bs-toggle="modal" data-bs-target="#addUserModal">
+              <i class="bi bi-pencil-square"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" (click)="onArchive(u.id)">
+              <i class="bi bi-archive-fill"></i>
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-white">
+
+        <div class="modal-header border-secondary">
+          <h3 class="text-warning fw-bold text-uppercase mb-0">
+            <i class="bi" [ngClass]="isEditing ? 'bi-pencil-fill' : 'bi-people-fill'"></i>
+            {{ isEditing ? ' Editar usuario' : ' Usuario nuevo' }}
+          </h3>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <form [formGroup]="formUsers" (ngSubmit)="onSubmit()">
+            <div class="row">
+
+              <div class="col-md-6">
+                <div class="form-floating mb-3">
+                  <input type="text" class="form-control" id="name" placeholder="Nombre"
+                         formControlName="name"
+                         [class.is-invalid]="u['name'].touched && u['name'].invalid"
+                         [class.is-valid]="u['name'].valid">
+                  <label for="name" class="text-dark">Nombre</label>
+
+                  @if (u['name'].invalid && u['name'].touched) {
+                    <div class="invalid-feedback">
+                      @if (u['name'].errors?.['required']) { <span>Obligatorio</span> }
+                      @if (u['name'].errors?.['minlength']) { <span>Mínimo 2 letras</span> }
+                      @if (u['name'].errors?.['nonOnlyWhiteSpace']) { <span>No solo espacios</span> }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-floating mb-3">
+                  <input type="password" class="form-control" id="password" placeholder="Contraseña"
+                         formControlName="password"
+                         [class.is-invalid]="u['password'].touched && u['password'].invalid">
+                  <label for="password" class="text-dark">Contraseña</label>
+
+                  @if (u['password'].invalid && u['password'].touched) {
+                    <div class="invalid-feedback">
+                      @if (u['password'].errors?.['required']) { <span>Obligatoria</span> }
+                      @if (u['password'].errors?.['minlength']) { <span>Mínimo 8 caracteres</span> }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-floating mb-3">
+                  <select class="form-select" id="type" formControlName="type"
+                          [class.is-invalid]="u['type'].touched && u['type'].invalid">
+                    <option value="">-- Selecciona --</option>
+                    <option value="employee">Empleado</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                  <label for="type" class="text-dark">Tipo</label>
+                  @if (u['type'].errors?.['required'] && u['type'].touched) {
+                    <div class="small text-danger">Selecciona un tipo</div>
+                  }
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-floating mb-3">
+                  <input type="email" class="form-control" id="email" placeholder="Email"
+                         formControlName="email"
+                         [class.is-invalid]="u['email'].touched && u['email'].invalid">
+                  <label for="email" class="text-dark">Email</label>
+
+                  <div class="invalid-feedback">
+                    @if (u['email'].errors?.['required']) { <span>Email obligatorio</span> }
+                    @if (u['email'].errors?.['email']) { <span>Formato inválido</span> }
+                    @if (u['email'].errors?.['empresaEmail']) { <span>Debe ser @empresa.com</span> }
+                    @if (u['email'].errors?.['emailExists']) { <span>Email ya registrado</span> }
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="modal-footer border-secondary mt-3">
+              <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-warning fw-bold" [disabled]="formUsers.invalid" data-bs-dismiss="modal">
+                {{ isEditing ? 'Actualizar' : 'Crear' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

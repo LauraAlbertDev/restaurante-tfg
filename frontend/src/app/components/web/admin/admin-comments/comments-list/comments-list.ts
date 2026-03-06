@@ -11,7 +11,7 @@ import {RouterLink} from '@angular/router';
   templateUrl: './comments-list.html',
   styleUrl: './comments-list.css',
 })
-export class CommentsList implements OnInit {
+export class CommentsList  implements OnInit {
   comments: UserComment[] = [];
   private readonly contactService = inject(ContactService);
 

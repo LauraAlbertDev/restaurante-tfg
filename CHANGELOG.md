@@ -108,3 +108,25 @@ Configuración de la arquitectura base y entornos de ejecución.
 - **TypeScript**: Corrección de errores de asignación de tipos mediante operadores de afirmación no nula (`!`) y opcionalidad controlada en las plantillas.
 
 ---
+
+## [1.0.0] - 06/03/2026
+### ✨ Seguridad – Autenticación y Autorización (JWT)
+
+### 🖥️ Backend
+- **Core Security**: Implementación de autenticación basada en **JWT (JSON Web Tokens)** y hashing de contraseñas mediante **Bcrypt**.
+- **Middleware**:
+    - Implementación de `get_current_user` y dependencias de seguridad para la validación de tokens en cabeceras de petición.
+    - Creación de lógica de **Control de Acceso (RBAC)** mediante funciones inyectables para restringir endpoints según el rol del usuario.
+- **Esquemas Pydantic**: Definición de modelos `UserLogin`, `UserRegister` y `LoginResponse` para la validación estricta del cuerpo de las peticiones y respuestas.
+- **Clean Code**: Centralización de la lógica de autenticación en un **AuthRepository**, eliminando el uso de "strings mágicos" y asegurando la integridad atómica en las consultas de usuario.
+
+### 🌐 Frontend
+- **Protección de Rutas (Guards)**: Implementación de un `AuthGuard` funcional encargado de validar la sesión y el rol del usuario antes de permitir el acceso a rutas sensibles.
+- **Navegación Administrativa**:
+    - Reestructuración de rutas críticas mediante **Child Routes** bajo el prefijo `/admin`.
+    - Restricción de acceso exclusivo para el rol **Admin** en los módulos de `comment-list` y `comment-detail`, garantizando la privacidad de las comunicaciones de los usuarios.
+- **Servicios**: Implementación de **Angular Signals** en `AuthService` para una gestión de estado reactiva, eliminando la necesidad de refrescar la página para actualizar la interfaz post-login.
+- **Robustez**:
+    - Implementación de lógica de control de menús unificada en la **Navbar** para prevenir estados inconsistentes en la navegación SPA.
+    - Gestión avanzada de persistencia de sesión y manejo defensivo de errores HTTP mediante interceptores (401 Unauthorized).
+- **TypeScript**: Refactorización de componentes bajo principios **SOLID**, desacoplando la lógica de visibilidad de los elementos del DOM y centralizando el estado en el controlador del componente.

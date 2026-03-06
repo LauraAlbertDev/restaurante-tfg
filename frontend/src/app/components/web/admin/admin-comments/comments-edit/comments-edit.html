@@ -112,7 +112,7 @@
           </button>
 
           <a class="btn btn-outline-secondary"
-            (click)="navigateToDashboard()" >
+             (click)="navigateToDashboard()" >
             <i class="bi bi-arrow-left me-2"></i>
             Volver al listado
           </a>
@@ -137,26 +137,26 @@
 
         <div class="card-body bg-light">
           <div class="text-center">
-          <h3 class="fw-bold text-dark mb-4">
-            {{ f['name'].value || 'Nombre del cliente' }}
-          </h3>
+            <h3 class="fw-bold text-dark mb-4">
+              {{ f['name'].value || 'Nombre del cliente' }}
+            </h3>
 
-          <div class="mb-4">
+            <div class="mb-4">
 
-            <p class="text-muted small fw-bold text-uppercase mb-2">
-              Información de contacto
-            </p>
+              <p class="text-muted small fw-bold text-uppercase mb-2">
+                Información de contacto
+              </p>
 
-            <p class="mb-1">
-              <i class="bi bi-telephone text-primary me-2"></i>
-              {{ f['tel'].value || 'Teléfono' }}
-            </p>
+              <p class="mb-1">
+                <i class="bi bi-telephone text-primary me-2"></i>
+                {{ f['tel'].value || 'Teléfono' }}
+              </p>
 
-            <p class="mb-0">
-              <i class="bi bi-envelope text-primary me-2"></i>
-              {{ f['email'].value || 'Email' }}
-            </p>
-          </div>
+              <p class="mb-0">
+                <i class="bi bi-envelope text-primary me-2"></i>
+                {{ f['email'].value || 'Email' }}
+              </p>
+            </div>
           </div>
 
           <div class="mb-4">

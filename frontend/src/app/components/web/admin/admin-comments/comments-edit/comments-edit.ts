@@ -1,15 +1,16 @@
-import { Component, inject, OnInit, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { ContactService } from '../../../../../services/contact-service';
+import {Component, inject, Input, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
+import {ContactService} from '../../../../../services/contact-service';
+import {Router} from '@angular/router';
 import {UserComment} from '../../../../../common/interfaces';
 
 @Component({
-  selector: 'app-comment-form',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  selector: 'app-comments-edit',
+    imports: [
+        ReactiveFormsModule
+    ],
   templateUrl: './comments-edit.html',
+  styleUrl: './comments-edit.css',
 })
 export class CommentsEdit implements OnInit {
   @Input() id?: number;
