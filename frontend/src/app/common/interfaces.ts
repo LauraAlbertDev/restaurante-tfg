@@ -39,3 +39,7 @@ export interface User{
   created_at: Date;
 }
 
+export interface Category {
+  id: number;
+  name: string;
+}

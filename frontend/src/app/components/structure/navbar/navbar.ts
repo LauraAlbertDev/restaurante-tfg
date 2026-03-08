@@ -25,7 +25,8 @@ export class Navbar  {
 
   adminPages = [
     { name: 'Usuarios', link: '/admin/users', icon: 'people' },
-    { name: 'Comentarios', link: 'admin/comments-list', icon: 'people' }
+    { name: 'Comentarios', link: 'admin/comments-list', icon: 'chat-dots-fill' },
+    { name: 'Categorias', link: 'admin/categories', icon: 'bookmarks' }
   ];
 
   auth = inject(AuthService);

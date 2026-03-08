@@ -7,6 +7,7 @@ import {LoginPage} from './components/web/public/login-page/login-page';
 import {authGuard} from './components/guards/auth-guard';
 import {CommentsList} from './components/web/admin/admin-comments/comments-list/comments-list';
 import {CommentsEdit} from './components/web/admin/admin-comments/comments-edit/comments-edit';
+import {AdminCategories} from './components/web/admin/admin-categories/admin-categories';
 
 
 export const routes: Routes = [
@@ -22,6 +23,7 @@ export const routes: Routes = [
     children: [
       { path: 'comments-list', component: CommentsList },
       { path: 'comments/detail/:id', component: CommentsEdit },
+      { path: 'categories', component: AdminCategories },
       { path: 'users', component: AdminUsers },
       { path: '', redirectTo: 'users', pathMatch: 'full' }
     ]

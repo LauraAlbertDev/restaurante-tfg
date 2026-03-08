@@ -130,3 +130,34 @@ Configuración de la arquitectura base y entornos de ejecución.
     - Implementación de lógica de control de menús unificada en la **Navbar** para prevenir estados inconsistentes en la navegación SPA.
     - Gestión avanzada de persistencia de sesión y manejo defensivo de errores HTTP mediante interceptores (401 Unauthorized).
 - **TypeScript**: Refactorización de componentes bajo principios **SOLID**, desacoplando la lógica de visibilidad de los elementos del DOM y centralizando el estado en el controlador del componente.
+
+---
+## [1.1.0] - 08/03/2026
+### ✨ Añadido – Gestión Integral de Categorías (CRUD)
+
+### 🖥️ Backend
+- **Arquitectura SOLID**:
+    - Implementación del **Patrón Repositorio** (`CategoryRepository`) con **Inyección de Dependencias** real a través del constructor.
+    - Desacoplamiento total de la gestión de conexiones: el repositorio utiliza la conexión inyectada desde el pool, delegando el ciclo de vida (apertura/cierre) al generador de FastAPI (`yield`).
+- **Modelado de Datos**:
+    - Definición de esquemas **Pydantic** (`CategoryCreate`, `Categories`) para la validación estricta de tipos y generación automática de contratos de API.
+- **Endpoints**:
+    - `GET /categories`: Obtención de listado completo con mapeo automático a modelo de respuesta.
+    - `POST /categories`: Lógica de creación con validación preventiva de duplicados.
+    - `PUT /categories/{id}`: Edición con validación de unicidad de nombre (excluyendo el ID actual).
+    - `DELETE /categories/{id}`: Implementación de control de integridad referencial para impedir el borrado de categorías con productos vinculados.
+- **Automatización (DevOps)**:
+    - Creación de script de arranque `run_backend.ps1` para automatizar la activación del entorno virtual (`.venv`), instalación de dependencias y lanzamiento del servidor Uvicorn con *hot-reload*.
+
+### 🌐 Frontend
+- **Angular Signals**:
+    - Implementación de arquitectura reactiva moderna mediante **Signals** (`signal`, `update`) para la gestión de estados locales y globales.
+    - Gestión de inmutabilidad: Actualización de la interfaz mediante proyecciones de estado, evitando la mutación directa de arrays.
+- **Componente AdminCategories**:
+    - Interfaz de administración con sistema de "Edición en línea" (In-place editing) y flujo de control nativo de Angular (`@for`, `@if`).
+    - Implementación de estados de carga (`loading`) para el bloqueo de UI durante peticiones asíncronas, mejorando la UX y evitando colisiones de datos.
+- **Servicios**:
+    - Centralización de la lógica de sincronización en `CategoryService` mediante métodos de actualización local (`addLocal`, `removeLocal`, `updateLocal`).
+- **Clean Code**:
+    - Tipado estricto mediante interfaces para eliminar el uso de `any`.
+    - Refactorización de métodos de controlador para una gestión de errores defensiva basada en los códigos de estado HTTP del backend.

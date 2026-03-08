@@ -4,6 +4,7 @@ from routers.philosophies import router as philosophies_router
 from routers.comments import router as comments_router
 from routers.users import router as users_router
 from routers.auth import router as auth_router
+from routers.categories import router as categories_router
 
 app = FastAPI(
     docs_url="/docs",
@@ -27,6 +28,7 @@ app.include_router(philosophies_router)
 app.include_router(comments_router)
 app.include_router(users_router)
 app.include_router(auth_router)
+app.include_router(categories_router)
 
 
 @app.get("/")
