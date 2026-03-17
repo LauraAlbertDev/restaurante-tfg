@@ -22,6 +22,7 @@ export class AuthService {
         localStorage.setItem('token', res.token);
         localStorage.setItem('name', res.name);
         localStorage.setItem('type', res.type);
+        this.userType.set(res.type);
         this.redirectByRole(res.type);
       })
     )
@@ -29,6 +30,7 @@ export class AuthService {
 
   logout(){
     localStorage.clear();
+    this.userType.set(null);
     this.router.navigate(['/login']);
   }
 
@@ -57,7 +59,7 @@ export class AuthService {
 
   // ROLES
   isAdmin(){
-    return this.userType() === 'admin';
+    return this.isAuthenticated() && this.userType() === 'admin';
   }
 
   isEmployee(){
@@ -77,5 +79,18 @@ export class AuthService {
 
     // fallback
     this.router.navigate(['/']);
+  }
+
+  // En tu AuthService.ts
+  private isRedirecting = false;
+
+  logoutWithAlert() {
+    if (this.isRedirecting) return;
+
+    this.isRedirecting = true;
+    alert('Tu sesión ha expirado, vas a ser redirigido al login');
+    this.logout();
+
+    setTimeout(() => this.isRedirecting = false, 3000);
   }
 }
