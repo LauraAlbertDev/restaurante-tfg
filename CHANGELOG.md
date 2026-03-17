@@ -177,4 +177,6 @@ Configuración de la arquitectura base y entornos de ejecución.
     - Corrección en la visualización de mensajes de error, mostrándolos en líneas independientes.
 
 - **Mapa (Google Maps)**:
-    - Ajuste del nivel de zoom en el mapa embebido para mejorar el contexto visual de la ubicación.
+    - Ajuste del nivel de zoom en el mapa embebido para mejorar el contexto visual de la ubicación
+-  **Navbar (Autenticación y roles)**:
+    - Simplificación de la lógica de visibilidad del menú de administración utilizando `isAdmin()` como única fuente de verdad.

@@ -18,8 +18,8 @@ export class Navbar  {
 
   pages = [
     { name: 'Inicio', link: '/' },
-    { name: 'Nosotros', link: '/nosotros' },
     { name: 'Menú', link: '/menu' },
+    { name: 'Nosotros', link: '/nosotros' },
     { name: 'Contacto', link: '/contacto'}
   ];
 
