@@ -43,12 +43,14 @@
           <div class="fs-2 mb-3">{{ philosophy.icon }}</div>
           <h5 class="fw-bold text-uppercase tracking-wider">{{ philosophy.title }}</h5>
           <p class="text-light-emphasis">{{ philosophy.message }}</p>
+          @if (auth.isAdmin()) {
+            <button type="button"
+                    class="btn btn-sm btn-outline-light mt-3"
+                    (click)="openEditModal(philosophy)">
+              ✏️ Editar
+            </button>
+          }
 
-          <button type="button"
-                  class="btn btn-sm btn-outline-light mt-3"
-                  (click)="openEditModal(philosophy)">
-            ✏️ Editar
-          </button>
         </div>
       </div>
     } @empty {
@@ -96,7 +98,8 @@
             <input type="text"
                    class="form-control"
                    formControlName="title"
-                   [class.is-invalid]="f['title'].invalid && f['title'].touched">
+                   [class.is-invalid]="f['title'].invalid && f['title'].touched"
+            >
 
             <div class="invalid-feedback">
               @if (f['title'].errors?.['required']) { Título obligatorio. }

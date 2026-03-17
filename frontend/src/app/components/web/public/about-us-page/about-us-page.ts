@@ -3,6 +3,7 @@ import { Philosophy } from '../../../../common/interfaces';
 import { Modal } from 'bootstrap';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {PhilosophyService} from '../../../../services/philosophy-service';
+import {AuthService} from '../../../../services/auth-service';
 
 @Component({
   selector: 'app-about-us-page',
@@ -19,6 +20,8 @@ export class AboutUsPage implements  OnInit {
   editForm: FormGroup = this.initForm();
   selectedPhilosophyId: number | null = null;
   private modalInstance: Modal | null = null;
+
+  public readonly auth = inject(AuthService);
 
   get f() { return this.editForm.controls; }
 
