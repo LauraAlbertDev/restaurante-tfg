@@ -16,10 +16,10 @@ export class ContactPage {
   private readonly formBuilder: FormBuilder = inject(FormBuilder);
 
   commentForm: FormGroup = this.formBuilder.group({
-    name: ['', [Validators.required]],
-    tel: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
-    email: ['', [Validators.required, Validators.email]],
-    message: ['', [Validators.required, Validators.minLength(10)]],
+    name: ['', [Validators.required, Validators.maxLength(20)]],
+    tel: ['', [Validators.required, Validators.pattern(/^\d{9}$/), Validators.maxLength(40)]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(/\.(com|es|net)$/)]],
+    message: ['', [Validators.required, Validators.maxLength(80)]],
     note: [''],
   });
 

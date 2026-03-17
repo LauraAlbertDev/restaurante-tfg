@@ -161,3 +161,20 @@ Configuración de la arquitectura base y entornos de ejecución.
 - **Clean Code**:
     - Tipado estricto mediante interfaces para eliminar el uso de `any`.
     - Refactorización de métodos de controlador para una gestión de errores defensiva basada en los códigos de estado HTTP del backend.
+---
+## [1.1.1] - 17/03/2026
+### ✨ Mejora – Validaciones y Ajustes de UI en Contacto
+
+### 🖥️ Backend
+- Sin cambios relevantes.
+
+### 🌐 Frontend
+- **Validaciones (Forms)**:
+    - Mejora de validaciones en el formulario de contacto (email y teléfono).
+    - Restricción del campo **email** a dominios permitidos (`.com`, `.es`, `.net`).
+
+- **UX/UI (Errores de formulario)**:
+    - Corrección en la visualización de mensajes de error, mostrándolos en líneas independientes.
+
+- **Mapa (Google Maps)**:
+    - Ajuste del nivel de zoom en el mapa embebido para mejorar el contexto visual de la ubicación.

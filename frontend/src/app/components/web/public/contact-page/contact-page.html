@@ -2,7 +2,7 @@
   <div class="ratio ratio-21x9 mb-5 shadow-sm rounded overflow-hidden">
     <iframe
       class="border-0 map-frame"
-      src="https://www.google.com/maps/embed?pb=..."
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3101.027440147356!2d-0.1552956!3d38.99187009999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd61c2a94654e619%3A0x7829b474c59f9cfc!2sRestaurante%20Arrocer%C3%ADa%20Casa%20Julia%20Grao%20de%20Gand%C3%ADa%20.%20Restaurante%20cocina%20mediterranea.!5e0!3m2!1ses!2ses!4v1773746495966!5m2!1ses!2ses"
       loading="lazy"
       title="Ubicación del restaurante">
     </iframe>
@@ -22,7 +22,8 @@
 
           @if (f['name'].invalid && f['name'].touched) {
             <div class="invalid-feedback d-block">
-              @if (f['name'].errors?.['required']) { <span>El nombre es obligatorio</span> }
+              @if (f['name'].errors?.['required']) { <small class="d-block">El nombre es obligatorio</small> }
+              @if (f['name'].errors?.['maxlength']) { <small class="d-block">El nombre debe tener como máximo 20 carácteres</small> }
             </div>
           }
         </div>
@@ -35,8 +36,8 @@
 
           @if (f['tel'].invalid && f['tel'].touched) {
             <div class="invalid-feedback d-block">
-              @if (f['tel'].errors?.['required']) { <span>Teléfono requerido</span> }
-              @if (f['tel'].errors?.['pattern']) { <span>Debe tener exactamente 9 números</span> }
+              @if (f['tel'].errors?.['required']) { <small class="d-block">Teléfono requerido</small> }
+              @if (f['tel'].errors?.['pattern']) { <small class="d-block">Debe tener exactamente 9 números</small> }
             </div>
           }
         </div>
@@ -49,8 +50,10 @@
 
           @if (f['email'].invalid && f['email'].touched) {
             <div class="invalid-feedback d-block">
-              @if (f['email'].errors?.['required']) { <span>Email requerido</span> }
-              @if (f['email'].errors?.['email']) { <span>Formato de email no válido</span> }
+              @if (f['email'].errors?.['required']) { <small class="d-block">Email requerido</small> }
+              @if (f['email'].errors?.['email']) { <small class="d-block">Formato de email no válido</small> }
+              @if (f['email'].errors?.['pattern']) { <small class="d-block">El email debe tener acabar en .es, .net o .com</small> }
+              @if (f['email'].errors?.['maxlength']) { <small class="d-block">El email debe tener como máximo 40 carácteres</small> }
             </div>
           }
         </div>
@@ -63,7 +66,8 @@
 
           @if (f['message'].invalid && f['message'].touched) {
             <div class="invalid-feedback d-block">
-              @if (f['message'].errors?.['required']) { <span>El mensaje no puede estar vacío</span> }
+              @if (f['message'].errors?.['required']) { <small class="d-block">El mensaje no puede estar vacío</small> }
+              @if (f['message'].errors?.['maxlength']) { <small class="d-block">El mensaje debe tener como máximo 80 carácteres</small> }
             </div>
           }
         </div>
@@ -76,7 +80,6 @@
       </form>
     </div>
 
-    <!-- LOCALES -->
     <div class="col-md-6">
       <div class="row text-center gy-4 mt-4">
         <div class="col-12">
@@ -86,14 +89,14 @@
 
           <a
             class="d-block"
-            href="tel:+349651234578">
-            +34 965 123 578
+            href="tel:+34647698463">
+            +34 647 698 463
           </a>
 
           <a
             class="d-block"
-            href="mailto:correo@correo.com">
-            correo@correo.com
+            href="mailto:info@casajuliarestaurante.com">
+            info@casajuliarestaurante.com
           </a>
         </div>
 
