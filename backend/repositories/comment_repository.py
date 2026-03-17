@@ -1,4 +1,4 @@
-from models.comments import UserComment
+from models.comment import UserComment
 
 class CommentRepository:
     def __init__(self, db_conn):
