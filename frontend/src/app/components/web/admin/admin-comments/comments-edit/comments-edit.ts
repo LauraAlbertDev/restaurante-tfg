@@ -62,7 +62,7 @@ export class CommentsEdit implements OnInit {
   }
 
   protected navigateToDashboard() {
-    this.router.navigate(['/comments-list']);
+    this.router.navigate(['/admin/comments-list']);
   }
 
 
