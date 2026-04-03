@@ -1,0 +1,206 @@
+<div class="hero-carta d-flex align-items-center justify-content-center">
+  <div class="text-center text-white">
+    <h1 class="display-5 fw-bold">Nuestro Menú</h1>
+    <p class="lead">Cocina mediterránea · Producto fresco</p>
+  </div>
+</div>
+<div class="container-fluid py-4">
+  <div class="row">
+
+    <aside class="col-md-3 col-lg-2 mb-4">
+      <app-sidebar
+        [categories]="categories()"
+        [allergens]="allergens()"
+        [absoluteMaxPrice]="absoluteMaxPrice()"
+        [(search)]="search"
+        [(selectedCategory)]="selectedCategory"
+        [(selectedAllergens)]="selectedAllergens"
+        [(maxPrice)]="SelectedMaxPrice"
+        [(vegan)]="vegan"
+        [(vegetarian)]="vegetarian"
+        (onReset)="resetFilters()">
+      </app-sidebar>
+    </aside>
+
+    <main class="col-md-9 col-lg-10">
+
+      @if (auth.isAdmin()) {
+        <div class="admin-panel d-flex flex-wrap justify-content-between align-items-center mb-4 p-3 rounded shadow-sm">
+          <div class="d-flex gap-2">
+            <button class="btn btn-info text-white fw-bold shadow-sm" routerLink="/auth/product/new">
+              <i class="bi bi-plus-lg me-1"></i> Nuevo Producto
+            </button>
+          </div>
+
+          <div class="d-flex gap-2 mt-2 mt-md-0">
+            <button class="btn fw-bold shadow-sm transition-all"
+                    [class.btn-secondary]="viewArchived()"
+                    [class.text-white]="viewArchived()"
+                    [class.btn-outline-secondary]="!viewArchived()"
+                    (click)="viewArchived.set(!viewArchived())">
+              <i class="bi me-2"
+                 [class.bi-archive-fill]="viewArchived()"
+                 [class.bi-archive]="!viewArchived()">
+              </i>
+              {{ viewArchived() ? 'Ver Activos' : 'Ver Archivados' }}
+            </button>
+
+            <button class="btn btn-outline-success fw-bold" (click)="exportProducts()">
+              <i class="bi bi-file-earmark-excel me-1"></i> Exportar
+            </button>
+
+            <button class="btn btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#importModal">
+              <i class="bi bi-upload me-1"></i> Importar
+            </button>
+          </div>
+        </div>
+      }
+
+      @for (group of groupedProducts(); track group.category) {
+        <section class="mb-5">
+          <h3 class="h4 border-bottom pb-2 mb-4 fw-bold text-secondary text-uppercase">{{ group.category }}</h3>
+
+          <div class="row g-4">
+            @for (prod of group.items; track prod.id) {
+              <div class="col-sm-6 col-lg-4 col-xl-3">
+                <div class="card h-100 border-0 shadow-sm hover-effect">
+
+                  <div class="position-relative overflow-hidden">
+                    <img [src]="getProductImage(prod.image)"
+                         class="card-img-top"
+                         height="180"
+                         [alt]="prod.name"
+                         [routerLink]="'/product/detail/' + prod.id"
+                         style="cursor: pointer;"
+                         #imgElement
+                         (error)="imgElement.src = 'assets/images/placeholder.jpg'">
+
+                  </div>
+
+                  <div class="card-body d-flex flex-column text-center">
+                    <h5 class="card-title h6 fw-bold mb-3 text-capitalize">{{ prod.name }}</h5>
+
+                    <div class="mt-auto d-flex gap-2">
+                      @if (auth.isAuthenticated()) {
+                        <button class="btn btn-sm btn-outline-warning flex-grow-1"
+                                [routerLink]="['/auth/product-edit/', prod.id]">
+                          Editar
+                        </button>
+                      }
+                      @if (auth.isAdmin()) {
+                        <button class="btn btn-sm btn-outline-info" (click)="duplicateProduct(prod.id)" title="Duplicar producto">
+                          <i class="bi bi-files"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" (click)="onToggleArchive(prod.id)" title="Archivar/Desarchivar">
+                          <i class="bi bi-archive"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" (click)="deleteProduct(prod.id)" title="Borrar">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+    </main>
+  </div>
+</div>
+
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow">
+
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title d-flex align-items-center">
+          <i class="bi bi-file-earmark-arrow-up-fill me-2"></i>
+          Importador Masivo de Productos
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body p-4">
+
+        <div class="mb-4">
+          <h6 class="fw-bold text-primary">1. Prepara el archivo</h6>
+          <p class="text-muted small">Descarga la plantilla oficial para asegurar que los encabezados sean correctos.</p>
+          <button class="btn btn-outline-success btn-sm shadow-sm" (click)="downloadTemplate()">
+            <i class="bi bi-download me-1"></i> Descargar plantilla base (.csv)
+          </button>
+        </div>
+
+        <div class="mb-4">
+          <h6 class="fw-bold text-primary">2. Estructura de columnas requerida</h6>
+          <div class="table-responsive rounded border">
+            <table class="table table-sm table-hover mb-0">
+              <thead class="table-light text-uppercase small">
+              <tr>
+                <th class="ps-3">Columna</th>
+                <th>Tipo/Regla</th>
+                <th>Ejemplo</th>
+              </tr>
+              </thead>
+              <tbody class="small">
+              <tr>
+                <td class="ps-3"><code>name</code></td>
+                <td><span class="text-danger">*</span> Texto</td>
+                <td class="text-muted">Pizza Margarita</td>
+              </tr>
+              <tr>
+                <td class="ps-3"><code>price</code></td>
+                <td><span class="text-danger">*</span> Número (con punto)</td>
+                <td class="text-muted">12.50</td>
+              </tr>
+              <tr>
+                <td class="ps-3"><code>category</code></td>
+                <td><span class="text-danger">*</span> Nombre categoría</td>
+                <td class="text-muted">Pizzas</td>
+              </tr>
+              <tr>
+                <td class="ps-3"><code>stock</code></td>
+                <td>Entero positivo</td>
+                <td class="text-muted">100</td>
+              </tr>
+              <tr>
+                <td class="ps-3"><code>vegan/vegetarian/lactose_free</code></td>
+                <td>Booleano (1=Sí, 0=No)</td>
+                <td class="text-muted">1</td>
+              </tr>
+              <tr>
+                <td class="ps-3"><code>image</code></td>
+                <td>Nombre archivo imagen</td>
+                <td class="text-muted">p-margarita.jpg</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="alert alert-light border-0 small mt-2 py-1 text-muted">
+            <i class="bi bi-info-circle-fill text-info me-1"></i>
+            Nota: Si la categoría no existe en el sistema, se creará automáticamente.
+          </div>
+        </div>
+
+        <div class="p-4 bg-light rounded-3 border border-dashed text-center">
+          <h6 class="fw-bold text-primary mb-3">3. Sube el archivo final</h6>
+          <div class="px-md-5">
+            <input type="file" class="form-control form-control-lg"
+                   accept=".xlsx, .xls, .csv"
+                   (change)="onFileSelectedForImport($event)">
+            <p class="text-muted mt-2 mb-0" style="font-size: 0.75rem;">
+              Archivos permitidos: <strong>.xlsx, .xls o .csv</strong>
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer bg-light border-top-0">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" #closeModal>Cancelar</button>
+      </div>
+
+    </div>
+  </div>
+</div>
