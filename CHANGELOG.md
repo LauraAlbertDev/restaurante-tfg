@@ -307,3 +307,22 @@ Configuración de la arquitectura base y entornos de ejecución.
 ### 🌐 Frontend
 - **Página de Empresa**: Creación del componente `AboutUsPage` con diseño adaptativo.
 - **Gestión de Contenido**: Integración de `PhilosophyService` para alimentar las secciones de historia y valores desde la base de datos.
+
+---
+
+## [1.1.7] - 03/04/2026
+
+### ✨ Nueva Funcionalidad – 📅 Sistema de Reservas y Gestión Operativa
+
+### 🖥️ Backend
+- Implementación de `ReservationRepository` con lógica de disponibilidad por turnos.
+- Creación de `SettingsRepository` para la gestión de horarios y días especiales.
+- Registro de servicios y routers para la gestión automatizada de reservas.
+
+### 🌐 Frontend
+- **Reservations Page**: Nueva interfaz pública para la creación de reservas con validación de fechas.
+- **Admin Dashboard & Sidebar**: Rediseño de la navegación interna para administradores.
+- **Shifts & Special Days**: Módulos para que el administrador configure turnos y cierres temporales.
+- **Core**:
+    - Estandarización de repositorios mediante `BaseRepository`.
+    - Refactorización de interfaces globales para mejorar la tipado en TypeScript.
