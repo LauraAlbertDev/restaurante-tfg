@@ -2,7 +2,8 @@ import {Component, inject, Input, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
 import {ContactService} from '../../../../../services/contact-service';
 import {Router} from '@angular/router';
-import {UserComment} from '../../../../../common/interfaces';
+import {UserComment} from '../../../../../common/interfaces/interfaces';
+import {UiService} from '../../../../../services/ui-service';
 
 @Component({
   selector: 'app-comments-edit',
@@ -17,6 +18,7 @@ export class CommentsEdit implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly contactService = inject(ContactService);
   private readonly router = inject(Router);
+  private readonly ui = inject(UiService);
 
   formComment: FormGroup = this.initForm();
   idComment?: number;
@@ -43,7 +45,7 @@ export class CommentsEdit implements OnInit {
   private loadCommentData(id: number) {
     this.contactService.getCommentById(id).subscribe({
       next: (data) => this.formComment.patchValue(data),
-      error: (err) => console.error('Error al cargar comentario', err)
+      error: (err) => this.ui.handleError('Error al cargar comentario', err)
     });
   }
 

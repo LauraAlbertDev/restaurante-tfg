@@ -12,34 +12,46 @@ class CommentRepository:
             if fetch == "one": return cursor.fetchone()
             self.db.commit()
             return cursor.lastrowid
+        except Exception as e:
+            self.db.rollback()
+            raise e
         finally:
             cursor.close()
 
     def get_all(self, archived: int = 0):
-        return self._execute("SELECT * FROM comment WHERE archived=%s ORDER BY id DESC", (archived,), fetch="all")
+        sql = "SELECT * FROM comment WHERE archived = %s ORDER BY id DESC"
+        return self._execute(sql, (archived,), fetch="all")
 
     def get_by_id(self, comment_id: int):
         return self._execute("SELECT * FROM comment WHERE id = %s", (comment_id,), fetch="one")
 
     def create(self, comment: UserComment):
-        sql = """INSERT INTO comment (name, tel, email, message, note)
-                 VALUES (%(name)s, %(tel)s, %(email)s, %(message)s, %(note)s)"""
-
-        return self._execute(sql, comment.dict())
+        data = comment.model_dump()
+        sql = """
+              INSERT INTO comment (name, tel, email, message, note, archived)
+              VALUES (%(name)s, %(tel)s, %(email)s, %(message)s, %(note)s, 0) \
+              """
+        return self._execute(sql, data)
 
     def update(self, comment_id: int, comment: UserComment):
-        data = comment.dict()
+        data = comment.model_dump()
         data['id'] = comment_id
-        query = """UPDATE comment 
-                   SET name = %(name)s, tel = %(tel)s, email = %(email)s, message = %(message)s, note = %(note)s 
-                   WHERE id = %(id)s"""
-        return self._execute(query, data)
+        sql = """
+              UPDATE comment
+              SET name = %(name)s, tel = %(tel)s, email = %(email)s,
+                  message = %(message)s, note = %(note)s
+              WHERE id = %(id)s \
+              """
+        self._execute(sql, data)
+        return True
 
     def toggle_archive(self, comment_id: int):
-        res = self.get_by_id(comment_id)
-        if not res:
+        comment = self.get_by_id(comment_id)
+        if not comment:
             return None
 
-        new_status = 0 if res["archived"] == 1 else 1
-        self._execute("UPDATE comment SET archived = %s WHERE id = %s", (new_status, comment_id))
+        new_status = 1 if comment["archived"] == 0 else 0
+
+        sql = "UPDATE comment SET archived = %s WHERE id = %s"
+        self._execute(sql, (new_status, comment_id))
         return new_status

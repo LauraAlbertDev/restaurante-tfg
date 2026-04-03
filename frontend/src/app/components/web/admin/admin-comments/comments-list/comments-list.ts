@@ -1,5 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {UserComment} from '../../../../../common/interfaces';
+import {UserComment} from '../../../../../common/interfaces/interfaces';
 import {ContactService} from '../../../../../services/contact-service';
 import {RouterLink} from '@angular/router';
 

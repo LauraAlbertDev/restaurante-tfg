@@ -249,3 +249,16 @@ Configuración de la arquitectura base y entornos de ejecución.
 - **UX/UI**:
     - Gestión de estados de carga (`loading signals`) para deshabilitar botones durante peticiones asíncronas.
     - Estilización de formularios con validaciones visuales y feedback de errores.
+---
+
+## [1.1.3] - 03/04/2026
+
+### ✨ Nueva Funcionalidad – Gestión de Comentarios
+
+### 🖥️ Backend
+- Optimización de `CommentRepository` para la recuperación eficiente de feedback.
+- Ajustes en `comments.py` para permitir la edición y moderación de reseñas.
+
+### 🌐 Frontend
+- Mejora visual del componente `CommentsList` para administradores.
+- Implementación de lógica de edición en `CommentsEdit` para gestionar la visibilidad de las reseñas.

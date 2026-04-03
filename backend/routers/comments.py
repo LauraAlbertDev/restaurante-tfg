@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from database import get_connection
 from repositories.comment_repository import CommentRepository
-from models.comments import  UserComment # Importamos tus modelos de Pydantic
+from models.comment import  UserComment # Importamos tus modelos de Pydantic
 
 router = APIRouter(prefix="/comments", tags=["Comments"])
 
