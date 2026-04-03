@@ -47,8 +47,7 @@ label, .form-control{
   color:var(--color-text-muted) !important;
 }
 
-
-
 footer{
   border-top:1px solid var(--color-border-soft);
 }
+
