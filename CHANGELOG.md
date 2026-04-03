@@ -277,3 +277,19 @@ Configuración de la arquitectura base y entornos de ejecución.
 - **Navbar Dinámico**: Simplificación de la lógica de navegación basada en el rol del usuario (`isAdmin`).
 - **Gestión de Usuarios**: Implementación del componente `AdminUsers` para el control de cuentas desde el panel de administración.
 - **Seguridad**: Optimización de `AuthInterceptor` para adjuntar tokens automáticamente en las peticiones al API.
+
+---
+
+## [1.1.5] - 03/04/2026
+
+### ✨ Nueva Funcionalidad – 🍽️ Catálogo de Productos
+
+### 🖥️ Backend
+- Definición del modelo `Product` con soporte para precios, categorías y alérgenos asociados.
+- Implementación de `ProductRepository` para la gestión avanzada de la carta.
+- Router `/products` habilitado para filtrado y administración de inventario.
+
+### 🌐 Frontend
+- **Carta Digital**: Creación del componente de visualización de productos para clientes.
+- **File Service**: Sistema de gestión de imágenes para los platos y bebidas.
+- **Integración**: Vinculación dinámica de productos con sus respectivas categorías y etiquetas de alérgenos.
