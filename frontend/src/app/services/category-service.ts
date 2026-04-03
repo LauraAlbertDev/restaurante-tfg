@@ -2,7 +2,7 @@ import { inject, Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import {environment} from '../environment/environment';
-import {Category} from '../common/interfaces';
+import {Category} from '../common/interfaces/interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -13,15 +13,18 @@ export class CategoryService {
 
   private readonly categoriesSignal = signal<Category[]>([]);
 
-  readonly categories = this.categoriesSignal.asReadonly();
+  readonly categories = computed(() => {
+    return [...this.categoriesSignal()].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  });
 
   readonly count = computed(() => this.categoriesSignal().length);
 
-  load(): void {
-    this.http.get<Category[]>(this.API_URL).subscribe({
-      next: (data) => this.categoriesSignal.set(data),
-      error: (err) => console.error('Error al recuperar categorías:', err)
-    });
+  load(): Observable<Category[]> {
+    return this.http.get<Category[]>(this.API_URL).pipe(
+      tap(data => this.categoriesSignal.set(data))
+    );
   }
 
   create(name: string): Observable<Category> {

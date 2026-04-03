@@ -16,7 +16,7 @@ export class AdminCategories implements OnInit {
 
   categories = this.categorySrv.categories;
 
-  newName = signal(''); // Cambiado 'new' por 'newName' para evitar palabras reservadas
+  newName = signal('');
   editId = signal<number | null>(null);
   editText = signal('');
   loading = signal(false);
@@ -67,7 +67,7 @@ export class AdminCategories implements OnInit {
     this.categorySrv.update(id, name).subscribe({
       next: () => {
         this.categorySrv.updateLocal(id, name);
-        this.cancelEdit(); // Limpia el estado de edición
+        this.cancelEdit();
         this.loading.set(false);
       },
       error: (err) => {
