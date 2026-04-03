@@ -293,3 +293,17 @@ Configuración de la arquitectura base y entornos de ejecución.
 - **Carta Digital**: Creación del componente de visualización de productos para clientes.
 - **File Service**: Sistema de gestión de imágenes para los platos y bebidas.
 - **Integración**: Vinculación dinámica de productos con sus respectivas categorías y etiquetas de alérgenos.
+
+---
+
+## [1.1.6] - 03/04/2026
+
+### ✨ Modificación – 📖 Filosofía y About Us
+
+### 🖥️ Backend
+- Implementación de `PhilosophyRepository` para la gestión dinámica de textos corporativos.
+- Router `/philosophies` habilitado para la consulta de valores y misión del restaurante.
+
+### 🌐 Frontend
+- **Página de Empresa**: Creación del componente `AboutUsPage` con diseño adaptativo.
+- **Gestión de Contenido**: Integración de `PhilosophyService` para alimentar las secciones de historia y valores desde la base de datos.
