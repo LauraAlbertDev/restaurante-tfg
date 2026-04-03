@@ -1,0 +1,154 @@
+<div class="container py-5">
+  <div class="text-center mb-5">
+    <h2 class="fw-bold text-primary">
+      {{ id ? '📝 Editar reserva' : '📩 Nueva reserva' }}
+    </h2>
+  </div>
+
+  <div class="row g-4 justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <form [formGroup]="formReservation" (ngSubmit)="onSubmit()" class="card shadow-lg border-0 p-4 rounded-4">
+        <h5 class="fw-bold mb-4 text-secondary">
+          <i class="bi bi-chat-left-text me-2"></i> Datos de la reserva
+        </h5>
+
+        <div class="form-floating mb-3">
+          <input type="text" class="form-control" id="name" placeholder="Nombre"
+                 formControlName="name"
+                 [class.is-invalid]="r['name']?.touched && r['name']?.invalid"
+                 [class.is-valid]="r['name']?.valid && r['name']?.touched">
+          <label for="name"><i class="bi bi-person me-1"></i> Nombre</label>
+          @if (r['name'].touched && r['name'].invalid) {
+            <div class="invalid-feedback">
+              @if (r['name'].errors?.['required']) {
+                <span>El nombre es obligatorio.</span>
+              }
+              @if (r['name'].errors?.['minlength']) {
+                <span>Mínimo 10 caracteres.</span>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-floating mb-3">
+          <input type="text" class="form-control" id="phone" placeholder="Teléfono"
+                 formControlName="phone"
+                 [class.is-invalid]="r['phone']?.touched && r['phone']?.invalid"
+                 [class.is-valid]="r['phone']?.valid && r['phone']?.touched">
+          <label for="phone"><i class="bi bi-telephone me-1"></i> Teléfono</label>
+          @if (r['phone'].touched && r['phone'].invalid) {
+            <div class="invalid-feedback">
+              @if (r['phone'].errors?.['required']) {
+                <span>El teléfono es obligatorio.</span>
+              }
+              @if (r['phone'].errors?.['pattern']) {
+                <span>Debe tener exactamente 9 números.</span>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-floating mb-3">
+          <input type="date" class="form-control" id="date" formControlName="date"
+                 [min]="minDate"
+                 [class.is-invalid]="r['date']?.touched && r['date']?.invalid">
+          <label for="date"><i class="bi bi-calendar me-1"></i> Fecha</label>
+          @if (r['date'].touched && r['date'].invalid) {
+            <div class="invalid-feedback">
+              @if (r['date'].errors?.['required']) {
+                <span>La fecha es obligatoria.</span>
+              }
+              @if (r['date'].errors?.['minDateError']) {
+                <span>No puedes seleccionar una fecha pasada.</span>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-floating mb-3">
+          <select class="form-select" id="hour" formControlName="hour"
+                  [class.is-invalid]="r['hour']?.touched && r['hour']?.invalid">
+            <option value="">-- Selecciona --</option>
+            <option value="13:30">13:30</option>
+            <option value="15:30">15:30</option>
+          </select>
+          <label for="hour"><i class="bi bi-alarm me-1"></i> Hora</label>
+          @if (r['hour'].touched && r['hour'].invalid) {
+            <div class="invalid-feedback">
+              <span>La hora es obligatoria.</span>
+            </div>
+          }
+        </div>
+
+        <div class="form-floating mb-3">
+          <input type="number" class="form-control" id="n_people" placeholder="Personas"
+                 formControlName="n_people"
+                 [class.is-invalid]="r['n_people']?.touched && r['n_people']?.invalid">
+          <label for="n_people"><i class="bi bi-people me-1"></i> Personas</label>
+          @if (r['n_people'].touched && r['n_people'].invalid) {
+            <div class="invalid-feedback">
+              @if (r['n_people'].errors?.['required']) {
+                <span>Indica el número de personas.</span>
+              }
+              @if (r['n_people'].errors?.['min']) {
+                <span>El mínimo son 2 personas.</span>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-floating mb-4">
+          <textarea class="form-control" style="height: 100px" id="notes" placeholder="Nota"
+                    formControlName="notes"></textarea>
+          <label for="notes"><i class="bi bi-sticky me-1"></i> Nota interna</label>
+        </div>
+
+        <div class="d-grid gap-3">
+          <button class="btn btn-primary btn-lg shadow-sm" [disabled]="formReservation.invalid" type="submit">
+            <i class="bi bi-send me-2"></i> {{ id ? 'Guardar cambios' : 'Enviar reserva' }}
+          </button>
+          <button type="button" class="btn btn-outline-secondary" routerLink="/auth/reservations-list">
+            <i class="bi bi-arrow-left me-2"></i> Volver al listado
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-lg border-0 h-100 rounded-4 overflow-hidden">
+        <div class="card-header bg-primary text-white py-3 text-center">
+          <h5 class="mb-0"><i class="bi bi-eye me-2"></i> Vista previa</h5>
+        </div>
+        <div class="card-body bg-light">
+          <div class="text-center">
+            <h3 class="fw-bold text-dark mb-4">
+              {{ r['name']?.value || 'Nombre del cliente' }}
+            </h3>
+            <div class="mb-4">
+              <p class="text-muted small fw-bold text-uppercase mb-2">Información de contacto</p>
+              <p class="mb-1">
+                <i class="bi bi-telephone text-primary me-2"></i>
+                {{ r['phone']?.value || 'Sin teléfono' }}
+              </p>
+              <p class="mb-1">
+                <i class="bi bi-calendar-event text-primary me-2"></i>
+                {{ (r['date']?.value | date:'dd/MM/yyyy') || 'Fecha' }} a las {{ r['hour']?.value || 'hora' }}
+              </p>
+              <p class="mb-0">
+                <i class="bi bi-people text-primary me-2"></i>
+                {{ r['n_people']?.value || '?' }} personas
+              </p>
+            </div>
+          </div>
+
+          @if (r['notes']?.value) {
+            <div class="p-3 bg-warning-subtle border border-warning rounded-3 mt-4">
+              <h6 class="fw-bold mb-2"><i class="bi bi-sticky me-2"></i> Nota interna</h6>
+              <p class="mb-0 small">{{ r['notes']?.value }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

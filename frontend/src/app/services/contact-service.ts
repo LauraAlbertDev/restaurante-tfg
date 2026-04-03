@@ -2,7 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../environment/environment';
 import {map, Observable} from 'rxjs';
-import {UserComment, CommentUpdateResponse} from '../common/interfaces';
+import {UserComment, CommentUpdateResponse} from '../common/interfaces/interfaces';
 
 @Injectable({
   providedIn: 'root',

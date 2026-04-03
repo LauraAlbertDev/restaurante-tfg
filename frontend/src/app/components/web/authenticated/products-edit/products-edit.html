@@ -1,0 +1,183 @@
+@if (loaded()) {
+  <div class="container py-4">
+    <div class="row">
+      <div class="col-12 mb-4 text-center">
+        <h2 class="fw-bold text-capitalize">
+          <i class="bi bi-pencil-square me-2 text-primary"></i>
+          {{ idProduct ? 'Editando: ' + p['name'].value : 'Nuevo Producto' }}
+        </h2>
+      </div>
+
+      <div class="col-lg-7">
+        <form [formGroup]="formProduct" (ngSubmit)="onSubmit()" class="card shadow-sm p-4">
+
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control"
+                   [class.is-invalid]="p['name'].touched && p['name'].invalid"
+                   [class.is-valid]="p['name'].valid"
+                   formControlName="name" id="name" placeholder="Nombre">
+            <label for="name">Nombre del plato</label>
+            @if (p['name'].touched && p['name'].invalid) {
+              <div class="invalid-feedback">
+                @if (p['name'].errors?.['required']) {
+                  <span>El nombre es obligatorio.</span>
+                }
+                @if (p['name'].errors?.['minlength']) {
+                  <span>El nombre debe tener al menos 5 carácteres.</span>
+                }
+              </div>
+            }
+          </div>
+          <div class="form-floating mb-3">
+            <textarea class="form-control"
+            [class.is-invalid]="p['description'].touched && p['description'].invalid"
+            [class.is-valid]="p['description'].valid"
+            formControlName="description"
+              id="desc" style="height: 100px"></textarea>
+            <label for="description">Descripción del plato</label>
+            @if (p['description'].touched && p['description'].invalid) {
+              <div class="invalid-feedback">
+                @if (p['description'].errors?.['minlength']) {
+                  <span>La descripción debe tener al menos 5 carácteres.</span>
+                }
+                @if (p['description'].errors?.['maxlength']) {
+                  <span>La descripción debe tener menos de 450 carácteres.</span>
+                }
+              </div>
+            }
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-floating mb-3">
+                <input type="number" class="form-control"
+                       [class.is-invalid]="p['price'].touched && p['price'].invalid"
+                       formControlName="price" id="price" placeholder="Precio">
+                <label for="price">Precio (€)</label>
+                @if (p['price'].touched && p['price'].invalid) {
+                  <div class="invalid-feedback">Precio requerido (mín. 0)</div>
+                }
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating mb-3">
+                <input type="number" class="form-control" formControlName="stock" id="stock" placeholder="Stock">
+                <label for="stock">Stock disponible</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-floating mb-3">
+            <select class="form-select" formControlName="category_id">
+              <option [ngValue]="null" >Selecciona categoría</option>
+              @for (cat of categories(); track cat.id) {
+                <option [value]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+            <label for="cat">Categoría</label>
+            @if (p['category_id'].touched && p['category_id'].invalid) {
+              <div class="invalid-feedback">Debes seleccionar una categoría</div>
+            }
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-bold text-muted small text-uppercase">Imagen del producto</label>
+            <div class="d-flex align-items-center gap-3 border rounded p-3 bg-light">
+              <img [src]="imagePreview() || 'assets/images/placeholder.jpg'" width="80" height="80"
+                   class="rounded shadow-sm" style="object-fit: cover;"
+                   alt="Previsualización">
+              <div>
+                <button type="button" class="btn btn-outline-primary btn-sm" (click)="fileInput.click()">
+                  <i class="bi bi-upload me-2"></i>Seleccionar Imagen
+                </button>
+                <input type="file" #fileInput hidden accept="image/*" (change)="onFileSelected($event)">
+                <div class="small text-muted mt-1">Formatos: JPG, PNG. Máx: 2MB</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="fw-bold text-muted mb-2 small text-uppercase">Opciones Dietéticas</label>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <div class="form-check p-2 border rounded d-flex align-items-center cursor-pointer"
+                     [class.bg-success-subtle]="p['vegan'].value"
+                     [class.border-success]="p['vegan'].value">
+                  <input class="form-check-input ms-1" type="checkbox" formControlName="vegan" id="vegan">
+                  <label class="form-check-label ms-2" for="vegan">🌱 Vegano</label>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-check p-2 border rounded d-flex align-items-center cursor-pointer"
+                     [class.bg-success-subtle]="p['vegetarian'].value"
+                     [class.border-success]="p['vegetarian'].value">
+                  <input class="form-check-input ms-1" type="checkbox" formControlName="vegetarian" id="vegetarian">
+                  <label class="form-check-label ms-2" for="vegetarian">🥦 Vegetariano</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="fw-bold text-muted mb-2 small text-uppercase">Alérgenos</label>
+            <div class="row g-2">
+              @for (a of allAllergens(); track a.id) {
+                <div class="col-6 col-md-4">
+                  <div class="form-check card-check p-2 border rounded"
+                       [class.bg-light]="selectedAllergenIds().includes(a.id)">
+                    <input class="form-check-input ms-1" type="checkbox"
+                           [checked]="selectedAllergenIds().includes(a.id)"
+                           (change)="toggleAllergen(a.id)" [id]="'alg'+a.id">
+                    <label class="form-check-label ms-2" [for]="'alg'+a.id">{{ a.name }}</label>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="d-flex gap-3 mt-2">
+            <button class="btn btn-primary flex-grow-1" type="submit" [disabled]="formProduct.invalid">
+              <i class="bi bi-check-circle me-2"></i>
+              {{ idProduct ? 'Actualizar producto' : 'Guardar producto' }}
+            </button>
+            <button class="btn btn-outline-dark" type="button" routerLink="/menu">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="col-lg-4 offset-lg-1 mt-4 mt-lg-0">
+        <div class="card shadow sticky-top" style="top: 2rem;">
+          <div class="position-relative">
+            <img [src]="imagePreviewUrl()" class="card-img-top preview-img"
+                 style="height: 200px; object-fit: cover;" alt="Preview">
+            <span class="badge bg-dark position-absolute top-0 end-0 m-2">{{ p['price'].value | currency:'EUR' }}</span>
+          </div>
+          <div class="card-body">
+            <div class="card-body d-flex flex-column text-center">
+              <h5 class="card-title fw-bold mb-0 text-capitalize ">{{ p['name'].value || 'Nombre del plato' }}</h5>
+            </div>
+
+            <div class="mb-3 d-flex flex-wrap gap-1 justify-content-center">
+              <h6>Alérgenos: </h6>
+              @for (name of selectedAllergenNames(); track name) {
+                <span class="badge rounded-pill bg-light text-dark border small">
+                  {{ name }}
+                </span>
+              } @empty {
+                <small class="text-success small">
+                  <i class="bi bi-check-circle-fill"></i> Sin alérgenos
+                </small>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
+    <div class="spinner-grow text-primary" role="status"></div>
+  </div>
+}

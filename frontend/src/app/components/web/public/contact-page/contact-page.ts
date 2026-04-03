@@ -1,7 +1,9 @@
 import {Component, inject, signal, WritableSignal} from '@angular/core';
 import {ContactService} from '../../../../services/contact-service';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {UserComment} from '../../../../common/interfaces';
+import {UserComment} from '../../../../common/interfaces/interfaces';
+import {FormValidators} from '../../../../Validators/FormValidators';
+import {UiService} from '../../../../services/ui-service';
 
 @Component({
   selector: 'app-contact-page',
@@ -14,6 +16,7 @@ import {UserComment} from '../../../../common/interfaces';
 export class ContactPage {
   private readonly contactService = inject(ContactService);
   private readonly formBuilder: FormBuilder = inject(FormBuilder);
+  private readonly ui = inject(UiService);
 
   commentForm: FormGroup = this.formBuilder.group({
     name: ['', [Validators.required, Validators.maxLength(20)]],
@@ -41,20 +44,8 @@ export class ContactPage {
     };
 
     this.contactService.postComment(newComment).subscribe({
-      next: () => this.commentSent(),
-      error: (err) => this.commentError(err)
+      next: () => this.ui.notify('Comentario enviado con éxito'),
+      error: (err) => this.ui.handleError('No se pudo enviar el comentario')
     });
   }
-
-  private commentSent(): void {
-    alert('Comentario enviado con éxito');
-    this.commentForm.reset();
-  }
-
-  private commentError(err: any): void {
-    alert('No se pudo enviar el comentario');
-    console.error('Error al enviar:', err);
-  }
-
-
 }
