@@ -1,0 +1,51 @@
+<div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+  <div class="card-header bg-dark text-white py-3">
+    <h6 class="mb-0"><i class="bi bi-calendar-x me-2"></i> Gestión de Cierres Especiales</h6>
+  </div>
+  <div class="card-body p-4">
+    <p class="text-muted mb-4">Selecciona una fecha para cerrar el bar por completo.</p>
+
+    <div class="row g-3 align-items-end mb-4">
+      <div class="col-md-4">
+        <label class="form-label small fw-bold text-secondary">Fecha a cerrar</label>
+        <input type="date" class="form-control border-2 shadow-none"
+               [ngModel]="newDate()"
+               (ngModelChange)="newDate.set($event)"
+               [min]="minDate">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-bold text-secondary">Motivo (opcional)</label>
+        <input type="text" class="form-control border-2 shadow-none"
+               [ngModel]="newReason()"
+               (ngModelChange)="newReason.set($event)"
+               placeholder="Ej: Reforma, Festivo...">
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-danger w-100 fw-bold shadow-sm"
+                [disabled]="!newDate()"
+                (click)="blockSelectedDate()">
+          <i class="bi bi-lock-fill me-2"></i> Bloquear Día
+        </button>
+      </div>
+    </div>
+
+    <hr class="my-4 opacity-10">
+
+    <h6 class="small fw-bold text-uppercase text-secondary mb-3">Próximos días cerrados:</h6>
+
+    <div class="d-flex flex-wrap gap-2">
+      @for (date of closedDates(); track date) {
+        <div class="badge bg-white text-dark border-2 border-danger-subtle p-2 px-3 d-flex align-items-center gap-3 shadow-sm rounded-pill">
+          <span class="fw-bold"><i class="bi bi-calendar-x text-danger me-2"></i>{{ date | date:'dd/MM/yyyy' }}</span>
+          <button class="btn btn-sm btn-link text-danger p-0 border-0" (click)="unblockDate(date)">
+            <i class="bi bi-trash3-fill"></i>
+          </button>
+        </div>
+      } @empty {
+        <div class="alert alert-light border-0 text-muted small py-2">
+          <i class="bi bi-info-circle me-2"></i>No hay cierres programados.
+        </div>
+      }
+    </div>
+  </div>
+</div>

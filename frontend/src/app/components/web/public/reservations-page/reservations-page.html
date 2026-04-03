@@ -1,0 +1,202 @@
+<div class="container ">
+  @if (auth.isAuthenticated()) {
+    <div class="d-flex justify-content-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold px-4 rounded-pill shadow-sm" routerLink="/auth/reservations-list">
+        <i class="bi bi-list-check me-2"></i> Ver reservas actuales
+      </button>
+    </div>
+  }
+  <form [formGroup]="reservationForm" (ngSubmit)="onSubmit()" novalidate>
+
+    <div class="card shadow-lg border-0 rounded-4 mx-auto overflow-hidden" style="max-width: 950px;">
+
+      <div class="card-header  text-white text-center py-3 border-0 bg-dark">
+        <h5 class="mb-0 fw-bold text-uppercase tracking-wider">Gestión de Reservas</h5>
+      </div>
+
+      <div class="card-body p-0">
+        <div class="row g-0">
+
+          <div class="col-md-5 bg-light p-4 border-end">
+            <h6 class="fw-bold text-muted text-uppercase mb-4">Información del Cliente</h6>
+
+            <div class="mb-3">
+              <div class="input-group has-validation">
+                <span class="input-group-text bg-white border-2 border-end-0 rounded-start-pill"
+                      [class.border-danger]="r['name'].touched && r['name'].invalid"
+                      [class.border-success]="r['name'].touched && r['name'].valid">
+                  <i class="bi bi-person text-muted"></i>
+                </span>
+                <input type="text" formControlName="name"
+                       class="form-control border-2 border-start-0 rounded-end-pill shadow-none"
+                       placeholder="Nombre completo"
+                       [class.is-invalid]="r['name'].touched && r['name'].invalid"
+                       [class.is-valid]="r['name'].touched && r['name'].valid">
+
+                @if (r['name'].touched && r['name'].invalid) {
+                  <div class="invalid-feedback ms-3">
+                    @if (r['name'].errors?.['required']) { <small>El nombre es obligatorio</small> }
+                    @if (r['name'].errors?.['minlength']) { <small>Mínimo 7 caracteres</small> }
+                    @if (r['name'].errors?.['maxlength']) { <small>Máximo 20 caracteres</small> }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="input-group has-validation">
+                <span class="input-group-text bg-white border-2 border-end-0 rounded-start-pill"
+                      [class.border-danger]="r['phone'].touched && r['phone'].invalid"
+                      [class.border-success]="r['phone'].touched && r['phone'].valid">
+                  <i class="bi bi-telephone text-muted"></i>
+                </span>
+                <input type="text" formControlName="phone"
+                       class="form-control border-2 border-start-0 rounded-end-pill shadow-none"
+                       placeholder="Teléfono (9 dígitos)"
+                       [class.is-invalid]="r['phone'].touched && r['phone'].invalid"
+                       [class.is-valid]="r['phone'].touched && r['phone'].valid">
+
+                @if (r['phone'].touched && r['phone'].invalid) {
+                  <div class="invalid-feedback ms-3">
+                    @if (r['phone'].errors?.['required']) { <small>Teléfono requerido</small> }
+                    @if (r['phone'].errors?.['pattern']) { <small>Deben ser 9 números</small> }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="small fw-bold text-muted text-uppercase mb-2 d-block ms-2">
+                Número de personas
+              </label>
+
+              @if (isAdminMode()) {
+                <div class="input-group">
+      <span class="input-group-text bg-white border-2 border-end-0 rounded-start-pill">
+        <i class="bi bi-people-fill text-primary"></i>
+      </span>
+                  <input type="number"
+                         formControlName="n_people"
+                         class="form-control border-2 border-start-0 rounded-end-pill shadow-none"
+                         placeholder="Ej: 15"
+                         min="1">
+                </div>
+                <small class="text-primary ms-3 mt-1 d-block">
+                  <i class="bi bi-info-circle"></i> Modo Administrador: Introduce cualquier cantidad.
+                </small>
+              } @else {
+                <select class="form-select form-select-md rounded-pill border-2 shadow-none"
+                        formControlName="n_people">
+                  <option value="" disabled selected>¿Cuántos sois?</option>
+                  <option value="2">2 personas</option>
+                  <option value="3">3 personas</option>
+                  <option value="4">4 personas</option>
+                  <option value="5">5 personas</option>
+                  <option value="6">6 personas</option>
+                  <option value="7">7 personas</option>
+                  <option value="8">8 personas</option>
+                  <option value="9">9 personas</option>
+                  <option value="10">10 personas</option>
+                </select>
+              }
+
+              @if (r['n_people'].touched && r['n_people'].errors?.['required']) {
+                <div class="text-danger small ms-3 mt-1">Debes indicar el número de personas.</div>
+              }
+            </div>
+
+            <div class="mt-auto d-none d-md-block pt-4">
+              <button type="submit" class="btn btn-dark btn-lg w-100 rounded-pill py-3 fw-bold shadow-sm transition-btn"
+                      [disabled]="isSubmitting()">
+
+                  CONFIRMAR RESERVA
+
+              </button>
+            </div>
+          </div>
+
+          <div class="col-md-7 p-4 bg-white">
+
+            <div class="d-flex justify-content-between align-items-center mb-4 px-3 bg-dark text-white rounded-pill py-2">
+              <button type="button" class="btn btn-sm btn-link text-white p-0" (click)="changeMonth(-1)">
+                <i class="bi bi-chevron-left fs-5"></i>
+              </button>
+              <span class="fw-bold text-uppercase" style="letter-spacing: 1px;">
+                {{ viewDate() | date:'MMMM yyyy' }}
+              </span>
+              <button type="button" class="btn btn-sm btn-link text-white p-0" (click)="changeMonth(1)">
+                <i class="bi bi-chevron-right fs-5"></i>
+              </button>
+            </div>
+
+            <div class="calendar-grid mb-4">
+              @for (day of daysOfWeek; track day) {
+                <div class="text-center small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.7rem;">{{ day }}</div>
+              }
+              @for (date of calendarDays(); track $index) {
+                <div class="d-flex justify-content-center">
+                  @if (date) {
+                    <button type="button" class="day-button"
+                            [class.selected]="isSelected(date)"
+                            [class.is-closed]="isRestaurantClosed(date)"
+                            [disabled]="isPast(date) || isDateDisabled(date)"
+                            (click)="selectDate(date)">
+                      {{ date.getDate() }}
+                    </button>
+                  } @else { <div class="day-empty"></div> }
+                </div>
+              }
+            </div>
+
+            <div class="text-center pt-4 border-top">
+
+              <div class="d-flex gap-2 justify-content-center flex-wrap ">
+
+                  <p class="small fw-bold text-muted text-uppercase mb-3 w-100 text-center">
+                    Turnos disponibles:
+                  </p>
+                  @for (time of availableTimes; track time) {
+                    <button type="button"
+                            class="btn rounded-pill px-4 py-2 time-chip shadow-sm transition-all"
+                            [class.active-time]="r['hour'].value === time"
+                            [class.btn-outline-dark]="r['hour'].value !== time && !fullShifts().includes(time)"
+                            [class.btn-danger]="fullShifts().includes(time)"
+                            [disabled]="isTimeDisabled(time) || fullShifts().includes(time)"
+                            (click)="selectHour(time)">
+
+                      <i class="bi" [class.bi-clock]="!fullShifts().includes(time)" [class.bi-x-circle]="fullShifts().includes(time)"></i>
+                      {{ time }}
+
+                      @if (fullShifts().includes(time)) {
+                        <span class="d-block" style="font-size: 0.6rem; margin-top: -4px;">COMPLETO</span>
+                      }
+                    </button>
+                }
+              </div>
+
+              @if (r['hour'].touched && r['hour'].invalid) {
+                <div class="text-danger small mt-3 animate__animated animate__shakeX">
+                  <i class="bi bi-clock me-1"></i>Debes seleccionar una hora para completar la reserva
+                </div>
+              }
+            </div>
+
+            <div class="mt-5 d-md-none">
+              <button type="submit" class="btn btn-dark btn-lg w-100 rounded-pill py-3 fw-bold shadow-sm"
+                      [disabled]="isSubmitting()">
+                @if (isSubmitting()) { <span class="spinner-border spinner-border-sm"></span> }
+                @else { CONFIRMAR RESERVA }
+              </button>
+            </div>
+            <div class="text-center pt-4 ">
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+
+</div>

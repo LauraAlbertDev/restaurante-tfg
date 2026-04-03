@@ -1,0 +1,47 @@
+:host {
+  display: block;
+  background-color: #111827;
+}
+
+.hover-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.hover-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 1rem 3rem rgba(0,0,0,.5) !important;
+}
+
+.hover-btn {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.hover-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+  border-radius: 3px 0 0 3px;
+}
+
+.hover-btn:hover {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.05) !important; /* Fondo sutil al hover */
+  transform: translateX(5px);
+}
+
+
+.border-primary .hover-btn:hover::before { background-color: #0d6efd; }
+.border-success .hover-btn:hover::before { background-color: #198754; }
+.border-info .hover-btn:hover::before { background-color: #0dcaf0; }
+
+
+a.list-group-item {
+  text-decoration: none;
+}

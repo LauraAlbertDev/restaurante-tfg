@@ -1,0 +1,82 @@
+.custom-input, .custom-select {
+  border-color: #eee;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.custom-input:focus, .custom-select:focus {
+  border-color: #212529;
+  box-shadow: none;
+  background-color: #f8f9fa;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.calendar-day-name {
+  text-align: center;
+  font-size: 0.65rem;
+  color: #adb5bd;
+  padding-bottom: 5px;
+}
+
+.day-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.day-button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+.day-button.selected {
+  background-color: #212529 !important;
+  color: white;
+  font-weight: bold;
+}
+
+.time-chip {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.active-time {
+  background-color: #212529 !important;
+  color: white !important;
+  border-color: #212529 !important;
+}
+
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.transition-all:hover {
+  transform: translateY(-2px);
+}
+
+
+/* Día deshabilitado por estar cerrado */
+.day-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+  background: #f8f9fa;
+  text-decoration: line-through;
+}
+
+/* Opcional: un estilo sutil para diferenciar días pasados de días cerrados */
+.day-button.is-closed {
+  color: gray; /* Rojo suave */
+}
+
+/* Animación para el alert de cerrado */
+.alert-warning {
+  animation: fadeIn 0.5s ease;
+}

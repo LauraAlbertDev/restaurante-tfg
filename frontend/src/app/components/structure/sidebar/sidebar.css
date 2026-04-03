@@ -1,0 +1,17 @@
+.allergen-neon-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-check:checked + .allergen-neon-card {
+  transform: scale(1.05);
+  color: white !important;
+}
+
+.allergen-neon-card:hover {
+  box-shadow: 0 0 10px currentColor !important;
+  filter: brightness(1.1);
+}
+
+.sticky-top{
+  top: 40px;
+}

@@ -1,0 +1,86 @@
+<div class="container py-5">
+  <h2 class="fw-bold mb-5"><i class="bi bi-calendar-check me-2"></i>Configuración de Apertura</h2>
+
+  <div class="row g-4">
+
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0 p-4 h-100">
+        <h5 class="text-muted text-uppercase small fw-bold mb-4">Límites y Estados por Día</h5>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+            <tr class="small text-muted">
+              <th>Día</th>
+              <th>Estado</th>
+              <th style="width: 140px;">Capacidad</th>
+              <th class="text-end">Acción</th>
+            </tr>
+            </thead>
+            <tbody>
+              @for (day of dayRules(); track day.day_of_week) {
+                <tr [class.table-light]="!day.is_open">
+                  <td class="fw-bold text-capitalize">{{ dayNames[day.day_of_week] }}</td>
+                  <td>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input cursor-pointer" type="checkbox"
+                             [(ngModel)]="day.is_open"
+                             [id]="'switch' + day.day_of_week">
+                      <label class="form-check-label small" [for]="'switch' + day.day_of_week">
+                        {{ day.is_open ? 'Abierto' : 'Cerrado' }}
+                      </label>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="input-group input-group-sm">
+                      <input type="number" class="form-control"
+                             [(ngModel)]="day.max_capacity"
+                             [disabled]="!day.is_open">
+                      <span class="input-group-text"><i class="bi bi-people"></i></span>
+                    </div>
+                  </td>
+                  <td class="text-end">
+                    <button class="btn btn-primary btn-sm rounded-pill px-3" (click)="updateDay(day)">
+                      <i class="bi bi-save"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm p-4 h-100">
+        <h5 class="fw-bold mb-4 text-primary">Horarios (Turnos)</h5>
+
+        <div class="list-group list-group-flush mb-4">
+          @for (s of shifts(); track s.id) {
+            <div class="list-group-item d-flex justify-content-between align-items-center border-bottom px-0 py-3">
+              <span class="badge bg-light text-dark border p-2 fs-6 fw-normal">
+                <i class="bi bi-clock me-2"></i>{{ s.start_time }}
+              </span>
+              <button class="btn btn-outline-danger btn-sm border-0" (click)="deleteShift(s.id)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          } @empty {
+            <p class="text-muted small">No hay turnos configurados.</p>
+          }
+        </div>
+
+        <div class="mt-auto">
+          <label class="small fw-bold text-muted text-uppercase mb-2">Nuevo Turno</label>
+          <div class="input-group shadow-sm">
+            <input type="time" class="form-control border-primary" #newTime>
+            <button class="btn btn-primary px-4" (click)="addShift(newTime.value)">
+              <i class="bi bi-plus-lg"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div> </div>
