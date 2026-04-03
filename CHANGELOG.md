@@ -162,21 +162,90 @@ Configuración de la arquitectura base y entornos de ejecución.
     - Tipado estricto mediante interfaces para eliminar el uso de `any`.
     - Refactorización de métodos de controlador para una gestión de errores defensiva basada en los códigos de estado HTTP del backend.
 ---
-## [1.1.1] - 17/03/2026
-### ✨ Mejora – Validaciones y Ajustes de UI en Contacto
+## [1.1.2] - 03/04/2026
+
+### ✨ Nueva Funcionalidad – Gestión de Categorías, Alérgenos y Admin Dashboard
 
 ### 🖥️ Backend
-- Sin cambios relevantes.
+- **Modelos y Base de Datos**:
+    - Creación de los modelos `Category` y `Allergen` con sus respectivas tablas en MySQL.
+- **Arquitectura (Repositories)**:
+    - Implementación de `BaseRepository` para centralizar la lógica de conexión y gestión de cursores.
+    - Desarrollo de `CategoryRepository` y `AllergenRepository` con soporte completo para operaciones CRUD.
+- **API (Routers)**:
+    - Nuevos routers `/categories` y `/allergens` con endpoints protegidos.
+    - Registro y activación de rutas en el punto de entrada principal (`main.py`).
 
 ### 🌐 Frontend
-- **Validaciones (Forms)**:
-    - Mejora de validaciones en el formulario de contacto (email y teléfono).
-    - Restricción del campo **email** a dominios permitidos (`.com`, `.es`, `.net`).
+- **Admin Dashboard**:
+    - Diseño e implementación de una interfaz centralizada con tarjetas visuales (Bootstrap 5) para acceso rápido a todas las secciones administrativas.
+    - Efectos de hover mejorados y descripciones de funcionalidad para cada módulo.
+- **Servicios y Gestión de Estado**:
+    - Creación de `CategoryService` y `AllergenService` utilizando **Angular Signals**.
+    - Implementación de **Estado Local**: Métodos `addLocal`, `removeLocal` y `updateLocal` para garantizar una respuesta instantánea de la UI sin recargas de red.
+- **Componentes Administrativos**:
+    - Desarrollo de los componentes `AdminCategories` y `AdminAllergens`.
+    - Implementación de lógica de edición "en línea" y modales de confirmación para borrado.
+- **UX/UI**:
+    - Gestión de estados de carga (`loading signals`) para deshabilitar botones durante peticiones asíncronas.
+    - Estilización de formularios con validaciones visuales y feedback de errores.
 
-- **UX/UI (Errores de formulario)**:
-    - Corrección en la visualización de mensajes de error, mostrándolos en líneas independientes.
+---
 
-- **Mapa (Google Maps)**:
-    - Ajuste del nivel de zoom en el mapa embebido para mejorar el contexto visual de la ubicación
--  **Navbar (Autenticación y roles)**:
-    - Simplificación de la lógica de visibilidad del menú de administración utilizando `isAdmin()` como única fuente de verdad.
+## [1.1.2] - 03/04/2026
+
+### ✨ Nueva Funcionalidad – Gestión de Categorías, Alérgenos y Admin Dashboard
+
+### 🖥️ Backend
+- **Modelos y Base de Datos**:
+    - Creación de los modelos `Category` y `Allergen` con sus respectivas tablas en MySQL.
+- **Arquitectura (Repositories)**:
+    - Implementación de `BaseRepository` para centralizar la lógica de conexión y gestión de cursores.
+    - Desarrollo de `CategoryRepository` y `AllergenRepository` con soporte completo para operaciones CRUD.
+- **API (Routers)**:
+    - Nuevos routers `/categories` y `/allergens` con endpoints protegidos.
+    - Registro y activación de rutas en el punto de entrada principal (`main.py`).
+
+### 🌐 Frontend
+- **Admin Dashboard**:
+    - Diseño e implementación de una interfaz centralizada con tarjetas visuales (Bootstrap 5) para acceso rápido a todas las secciones administrativas.
+    - Efectos de hover mejorados y descripciones de funcionalidad para cada módulo.
+- **Servicios y Gestión de Estado**:
+    - Creación de `CategoryService` y `AllergenService` utilizando **Angular Signals**.
+    - Implementación de **Estado Local**: Métodos `addLocal`, `removeLocal` y `updateLocal` para garantizar una respuesta instantánea de la UI sin recargas de red.
+- **Componentes Administrativos**:
+    - Desarrollo de los componentes `AdminCategories` y `AdminAllergens`.
+    - Implementación de lógica de edición "en línea" y modales de confirmación para borrado.
+- **UX/UI**:
+    - Gestión de estados de carga (`loading signals`) para deshabilitar botones durante peticiones asíncronas.
+    - Estilización de formularios con validaciones visuales y feedback de errores.
+
+---
+
+## [1.1.2] - 03/04/2026
+
+### ✨ Nueva Funcionalidad – Gestión de Categorías, Alérgenos y Admin Dashboard
+
+### 🖥️ Backend
+- **Modelos y Base de Datos**:
+    - Creación de los modelos `Category` y `Allergen` con sus respectivas tablas en MySQL.
+- **Arquitectura (Repositories)**:
+    - Implementación de `BaseRepository` para centralizar la lógica de conexión y gestión de cursores.
+    - Desarrollo de `CategoryRepository` y `AllergenRepository` con soporte completo para operaciones CRUD.
+- **API (Routers)**:
+    - Nuevos routers `/categories` y `/allergens` con endpoints protegidos.
+    - Registro y activación de rutas en el punto de entrada principal (`main.py`).
+
+### 🌐 Frontend
+- **Admin Dashboard**:
+    - Diseño e implementación de una interfaz centralizada con tarjetas visuales (Bootstrap 5) para acceso rápido a todas las secciones administrativas.
+    - Efectos de hover mejorados y descripciones de funcionalidad para cada módulo.
+- **Servicios y Gestión de Estado**:
+    - Creación de `CategoryService` y `AllergenService` utilizando **Angular Signals**.
+    - Implementación de **Estado Local**: Métodos `addLocal`, `removeLocal` y `updateLocal` para garantizar una respuesta instantánea de la UI sin recargas de red.
+- **Componentes Administrativos**:
+    - Desarrollo de los componentes `AdminCategories` y `AdminAllergens`.
+    - Implementación de lógica de edición "en línea" y modales de confirmación para borrado.
+- **UX/UI**:
+    - Gestión de estados de carga (`loading signals`) para deshabilitar botones durante peticiones asíncronas.
+    - Estilización de formularios con validaciones visuales y feedback de errores.
