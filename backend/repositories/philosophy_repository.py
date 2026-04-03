@@ -21,12 +21,19 @@ class PhilosophyRepository:
                 SET icon = %(icon)s, title = %(title)s, message = %(message)s
                 WHERE id = %(id)s
                 """
-        params = {**data, "id": philosophy_id}
+        params = {
+            "icon": data.get("icon"),
+            "title": data.get("title"),
+            "message": data.get("message"),
+            "id": philosophy_id
+        }
 
         try:
             with self._get_cursor() as cursor:
                 cursor.execute(query, params)
-                self.db.commit()
+                if cursor.rowcount == 0:
+                    return None
+            self.db.commit()
             return self.get_by_id(philosophy_id)
         except Exception as e:
             self.db.rollback()

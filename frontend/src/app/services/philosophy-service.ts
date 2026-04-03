@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Philosophy, PhilosophyUpdate } from '../common/interfaces';
+import { Philosophy, PhilosophyUpdate } from '../common/interfaces/interfaces';
 import { environment } from '../environment/environment';
 import { Observable } from 'rxjs';
 
@@ -25,10 +25,6 @@ export class PhilosophyService {
       title: data.title,
       message: data.message
     };
-
-    console.log('Enviando a:', url);
-    console.log('Cuerpo del delito:', body);
-
     return this.http.put<Philosophy>(url, body);
   }
 }

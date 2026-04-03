@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from database import get_db
 from pydantic import BaseModel
 
-from models.philosophies import PhilosophyUpdate
+from models.philosophy import PhilosophyUpdate
 from repositories.philosophy_repository import PhilosophyRepository
 
 router = APIRouter(prefix="/philosophies", tags=["Philosophies"])

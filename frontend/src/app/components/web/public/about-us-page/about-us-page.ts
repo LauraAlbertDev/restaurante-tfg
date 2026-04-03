@@ -1,9 +1,10 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Philosophy } from '../../../../common/interfaces';
+import { Philosophy } from '../../../../common/interfaces/interfaces';
 import { Modal } from 'bootstrap';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {PhilosophyService} from '../../../../services/philosophy-service';
 import {AuthService} from '../../../../services/auth-service';
+import {UiService} from '../../../../services/ui-service';
 
 @Component({
   selector: 'app-about-us-page',
@@ -15,6 +16,7 @@ import {AuthService} from '../../../../services/auth-service';
 export class AboutUsPage implements  OnInit {
   private readonly philosophyService = inject(PhilosophyService);
   private readonly fb = inject(FormBuilder);
+  private readonly ui = inject(UiService);
 
   philosophies: Philosophy[] = [];
   editForm: FormGroup = this.initForm();
@@ -72,7 +74,7 @@ export class AboutUsPage implements  OnInit {
           );
           this.modalInstance?.hide();
         },
-        error: (err) => alert("Error al guardar: " + err.message)
+        error: (err) => this.ui.notify("Error al guardar: " + err.message)
       });
   }
 }
