@@ -1,0 +1,70 @@
+/* Asegura que los contenedores laterales ocupen el mismo espacio */
+.flex-grow-1 {
+  flex-basis: 0;
+}
+
+/* Estilos de los links para que se vean limpios */
+.navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover, .active-custom {
+  color: #0dcaf0 !important;
+}
+
+/* El botón Dashboard que ya tenías con un ajuste de tamaño */
+.btn-dashboard {
+  background: #0084ff; /* El azul de tu imagen */
+  color: white;
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 132, 255, 0.3);
+}
+/* Contenedor del dropdown para asegurar posicionamiento relativo */
+.user-actions .dropdown {
+  position: relative;
+}
+
+/* Estilo del menú desplegable de usuario */
+.user-actions .dropdown-menu {
+  /* Posicionamiento */
+  position: absolute;
+  top: 100%;       /* Justo debajo del icono */
+  right: 0;        /* Alineado al borde derecho del icono */
+  left: auto;      /* Desactiva la alineación izquierda por defecto */
+
+  /* Dimensiones y visibilidad */
+  min-width: 180px;
+  z-index: 1050;   /* Asegura que esté por encima de mapas o imágenes */
+
+  /* Estética */
+  background-color: #212529;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  margin-top: 10px !important; /* Espacio entre icono y menú */
+  box-shadow: -5px 5px 15px rgba(0,0,0,0.5); /* Sombra hacia la izquierda */
+  display: none; /* Se controla con la clase .show de Angular */
+}
+
+/* Cuando Angular añade la clase .show */
+.user-actions .dropdown-menu.show {
+  display: block;
+  animation: slideInLeft 0.2s ease-out;
+}
+
+/* Animación sutil para que aparezca desde la derecha hacia la izquierda */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

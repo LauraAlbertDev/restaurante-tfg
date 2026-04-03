@@ -1,6 +1,8 @@
+from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
-from fastapi import HTTPException, Depends, status
+from typing import Annotated, Optional
+from fastapi import HTTPException, Depends, status, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import bcrypt
 
@@ -13,29 +15,41 @@ def create_token(data: dict):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
     to_encode.update({"exp": expire})
-
-    token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return token
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 # ================= VERIFICAR TOKEN (Renombrado para el import) =================
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials
-
     try:
+        token = credentials.credentials
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except JWTError:
+    except (JWTError, AttributeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token invalid or expired"
         )
+
+# ================= VERIFICAR TOKEN (Opcional) =================
+# Corregido: Usamos el header 'Authorization' directamente como string
+async def get_current_user_optional(authorization: Annotated[Optional[str], Header()] = None):
+    if not authorization:
+        return None
+
+    try:
+        # Extraemos el token quitando el prefijo 'Bearer '
+        token = authorization.split(" ")[1] if " " in authorization else authorization
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except Exception:
+        # Si el token es inválido o malformado, devolvemos None en lugar de error
+        return None
 
 # ================= ROLES =================
 def admin_required(user=Depends(get_current_user)):
     if user.get("type") != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin only"
+            detail="Admin access required"
         )
     return user
 
@@ -43,16 +57,15 @@ def employee_or_admin(user=Depends(get_current_user)):
     if user.get("type") not in ["admin", "employee"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Unauthorized"
+            detail="Unauthorized: Employee or Admin only"
         )
     return user
 
 
-# ================= HASH PASSWORD =================
+# ================= BCRYPT UTILS =================
 def hash_password(password: str) -> str:
-    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-    return hashed.decode('utf-8')
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-# ================= VERIFY PASSWORD =================
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))

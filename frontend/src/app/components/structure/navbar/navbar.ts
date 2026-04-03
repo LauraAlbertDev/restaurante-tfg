@@ -14,25 +14,49 @@ import {CommonModule} from '@angular/common';
   styleUrl: './navbar.css',
 })
 export class Navbar  {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
   activeMenu: 'admin' | 'user' | null = null;
 
   pages = [
     { name: 'Inicio', link: '/' },
     { name: 'Menú', link: '/menu' },
     { name: 'Nosotros', link: '/nosotros' },
-    { name: 'Contacto', link: '/contacto'}
+    { name: 'Contacto', link: '/contacto' }
   ];
+
 
   adminPages = [
-    { name: 'Usuarios', link: '/admin/users', icon: 'people' },
-    { name: 'Comentarios', link: 'admin/comments-list', icon: 'chat-dots-fill' },
-    { name: 'Categorias', link: 'admin/categories', icon: 'bookmarks' }
+    { name: 'Alergenos', link: 'allergens', icon: 'virus2' },
+    { name: 'Categorias', link: 'categories', icon: 'bookmarks' },
+    { name: 'Comentarios', link: 'comments-list', icon: 'chat-dots-fill' },
+    { name: 'Horarios', link: 'shifts', icon: 'calendar-day' },
+    { name: 'Usuarios', link: 'users', icon: 'people' }
   ];
 
-  auth = inject(AuthService);
-  router = inject(Router);
+  sharedPages = [
+    { name: 'Mi perfil', link: '/auth/my-profile', icon: 'person-vcard', actionType: 'close' },
+    { name: 'Cerrar Sesión', link: null, icon: 'box-arrow-left', actionType: 'logout', isDanger: true  },
+  ]
 
-  logOut(){
+  onSharedClick(page: any) {
+    if (page.actionType === 'logout') {
+      this.logOut();
+    } else {
+      this.closeMenus();
+    }
+  }
+
+  isLoggedIn(): boolean {
+    return this.auth.isAuthenticated();
+  }
+
+  isAdmin(): boolean {
+    return this.auth.getType() === 'admin';
+  }
+
+  logOut() {
     this.auth.logout();
     this.closeMenus();
     this.router.navigate(['/login']);
@@ -45,5 +69,4 @@ export class Navbar  {
   toggleMenu(menu: 'admin' | 'user') {
     this.activeMenu = this.activeMenu === menu ? null : menu;
   }
-
 }

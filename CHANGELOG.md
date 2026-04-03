@@ -262,3 +262,18 @@ Configuración de la arquitectura base y entornos de ejecución.
 ### 🌐 Frontend
 - Mejora visual del componente `CommentsList` para administradores.
 - Implementación de lógica de edición en `CommentsEdit` para gestionar la visibilidad de las reseñas.
+
+---
+
+## [1.1.4] - 03/04/2026
+
+### ✨ Nueva Funcionalidad – Gestión de Comentarios
+
+### 🖥️ Backend
+- Refactorización de `security.py` para mejorar la validación de tokens JWT.
+- Actualización de `AuthRepository` para la gestión de perfiles de usuario.
+
+### 🌐 Frontend
+- **Navbar Dinámico**: Simplificación de la lógica de navegación basada en el rol del usuario (`isAdmin`).
+- **Gestión de Usuarios**: Implementación del componente `AdminUsers` para el control de cuentas desde el panel de administración.
+- **Seguridad**: Optimización de `AuthInterceptor` para adjuntar tokens automáticamente en las peticiones al API.

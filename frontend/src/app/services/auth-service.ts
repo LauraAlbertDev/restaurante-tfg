@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {environment} from '../environment/environment';
 import {tap} from 'rxjs';
 import {Router} from '@angular/router';
+import {UiService} from './ui-service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,8 +12,9 @@ export class AuthService {
   userType = signal<string | null>(localStorage.getItem('type'));
   private http : HttpClient = inject(HttpClient);
   private router : Router = inject(Router);
+  private readonly ui = inject(UiService);
+  private isRedirecting = false;
 
-  // LOG-IN/LOG-OUT
   login(email: string, password: string){
     return this.http.post<any>(environment.apiUrl + 'auth/login', {
       email,
@@ -34,16 +36,10 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  // GETTERS
-  getToken(){
-    return localStorage.getItem('token') || '';
-  }
-
   getType(){
     return localStorage.getItem('type') || '';
   }
 
-  // USER LOGGED?
   isAuthenticated(): boolean {
     const token = localStorage.getItem('token');
     if (!token) return false;
@@ -57,38 +53,27 @@ export class AuthService {
     }
   }
 
-  // ROLES
   isAdmin(){
     return this.isAuthenticated() && this.userType() === 'admin';
   }
 
-  isEmployee(){
-    return localStorage.getItem('type') === 'employee';
-  }
-
   redirectByRole(role: string) {
     if(role === 'admin'){
-      this.router.navigate(['/']);
+      this.router.navigate(['/admin/dashboard']);
       return;
     }
-
     if(role === 'employee'){
       this.router.navigate(['/']);
       return;
     }
-
-    // fallback
     this.router.navigate(['/']);
   }
-
-  // En tu AuthService.ts
-  private isRedirecting = false;
 
   logoutWithAlert() {
     if (this.isRedirecting) return;
 
     this.isRedirecting = true;
-    alert('Tu sesión ha expirado, vas a ser redirigido al login');
+    this.ui.notify('Tu sesión ha expirado, vas a ser redirigido al login');
     this.logout();
 
     setTimeout(() => this.isRedirecting = false, 3000);

@@ -1,10 +1,12 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { AuthService } from '../../services/auth-service';
+import {UiService} from '../../services/ui-service';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const ui = inject(UiService);
 
   if (!authService.isAuthenticated()) {
     router.navigate(['/login']);
@@ -24,7 +26,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   const hasPermission = rolePermissions[requiredRole]?.includes(userType);
 
   if (!hasPermission) {
-    alert('No tienes permisos suficientes para acceder aquí');
+    ui.handleError('No tienes permisos suficientes para acceder aquí');
     router.navigate(['/']);
     return false;
   }

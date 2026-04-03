@@ -1,9 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import {Component, computed, inject, OnInit, signal} from '@angular/core';
 import { UserService } from '../../../../services/user-service';
-import { User } from '../../../../common/interfaces';
+import { User } from '../../../../common/interfaces/interfaces';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormValidators } from '../../../../Validators/FormValidators';
 import { DatePipe, NgClass } from '@angular/common';
+import {UiService} from '../../../../services/ui-service';
 
 @Component({
   selector: 'app-admin-users',
@@ -14,12 +15,18 @@ import { DatePipe, NgClass } from '@angular/common';
 })
 export class AdminUsers implements OnInit {
   private readonly userService = inject(UserService);
-  private readonly fb = inject(FormBuilder);
+  private readonly fb : FormBuilder = inject(FormBuilder);
+  private readonly ui : UiService = inject(UiService);
 
-  users: User[] = [];
-  me: any;
-  isEditing: boolean = false;
-  selectedUserId: number | null = null;
+  users = signal<User[]>([]);
+  me = signal<User | null>(null);
+  isEditing = signal(false);
+  selectedUserId = signal<number | null>(null);
+
+  filteredUsers = computed(() => {
+    const currentMe = this.me();
+    return this.users().filter(u => u.id !== currentMe?.id);
+  });
 
   formUsers: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(40), FormValidators.nonOnlyWhiteSpace]],
@@ -35,45 +42,45 @@ export class AdminUsers implements OnInit {
   }
 
   loadInitialData() {
-    this.userService.getProfile().subscribe({
-      next: (res) => {
-        this.me = res;
-        this.loadUsers();
-      },
-      error: (err) => console.error('Error al cargar perfil:', err)
+    this.userService.getProfile().subscribe(res => {
+      this.me.set(res);
+      this.loadUsers();
     });
   }
 
   loadUsers() {
     this.userService.getUsers().subscribe({
       next: (data: User[]) => {
-        this.users = data.filter(u => u.id !== this.me.id);
+        this.users.set(data);
       }
     });
   }
 
   openAddModal() {
-    this.isEditing = false;
-    this.selectedUserId = null;
-    this.formUsers.reset({ type: '' });
-
-    this.u['password'].setValidators([Validators.required, Validators.minLength(8)]);
-    this.u['password'].updateValueAndValidity();
+    this.isEditing.set(true);
+    this.selectedUserId.set(null);
+    this.formUsers.reset({type: ''});
+    this.updatePasswordValidators(true);
   }
 
   openEditModal(user: User) {
-    this.isEditing = true;
-    this.selectedUserId = user.id!;
-
-    this.u['password'].setValidators([Validators.minLength(8)]);
-    this.u['password'].updateValueAndValidity();
+    this.isEditing.set(true);
+    this.selectedUserId.set(user.id!);
+    this.updatePasswordValidators(false);
 
     this.formUsers.patchValue({
-      name: user.name,
-      email: user.email,
-      password: '',
-      type: user.type
+      ...user,
+      password: ''
     });
+  }
+
+  private updatePasswordValidators(isRequired: boolean) {
+    const passwordCtrl = this.u['password'];
+    const validators = isRequired
+      ? [Validators.required, Validators.minLength(8)]
+      : [Validators.minLength(8)];
+    passwordCtrl.setValidators(validators);
+    passwordCtrl.updateValueAndValidity();
   }
 
   onSubmit() {
@@ -84,37 +91,34 @@ export class AdminUsers implements OnInit {
 
     const userData = { ...this.formUsers.value };
 
-    if (this.isEditing && !userData.password) {
-      delete userData.password;
-    }
+    if (this.isEditing() && !userData.password) delete userData.password;
 
-    if (this.isEditing && this.selectedUserId) {
-      this.userService.updateUser(this.selectedUserId, userData).subscribe({
-        next: () => this.handleSuccess(),
-        error: (err) => this.handleError(err)
+    const request = this.isEditing()
+      ? this.userService.updateUser(this.selectedUserId()!, userData)
+      : this.userService.createUser(userData)
+
+    request.subscribe({
+      next: () =>{
+        this.loadUsers();
+        this.ui.notify('Operación realizada')
+      },
+      error: error => {this.ui.handleError(error);},
+    })
+  }
+
+
+  async onArchive(id: number) {
+    // Esperamos a que el usuario responda al modal/confirm
+    const confirmed = await this.ui.confirm('¿Estás seguro de que deseas cambiar el estado de este usuario?');
+
+    if (confirmed) {
+      this.userService.toggleUserStatus(id).subscribe({
+        next: () => {
+          this.loadUsers();
+          this.ui.notify('Estado actualizado correctamente');
+        },
+        error: (err) => this.ui.handleError('No se pudo cambiar el estado', err)
       });
-    } else {
-      this.userService.createUser(userData).subscribe({
-        next: () => this.handleSuccess(),
-        error: (err) => this.handleError(err)
-      });
-    }
-  }
-
-  private handleSuccess() {
-    this.loadUsers();
-  }
-
-  private handleError(err: any) {
-    console.error(err);
-    if (err.error?.detail === 'EMAIL_EXISTS') {
-      this.u['email'].setErrors({ emailExists: true });
-    }
-  }
-
-  onArchive(id: number) {
-    if (confirm('¿Estás seguro de que deseas cambiar el estado de este usuario?')) {
-      this.userService.toggleUserStatus(id).subscribe(() => this.loadUsers());
     }
   }
 }
