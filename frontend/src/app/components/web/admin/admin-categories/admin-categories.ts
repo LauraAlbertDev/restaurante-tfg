@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CategoryService } from '../../../../services/category-service';
-import { Category } from '../../../../common/interfaces';
+import { Category } from '../../../../common/interfaces/interfaces';
 
 @Component({
   selector: 'app-admin-categories',
@@ -26,11 +26,11 @@ export class AdminCategories implements OnInit {
   }
 
   create() {
-    const nombre = this.newName().trim();
-    if (!nombre || this.loading()) return;
+    const name = this.newName().trim();
+    if (!name || this.loading()) return;
 
     this.loading.set(true);
-    this.categorySrv.create(nombre).subscribe({
+    this.categorySrv.create(name).subscribe({
       next: (cat) => {
         this.categorySrv.addLocal(cat);
         this.newName.set('');
@@ -60,13 +60,13 @@ export class AdminCategories implements OnInit {
   }
 
   saveEdit(id: number) {
-    const nombre = this.editText().trim();
-    if (!nombre || this.loading()) return;
+    const name = this.editText().trim();
+    if (!name || this.loading()) return;
 
     this.loading.set(true);
-    this.categorySrv.update(id, nombre).subscribe({
+    this.categorySrv.update(id, name).subscribe({
       next: () => {
-        this.categorySrv.updateLocal(id, nombre);
+        this.categorySrv.updateLocal(id, name);
         this.cancelEdit(); // Limpia el estado de edición
         this.loading.set(false);
       },
