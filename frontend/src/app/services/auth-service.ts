@@ -9,11 +9,17 @@ import {UiService} from './ui-service';
   providedIn: 'root',
 })
 export class AuthService {
-  userType = signal<string | null>(localStorage.getItem('type'));
+  userType = signal<string | null>(this.isAuthenticated() ? localStorage.getItem('type') : null);
   private http : HttpClient = inject(HttpClient);
   private router : Router = inject(Router);
   private readonly ui = inject(UiService);
   private isRedirecting = false;
+
+  constructor() {
+    if (localStorage.getItem('token') && !this.isAuthenticated()) {
+      this.logout();
+    }
+  }
 
   login(email: string, password: string){
     return this.http.post<any>(environment.apiUrl + 'auth/login', {
