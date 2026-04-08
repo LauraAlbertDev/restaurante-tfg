@@ -14,14 +14,11 @@ import {UiService} from '../../../../services/ui-service';
 export class AdminAllergens implements OnInit {
   private allergenSrv = inject(AllergenService);
   private readonly ui = inject(UiService);
-  // Usamos el signal del servicio
   allergens = this.allergenSrv.allergens;
 
-  // Signals para creación
   newName = signal('');
   newColor = signal('#0d6efd'); // Color azul por defecto
 
-  // Signals para edición
   editId = signal<number | null>(null);
   editText = signal('');
   editColor = signal('#0d6efd'); // Signal que te faltaba

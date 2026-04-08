@@ -1,8 +1,3 @@
-:host {
-  display: block;
-  background-color: #111827;
-}
-
 .hover-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   backdrop-filter: blur(5px);
@@ -32,7 +27,7 @@
 
 .hover-btn:hover {
   color: #fff !important;
-  background-color: rgba(255, 255, 255, 0.05) !important; /* Fondo sutil al hover */
+  background-color: rgba(255, 255, 255, 0.05) !important;
   transform: translateX(5px);
 }
 
