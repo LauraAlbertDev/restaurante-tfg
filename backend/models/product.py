@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
-from models.allergen import AllergenCreate, AllergenResponse
+from .allergen import AllergenResponse
+from .audit import AuditBase
 
 class ProductBase(BaseModel):
     name: str
@@ -16,7 +17,7 @@ class ProductBase(BaseModel):
 class ProductCreate(ProductBase):
     allergen_ids: List[int] = []
 
-class ProductResponse(ProductBase):
+class ProductResponse(ProductBase, AuditBase):
     id: int
     category_name: Optional[str] = None
     archived: int = 0

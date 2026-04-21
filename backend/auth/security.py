@@ -5,7 +5,6 @@ from typing import Annotated, Optional
 from fastapi import HTTPException, Depends, status, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import bcrypt
-
 from auth.jwt_config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_HOURS
 
 security = HTTPBearer()
@@ -53,11 +52,19 @@ def admin_required(user=Depends(get_current_user)):
         )
     return user
 
-def employee_or_admin(user=Depends(get_current_user)):
-    if user.get("type") not in ["admin", "employee"]:
+def leader_or_admin(user=Depends(get_current_user)):
+    if user.get("type") not in ["admin", "leader"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Unauthorized: Employee or Admin only"
+            detail="Leader or Admin access required"
+        )
+    return user
+
+def employee_or_admin(user=Depends(get_current_user)):
+    if user.get("type") not in ["admin", "leader", "employee"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized: Leader, employee or Admin only"
         )
     return user
 

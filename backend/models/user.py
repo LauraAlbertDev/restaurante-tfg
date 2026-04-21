@@ -30,7 +30,7 @@ class UserCreateByAdmin(BaseModel):
     name: str
     email: EmailStr
     password: str
-    type: Literal["employee", "admin"]
+    type: Literal["employee", "leader", "admin"]
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None

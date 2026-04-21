@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from database import get_db
 from models.user import UserRegister, UserLogin, LoginResponse
-from auth.security import create_token, verify_password, hash_password # ⬅️ Usamos tus funciones de ayer
+from auth.security import create_token, verify_password, hash_password
 from repositories.auth_repository import AuthRepository
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
