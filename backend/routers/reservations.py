@@ -60,9 +60,10 @@ def create_reservation(
     """Crea una reserva validando capacidad si no es personal del restaurante."""
     res_repo = ReservationRepository(db)
     set_repo = SettingsRepository(db)
+    user_id = auth_user.get("id") if auth_user else None
 
     try:
-        is_staff = auth_user and auth_user.get("type") in ["admin", "employee"]
+        is_staff = auth_user and auth_user.get("type") in ["admin", "employee", "leader"]
 
         if not is_staff:
             dia_semana = reservation.date.weekday()
@@ -86,12 +87,13 @@ def create_reservation(
                 plazas = max(0, limite_por_turno - ocupacion_actual)
                 raise HTTPException(status_code=400, detail=f"Solo quedan {plazas} plazas.")
 
-        new_id = res_repo.create(reservation.model_dump())
+        new_id = res_repo.create(reservation.model_dump(), user_id=user_id)
         return {"status": "success", "id": new_id, "message": "Reserva confirmada"}
 
     except HTTPException as e: raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error al crear reserva")
+        print(f"ERROR EN REPOSITORIO: {e}") # <--- ¡MIRA ESTO!
+        raise e
 
 @router.post("/admin/update-day")
 def update_day(data: dict, db=Depends(get_db)):
@@ -168,11 +170,25 @@ def get_reservation(reservation_id: int, db=Depends(get_db)):
     return reserva
 
 @router.put("/update/{reservation_id}")
-def update_reservation(reservation_id: int, data: dict, db=Depends(get_db)):
+def update_reservation(
+        reservation_id: int,
+        reservation: ReservationSchema, # Usa el esquema, no un dict genérico
+        db=Depends(get_db),
+        auth_user: Optional[dict] = Depends(get_current_user_optional) # Necesitamos saber quién edita
+):
     repo = ReservationRepository(db)
-    if repo.update(reservation_id, data):
+
+    # Obtenemos el ID del editor
+    editor_id = auth_user.get("id") if auth_user else None
+
+    # Convertimos el esquema a dict
+    data = reservation.model_dump()
+
+    # Pasamos el editor_id al repo
+    if repo.update(reservation_id, data, editor_id=editor_id):
         return {"status": "success", "message": "Actualizada"}
-    raise HTTPException(500)
+
+    raise HTTPException(status_code=500, detail="No se pudo actualizar la reserva")
 
 @router.delete("/{reservation_id}")
 def delete_reservation(reservation_id: int, db=Depends(get_db)):

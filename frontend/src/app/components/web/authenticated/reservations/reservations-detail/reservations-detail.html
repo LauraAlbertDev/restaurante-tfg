@@ -1,0 +1,100 @@
+<div class="col-md-12">
+  <div class="card shadow-lg border-0 h-100 rounded-4 overflow-hidden shadow-hover">
+    <div class="card-header bg-gradient bg-primary text-white py-4 text-center border-0">
+      <div class="opacity-75 small text-uppercase fw-bold mb-1" style="letter-spacing: 2px;">Confirmación de reserva</div>
+      <h5 class="mb-0 fs-4"><i class="bi bi-receipt-cutoff me-2"></i> Vista Previa</h5>
+    </div>
+
+    <div class="card-body bg-white p-4">
+      <div class="text-center mb-4">
+        <div class="d-inline-block bg-primary-subtle p-3 rounded-circle mb-3">
+          <i class="bi bi-person-check-fill text-primary fs-2"></i>
+        </div>
+
+        <h3 class="fw-extrabold text-dark mb-1">
+          {{ reservation()?.name || 'Nombre del Cliente' }}
+        </h3>
+
+        @let status = reservation()?.status;
+        @let c = status ? config[status] : null;
+
+        @if (c) {
+          <span class="badge rounded-pill px-3 py-2" [ngClass]="c.color">
+        <i class="bi me-1" [ngClass]="c.icon"></i> {{ c.label }}
+      </span>
+        } @else {
+          <span class="badge bg-secondary rounded-pill">Desconocido</span>
+        }
+      </div>
+
+
+
+      <hr class="border-secondary opacity-25 my-4">
+
+      <div class="row g-4">
+        <div class="col-6">
+          <div class="p-3 border rounded-3 bg-light h-100">
+            <small class="text-muted d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem;">Fecha y Hora</small>
+            <p class="mb-0 fw-bold text-dark">
+              <i class="bi bi-calendar3 text-primary me-2"></i>
+              {{ (reservation()?.date | date:'dd/MM/yyyy') || '--/--/----' }}
+            </p>
+            <p class="mb-0 fw-bold text-dark">
+              <i class="bi bi-clock text-primary me-2"></i>
+              {{ reservation()?.hour || '00:00' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="col-6">
+          <div class="p-3 border rounded-3 bg-light h-100">
+            <small class="text-muted d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem;">Comensales</small>
+            <p class="mb-0  fw-bold text-dark">
+              <i class="bi bi-people-fill text-primary me-2"></i>
+              {{ reservation()?.n_people || '?' }} <span class="fs-6 fw-normal">pers.</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="p-3 border rounded-3 bg-light">
+            <small class="text-muted d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem;">Contacto</small>
+            <div class="d-flex justify-content-between align-items-center">
+               <span class="fw-bold text-dark">
+                 <i class="bi bi-telephone-fill text-primary me-2"></i>
+                 {{ reservation()?.phone || 'Sin teléfono' }}
+               </span>
+              @if (reservation()?.phone){
+                <a href="tel:{{reservation()?.phone}}" class="btn btn-sm btn-primary rounded-circle" >
+                  <i class="bi bi-telephone"></i>
+                </a>
+              }
+
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="p-3 border rounded-3 bg-primary-subtle border-primary-subtle">
+            <small class="text-primary d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem;">Pedido de Arroces</small>
+            <p class="mb-0 fw-semibold text-primary-emphasis">
+              <i class="bi bi-egg-fried me-2"></i>
+              {{ reservation()?.rices || 'Sin arroces indicados' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      @if (reservation()?.notes) {
+        <div class="mt-4 p-3 bg-warning-subtle border-start border-4 border-warning rounded-end-3">
+          <h6 class="fw-bold text-warning-emphasis mb-2 small"><i class="bi bi-chat-left-dots-fill me-2"></i> NOTA DEL CLIENTE:</h6>
+          <p class="mb-0 text-dark italic small" style="font-style: italic;">"{{ reservation()?.notes }}"</p>
+        </div>
+      }
+    </div>
+
+    <div class="card-footer bg-light py-3 border-0 text-center">
+      <small class="text-muted fst-italic">GastroManager System v1.2</small>
+    </div>
+  </div>
+</div>

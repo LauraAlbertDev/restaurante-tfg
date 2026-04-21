@@ -40,7 +40,7 @@ export class ReservationsPage implements OnInit {
     date: [this.formatDateLocal(new Date()), [Validators.required]],
     hour: ['', [Validators.required]],
     n_people: ['', [Validators.required]],
-    notes: ['']
+    notes: [''],
   });
 
   ngOnInit() {

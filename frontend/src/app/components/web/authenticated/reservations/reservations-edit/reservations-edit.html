@@ -1,10 +1,4 @@
 <div class="container py-5">
-  <div class="text-center mb-5">
-    <h2 class="fw-bold text-primary">
-      {{ id ? '📝 Editar reserva' : '📩 Nueva reserva' }}
-    </h2>
-  </div>
-
   <div class="row g-4 justify-content-center">
     <div class="col-md-6 col-lg-5">
       <form [formGroup]="formReservation" (ngSubmit)="onSubmit()" class="card shadow-lg border-0 p-4 rounded-4">
@@ -49,7 +43,7 @@
         </div>
 
         <div class="form-floating mb-3">
-          <input type="date" class="form-control" id="date" formControlName="date"
+          <input type="date" class="form-control date-icon-grey" id="date" formControlName="date"
                  [min]="minDate"
                  [class.is-invalid]="r['date']?.touched && r['date']?.invalid">
           <label for="date"><i class="bi bi-calendar me-1"></i> Fecha</label>
@@ -97,10 +91,18 @@
           }
         </div>
 
-        <div class="form-floating mb-4">
+        <div class="form-floating mb-3">
           <textarea class="form-control" style="height: 100px" id="notes" placeholder="Nota"
                     formControlName="notes"></textarea>
           <label for="notes"><i class="bi bi-sticky me-1"></i> Nota interna</label>
+        </div>
+        <div class="form-floating mb-3">
+          <select class="form-select" id="status" formControlName="status">
+            @for (key of statusLabels | keyvalue; track key.key) {
+              <option [value]="key.key">{{ key.value }}</option>
+            }
+          </select>
+          <label for="status"><i class="bi bi-shield-check me-1"></i> Estado</label>
         </div>
 
         <div class="d-grid gap-3">
@@ -116,35 +118,65 @@
 
     <div class="col-md-6 col-lg-5">
       <div class="card shadow-lg border-0 h-100 rounded-4 overflow-hidden">
-        <div class="card-header bg-primary text-white py-3 text-center">
-          <h5 class="mb-0"><i class="bi bi-eye me-2"></i> Vista previa</h5>
+        <div class="card-header bg-primary text-white py-4 text-center border-0">
+          <h5 class="mb-0 fw-bold"><i class="bi bi-eye me-2"></i> Vista previa</h5>
+          <h2 class="mt-2 ">
+            {{ r['name']?.value || 'Nombre del cliente' }}
+          </h2>
         </div>
-        <div class="card-body bg-light">
-          <div class="text-center">
-            <h3 class="fw-bold text-dark mb-4">
-              {{ r['name']?.value || 'Nombre del cliente' }}
-            </h3>
-            <div class="mb-4">
-              <p class="text-muted small fw-bold text-uppercase mb-2">Información de contacto</p>
-              <p class="mb-1">
-                <i class="bi bi-telephone text-primary me-2"></i>
-                {{ r['phone']?.value || 'Sin teléfono' }}
-              </p>
-              <p class="mb-1">
-                <i class="bi bi-calendar-event text-primary me-2"></i>
-                {{ (r['date']?.value | date:'dd/MM/yyyy') || 'Fecha' }} a las {{ r['hour']?.value || 'hora' }}
-              </p>
-              <p class="mb-0">
-                <i class="bi bi-people text-primary me-2"></i>
-                {{ r['n_people']?.value || '?' }} personas
-              </p>
+
+        <div class="card-body bg-white p-4">
+          <div class="d-flex flex-column gap-3">
+
+            <div class="d-flex align-items-center p-3 bg-light rounded-3">
+              <i class="bi bi-telephone text-primary fs-4 me-3"></i>
+              <div>
+                <div class="text-muted small">Teléfono</div>
+                <div class="fw-bold">{{ r['phone']?.value || 'No definido' }}</div>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center p-3 bg-light rounded-3">
+              <i class="bi bi-calendar-check text-primary fs-4 me-3"></i>
+              <div>
+                <div class="text-muted small">Fecha y Hora</div>
+                <div class="fw-bold">
+                  {{ (r['date']?.value | date:'dd/MM/yyyy') || 'Fecha' }} - {{ r['hour']?.value || '--:--' }}
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center p-3 bg-light rounded-3">
+              <i class="bi bi-people text-primary fs-4 me-3"></i>
+              <div>
+                <div class="text-muted small">Personas</div>
+                <div class="fw-bold">{{ r['n_people']?.value || '0' }} comensales</div>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center p-3 rounded-3 border"
+                 [ngClass]="{
+               'border-warning bg-warning-subtle': r['status']?.value === 'unconfirmed',
+               'border-success bg-success-subtle': r['status']?.value === 'confirmed',
+               'border-danger bg-danger-subtle': r['status']?.value === 'cancelled'
+             }">
+              <i class="bi bi-tag-fill fs-4 me-3"
+                 [ngClass]="{
+               'text-warning': r['status']?.value === 'unconfirmed',
+               'text-success': r['status']?.value === 'confirmed',
+               'text-danger': r['status']?.value === 'cancelled'
+             }"></i>
+              <div>
+                <div class="text-muted small">Estado actual</div>
+                <div class="fw-bold">{{ getStatusLabel(r['status']?.value) }}</div>
+              </div>
             </div>
           </div>
 
           @if (r['notes']?.value) {
-            <div class="p-3 bg-warning-subtle border border-warning rounded-3 mt-4">
-              <h6 class="fw-bold mb-2"><i class="bi bi-sticky me-2"></i> Nota interna</h6>
-              <p class="mb-0 small">{{ r['notes']?.value }}</p>
+            <div class="mt-4 p-3 border-start border-4 border-warning bg-light rounded">
+              <h6 class="fw-bold mb-1"><i class="bi bi-sticky me-2"></i> Notas adicionales</h6>
+              <p class="mb-0 text-muted fst-italic">{{ r['notes']?.value }}</p>
             </div>
           }
         </div>

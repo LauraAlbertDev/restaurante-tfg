@@ -1,9 +1,9 @@
 import {Component, inject, Input, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Reservation, UserComment} from '../../../../../common/interfaces/interfaces';
+import {Reservation, STATUS_LABELS, UserComment} from '../../../../../common/interfaces/interfaces';
 import {ReservationsService} from '../../../../../services/reservation-service';
 import {Router, RouterLink} from '@angular/router';
-import {DatePipe} from '@angular/common';
+import {DatePipe, KeyValuePipe, NgClass, TitleCasePipe} from '@angular/common';
 import {FormValidators} from '../../../../../Validators/FormValidators';
 import {formatDateToISO} from '../../../../../common/utils/date-utils';
 import {UiService} from '../../../../../services/ui-service';
@@ -13,7 +13,9 @@ import {UiService} from '../../../../../services/ui-service';
   imports: [
     ReactiveFormsModule,
     RouterLink,
-    DatePipe
+    DatePipe,
+    NgClass,
+    KeyValuePipe
   ],
   templateUrl: './reservations-edit.html',
   styleUrl: './reservations-edit.css',
@@ -28,6 +30,7 @@ export class ReservationsEdit implements OnInit {
 
   minDate: string = '';
   isAuthMode: boolean = false;
+  statusLabels = STATUS_LABELS;
 
   formReservation: FormGroup = this.formBuilder.group({
     name: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(30)]],
@@ -35,7 +38,7 @@ export class ReservationsEdit implements OnInit {
     hour: ['', [Validators.required]],
     phone: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
     n_people: [2, [Validators.required, Validators.min(2)]],
-    notes: [''],
+    notes: [''],status: ['unconfirmed', Validators.required]
   });
   get r() { return this.formReservation.controls; }
 
@@ -80,21 +83,22 @@ export class ReservationsEdit implements OnInit {
     const dateControl = this.formReservation.get('date');
     const peopleControl = this.formReservation.get('n_people');
 
-    // Validador de fecha mínima (siempre activo)
     dateControl?.setValidators([
       Validators.required,
       FormValidators.minDate(this.minDate)
     ]);
 
-    // Si es un usuario logueado (AuthMode), relajamos las restricciones
     if (this.isAuthMode) {
-      // Permitimos cualquier número de personas (quitamos el min(2))
       peopleControl?.setValidators([Validators.required, Validators.min(1)]);
     }else {
-      // Modo Público: Restricción estándar de mínimo 2
       peopleControl?.setValidators([Validators.required, Validators.min(2)]);
     }
 
     this.formReservation.updateValueAndValidity();
+  }
+
+  protected getStatusLabel(status: string) {
+    // Aquí forzamos a que TS entienda que status es una llave válida
+    return STATUS_LABELS[status as keyof typeof STATUS_LABELS] || 'Desconocido';
   }
 }
