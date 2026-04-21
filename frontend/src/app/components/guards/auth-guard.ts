@@ -20,7 +20,8 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   const rolePermissions: Record<string, string[]> = {
     'admin': ['admin'],
-    'employee': ['admin', 'employee']
+    'leader': ['admin', 'leader'],
+    'employee': ['admin', 'leader', 'employee']
   };
 
   const hasPermission = rolePermissions[requiredRole]?.includes(userType);

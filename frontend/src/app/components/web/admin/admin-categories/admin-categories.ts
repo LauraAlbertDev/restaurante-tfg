@@ -22,7 +22,7 @@ export class AdminCategories implements OnInit {
   loading = signal(false);
 
   ngOnInit() {
-    this.categorySrv.load();
+    this.categorySrv.load().subscribe();
   }
 
   create() {

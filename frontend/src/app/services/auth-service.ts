@@ -63,13 +63,22 @@ export class AuthService {
     return this.isAuthenticated() && this.userType() === 'admin';
   }
 
+  isLeaderOrAdmin(): boolean {
+    const type = this.userType();
+    return this.isAuthenticated() && (type === 'admin' || type === 'leader');
+  }
+
+  isStaff(): boolean {
+    const type = this.userType();
+    return this.isAuthenticated() && (type === 'admin' || type === 'leader' || type === 'employee');
+  }
+
   redirectByRole(role: string) {
     if(role === 'admin'){
       this.router.navigate(['/admin/dashboard']);
       return;
-    }
-    if(role === 'employee'){
-      this.router.navigate(['/']);
+    }else if(role === 'leader' || role === 'employee'){
+      this.router.navigate(['/auth/reservations-list']);
       return;
     }
     this.router.navigate(['/']);

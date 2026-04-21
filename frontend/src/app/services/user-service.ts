@@ -17,7 +17,6 @@ export class UserService {
   }
 
   createUser(data: any): Observable<any> {
-    // Usamos template strings para mayor claridad
     return this.http.post<any>(`${this.apiUrl}/create`, data);
   }
 

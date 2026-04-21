@@ -57,19 +57,27 @@ export class AdminUsers implements OnInit {
   }
 
   openAddModal() {
-    this.isEditing.set(true);
+    this.isEditing.set(false);
     this.selectedUserId.set(null);
-    this.formUsers.reset({type: ''});
+    this.formUsers.reset({
+      name: '',
+      email: '',
+      password: '',
+      type: '' // Esto selecciona el "-- Selecciona --"
+    });
     this.updatePasswordValidators(true);
   }
 
   openEditModal(user: User) {
+    console.log('Tipo recibido del servidor:', user.type);
     this.isEditing.set(true);
     this.selectedUserId.set(user.id!);
     this.updatePasswordValidators(false);
 
     this.formUsers.patchValue({
-      ...user,
+      name: user.name,
+      email: user.email,
+      type: user.type, // Asegúrate de que user.type sea exactamente 'admin', 'leader' o 'employee'
       password: ''
     });
   }
@@ -84,23 +92,36 @@ export class AdminUsers implements OnInit {
   }
 
   onSubmit() {
+    console.log('Datos que se enviarán al servidor:', this.formUsers.value); // <--- MIRA LA CONSOLA
     if (this.formUsers.invalid) {
       this.formUsers.markAllAsTouched();
+      this.ui.handleError('Por favor, revisa los campos en rojo');
       return;
     }
 
     const userData = { ...this.formUsers.value };
 
-    if (this.isEditing() && !userData.password) delete userData.password;
+    // Debug: Mira si aquí el 'type' está presente
+    if (!userData.type) {
+      this.ui.handleError('Debes seleccionar un tipo de usuario');
+      return;
+    }
 
-    const request = this.isEditing()
-      ? this.userService.updateUser(this.selectedUserId()!, userData)
-      : this.userService.createUser(userData)
+    const id = this.selectedUserId();
+
+    // Si editamos y no hay pass, la borramos para no enviar "" al server
+    if (id && !userData.password) {
+      delete userData.password;
+    }
+
+    const request = id
+      ? this.userService.updateUser(id, userData)
+      : this.userService.createUser(userData);
 
     request.subscribe({
       next: () =>{
         this.loadUsers();
-        this.ui.notify('Operación realizada')
+        this.ui.notify(id ? 'Usuario actualizado' : 'Usuario creado');
       },
       error: error => {this.ui.handleError(error);},
     })
