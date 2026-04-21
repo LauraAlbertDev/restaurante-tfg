@@ -19,6 +19,7 @@ import {AdminShifts} from './components/web/admin/admin-shifts/admin-shifts';
 import {AdminSpecialDays} from './components/web/admin/admin-special-days/admin-special-days';
 import {MyProfile} from './components/web/authenticated/my-profile/my-profile';
 import {AdminDashboard} from './components/web/admin/admin-dashboard/admin-dashboard';
+import {ReservationsDetail} from './components/web/authenticated/reservations/reservations-detail/reservations-detail';
 
 
 export const routes: Routes = [
@@ -47,13 +48,21 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'leader',
+    canActivate: [authGuard],
+    data: { role: 'leader' },
+    children: [
+      { path: 'reservations-edit/:id', component: ReservationsEdit },
+    ]
+  },
+  {
     path: 'auth',
     canActivate: [authGuard],
     children: [
       { path: 'product/new', component: ProductsEdit },
       { path: 'product-edit/:id', component: ProductsEdit},
       { path: 'reservations-list', component: ReservationsList },
-      { path: 'reservations-edit/:id', component: ReservationsEdit },
+      { path: 'reservations-detail/:id', component: ReservationsDetail },
       { path: 'my-profile', component: MyProfile },
       { path: '', redirectTo: '/inicio', pathMatch: 'full' },
     ]

@@ -1,4 +1,3 @@
-
 export interface Philosophy {
   id: number;
   icon: string;
@@ -67,8 +66,19 @@ export interface Product {
   allergens: Allergen[];
 }
 
-export interface ProductDTO {}
+export const STATUS_CONFIG = {
+  unconfirmed: { label: 'Pendiente', color: 'text-bg-warning', icon: 'bi-clock' },
+  confirmed: { label: 'Confirmada', color: 'text-bg-success', icon: 'bi-patch-check-fill' },
+  cancelled: { label: 'Cancelada', color: 'text-bg-danger', icon: 'bi-x-circle-fill' }
+} as const;
 
+export type ReservationStatus = keyof typeof STATUS_CONFIG;
+
+export const STATUS_LABELS: Record<ReservationStatus, string> = {
+  unconfirmed: STATUS_CONFIG.unconfirmed.label,
+  confirmed: STATUS_CONFIG.confirmed.label,
+  cancelled: STATUS_CONFIG.cancelled.label
+};
 
 export interface Reservation {
   id: number;
@@ -76,9 +86,19 @@ export interface Reservation {
   phone: string;
   date: string;
   hour: string;
+  rices?: string;
   n_people: number;
   notes: string;
+  status: ReservationStatus;
+  created_by?: number;
+  creator_name?: string;
+  updated_at: Date;
+  updated_by?: number;
+  editor_name?: string;
 }
+
+
+export type ReservationCreateDTO = Omit<Reservation, 'id' | 'updated_at' | 'creator_name' | 'editor_name'>;
 
 export interface DayRule{
   day_of_week: number;
@@ -92,3 +112,5 @@ export interface Shift{
   start_time: string;
   active: boolean;
 }
+
+
