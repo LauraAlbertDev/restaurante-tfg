@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { Product, ProductDTO, Allergen } from '../common/interfaces/interfaces';
+import { Product, Allergen } from '../common/interfaces/interfaces';
 import {environment} from '../environment/environment';
 
 @Injectable({

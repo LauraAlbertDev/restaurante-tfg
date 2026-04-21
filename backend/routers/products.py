@@ -1,5 +1,4 @@
 import json
-import shutil
 import os
 import io
 import pandas as pd
@@ -9,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from database import get_db
 from repositories.product_repository import ProductRepository
 from models.product import ProductCreate, ProductResponse
-
+from auth.security import get_current_user
 from services.file_service import FileService
 
 router = APIRouter(prefix="/products", tags=["Products"])
@@ -22,8 +21,6 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 @router.get("/", response_model=List[ProductResponse])
 def list_products(category_id: int = None, archived: int = 0, db = Depends(get_db)):
     return ProductRepository(db).get_all(category_id, archived)
-
-# routers/product_router.py
 
 @router.get("/export")
 def export_products(db = Depends(get_db)):
@@ -66,6 +63,7 @@ async def create_product(
         lactose_free: int = Form(0),
         allergen_ids: str = Form("[]"),
         image_file: UploadFile = File(None),
+        current_user = Depends(get_current_user),
         db = Depends(get_db)
 ):
     filename = await FileService.save_image(image_file)
@@ -77,7 +75,7 @@ async def create_product(
     )
 
     repo = ProductRepository(db)
-    pid = repo.create(product_data, json.loads(allergen_ids))
+    pid = repo.create(product_data, json.loads(allergen_ids), creator_id=current_user["id"])
     return {"id": pid, "message": "Product created"}
 
 @router.put("/{product_id}")
@@ -93,6 +91,7 @@ async def update_product(
         lactose_free: int = Form(0),
         allergen_ids: str = Form("[]"),
         image_file: UploadFile = File(None),
+        current_user = Depends(get_current_user),
         db = Depends(get_db)
 ):
     filename = None
@@ -110,14 +109,14 @@ async def update_product(
         price=price,
         category_id=category_id,
         stock=val_stock,
-        image=filename, # Será None si no hay imagen nueva
+        image=filename,
         vegan=vegan,
         vegetarian=vegetarian,
         lactose_free=lactose_free
     )
 
     repo = ProductRepository(db)
-    old_image = repo.update(product_id, product_data, json.loads(allergen_ids))
+    old_image = repo.update(product_id, product_data, json.loads(allergen_ids), editor_id=current_user["id"])
 
     if filename and old_image and old_image != "placeholder.jpg":
         delete_physical_file(old_image)

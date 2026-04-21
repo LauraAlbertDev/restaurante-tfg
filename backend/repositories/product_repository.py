@@ -1,21 +1,23 @@
-from typing import List
-
-class ProductRepository:
+from .base_repository import BaseRepository
+from .audit_mixin import AuditMixin
+class ProductRepository(BaseRepository, AuditMixin):
     def __init__(self, db):
-        self.db = db
+        super().__init__(db)
 
     def _get_cursor(self, dictionary=True):
         # buffered=True evita el error "Unread result found" cuando haces SELECT y luego UPDATE
         return self.db.cursor(dictionary=dictionary, buffered=True)
 
     def get_all(self, category_id=None, archived=0, name_filter=None):
-        sql = """
-              SELECT p.*, c.name as category_name, a.id as allergen_id,
-                     a.name as allergen_name, a.color as allergen_color
+        sql = f"""
+              SELECT p.*, c.name as category_name, {self.get_audit_select(alias='p')},
+                     a.id as allergen_id, a.name as allergen_name, 
+                     a.color as allergen_color
               FROM products p
                        LEFT JOIN categories c ON p.category_id = c.id
                        LEFT JOIN product_allergens pa ON p.id = pa.product_id
                        LEFT JOIN allergens a ON pa.allergen_id = a.id
+                       {self.get_audit_joins(alias='p')}
               WHERE p.archived = %s
               """
         params = [archived]
@@ -53,21 +55,18 @@ class ProductRepository:
                 product['allergens'] = cur.fetchall()
             return product
 
-    def create(self, product_data, allergen_ids):
+    def create(self, product_data, allergen_ids,creator_id):
         sql = """
-              INSERT INTO products (name, description, image, price, category_id, stock, vegan, vegetarian, lactose_free)
-              VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+              INSERT INTO products (name, description, image, price, category_id, stock,
+                                    vegan, vegetarian, lactose_free, created_by)
+              VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
               """
         params = (
-            product_data.name,
-            getattr(product_data, 'description', None),
-            product_data.image if product_data.image else "placeholder.jpg",
-            product_data.price,
-            product_data.category_id,
-            int(product_data.stock),
-            getattr(product_data, 'vegan', 0),
-            getattr(product_data, 'vegetarian', 0),
-            getattr(product_data, 'lactose_free', 0)
+            product_data.name, getattr(product_data, 'description', None),
+            product_data.image or "placeholder.jpg", product_data.price,
+            product_data.category_id, int(product_data.stock),
+            getattr(product_data, 'vegan', 0), getattr(product_data, 'vegetarian', 0),
+            getattr(product_data, 'lactose_free', 0), creator_id
         )
 
         try:
@@ -82,47 +81,36 @@ class ProductRepository:
             self.db.rollback()
             raise e
 
-    def update(self, product_id, product_data, allergen_ids):
+    def update(self, product_id, product_data, allergen_ids, editor_id):
         with self._get_cursor() as cur:
-            # 1. Obtener imagen antigua para el servicio de archivos
             cur.execute("SELECT image FROM products WHERE id = %s", (product_id,))
             row = cur.fetchone()
             old_image = row['image'] if row else None
 
-            # 2. Lógica de imagen: Si viene placeholder o vacío, enviamos None
-            # para que COALESCE mantenga la imagen actual en la DB
-            new_image = product_data.image
-            if not new_image or new_image == "placeholder.jpg":
-                new_image = None
+            new_image = product_data.image if product_data.image != "placeholder.jpg" else None
 
             sql = """
                   UPDATE products
                   SET name=%s, description=%s, image=COALESCE(%s, image), price=%s,
-                      category_id=%s, stock=%s, vegan=%s, vegetarian=%s, lactose_free=%s
+                      category_id=%s, stock=%s, vegan=%s, vegetarian=%s, lactose_free=%s,
+                      updated_by=%s, updated_at=NOW()
                   WHERE id=%s
                   """
             params = (
-                product_data.name,
-                product_data.description,
-                new_image,
-                product_data.price,
-                product_data.category_id,
-                int(product_data.stock),
-                getattr(product_data, 'vegan', 0),
-                getattr(product_data, 'vegetarian', 0),
+                product_data.name, product_data.description, new_image, product_data.price,
+                product_data.category_id, int(product_data.stock),
+                getattr(product_data, 'vegan', 0), getattr(product_data, 'vegetarian', 0),
                 getattr(product_data, 'lactose_free', 0),
-                product_id
+                editor_id, product_id
             )
 
             try:
                 cur.execute(sql, params)
-                # Actualizar alérgenos (Borrar e insertar de nuevo)
                 cur.execute("DELETE FROM product_allergens WHERE product_id = %s", (product_id,))
                 if allergen_ids:
                     self._set_allergens_internal(cur, product_id, allergen_ids)
 
                 self.db.commit()
-                # Devolvemos la imagen vieja solo si se subió una nueva (para borrar el archivo físico)
                 return old_image if product_data.image and product_data.image != "placeholder.jpg" else None
             except Exception as e:
                 self.db.rollback()
