@@ -326,3 +326,18 @@ Configuración de la arquitectura base y entornos de ejecución.
 - **Core**:
     - Estandarización de repositorios mediante `BaseRepository`.
     - Refactorización de interfaces globales para mejorar la tipado en TypeScript.
+
+## [1.2.0] - 21/04/2026
+
+### ✨ Refactorización – Sistema de Roles y Optimizaciones de Seguridad
+
+### 🖥️ Backend
+- **Middleware** (`security.py`): Migración de un sistema de roles plano a una jerarquía multinivel (RBAC). 
+- **Roles**: Introducción del rol `leader` con permisos específicos de gestión operativa.
+- **Autorización**: Refactorización de las dependencias de seguridad (`admin_required`, `leader_or_admin`, `employee_or_admin`) para garantizar el Principio de Menor Privilegio en el acceso a los endpoints.
+- **Modelos**: Introducción de la clase base _AuditBase_ mediante Pydantic para el control de trazabilidad para metadatos de auditoria.
+### 🌐 Frontend
+- **Auditoría**: Actualización de interfaces y servicios para soportar los nuevos campos de trazabilidad (`AuditBase`), permitiendo mostrar quién y cuándo realizó modificaciones. 
+- **Seguridad**: Adaptación del `AuthGuard` y `AuthService` para reconocer el nuevo rol leader y aplicar restricciones de navegación basadas en permisos. 
+- **Gestión Operativa**: Refactorización de los módulos de reservas y usuarios para inyectar los metadatos de auditoría en los formularios.
+- **UI/UX**: Ajustes de estilo en el sidebar y vistas públicas para mejorar la experiencia móvil y la consistencia visual del sistema.
