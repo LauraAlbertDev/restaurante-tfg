@@ -51,3 +51,7 @@ footer{
   border-top:1px solid var(--color-border-soft);
 }
 
+/* Esto invierte el color del icono del input date para que se vea blanco */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}

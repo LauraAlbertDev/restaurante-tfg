@@ -16,14 +16,14 @@
               {{ product()?.name || 'Nombre del plato' }}
             </h1>
 
-            <h4 class="product-price text-gold-subtle mb-4">
+            <h4 class="product-price text-gold-subtle">
               {{ product()?.price | currency:'EUR':'symbol' }}
             </h4>
 
-            <hr class="gold-divider opacity-25 my-4">
+            <hr class="gold-divider opacity-25 ">
 
             <div class="mb-2">
-              <p class="product-description text-white leading-relaxed">
+              <p class=" text-white leading-relaxed">
                 {{ product()?.description }}
               </p>
             </div>

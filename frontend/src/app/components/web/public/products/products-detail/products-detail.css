@@ -1,7 +1,73 @@
- img {
-  max-width: 100%;
-  max-height: 450px;
-  display: block;
-  margin: 0 auto;
-  object-fit: contain;
+/* Variables de lujo */
+:root {
+  --gold-main: #C4A77D;
+  --gold-soft: #D4C1A5;
+  --text-gray: #b0b0b0;
+  --white: #ffffff;
 }
+
+
+.product-image-container img {
+  filter: saturate(1.1) brightness(1.1);
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.product-image-container:hover img {
+  transform: scale(1.05);
+}
+
+.product-title {
+  font-family: 'Playfair Display', serif; /* Si usas Google Fonts */
+  letter-spacing: 0.15em;
+  font-weight: 300;
+  border-bottom: 1px solid rgba(196, 167, 125, 0.2);
+  padding-bottom: 15px;
+}
+
+.product-price {
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 2px;
+  color: var(--gold-soft) !important;
+}
+
+/* NUEVA ESTRUCTURA DE DESCRIPCIÓN */
+.description-container {
+  position: relative;
+  padding: 20px 0;
+}
+
+.description-quote-mark {
+  color: var(--gold-main);
+  font-size: 2rem;
+  line-height: 0;
+  vertical-align: middle;
+  margin-right: 10px;
+  font-family: serif;
+}
+
+.product-description {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-left: 1px solid var(--gold-main);
+  padding-left: 20px;
+}
+
+/* Tags de Dieta como botones minimalistas */
+.diet-tag {
+  border: 1px solid var(--gold-main);
+  padding: 4px 12px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-right: 8px;
+  color: var(--gold-main);
+  border-radius: 0; /* Estilo cuadrado = más lujo */
+}
+
+/* Divisor sutil */
+.gold-divider {
+  border-top: 1px solid var(--gold-main);
+  opacity: 0.2;
+}
+

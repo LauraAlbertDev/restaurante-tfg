@@ -1,17 +1,54 @@
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sticky-top {
+  top: 40px;
+  animation: slideInLeft 0.5s ease-out;
+  border: none !important;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.form-control, .form-select {
+  transition: all 0.2s ease;
+  border: 1px solid #eee;
+}
+
+.form-range::-webkit-slider-thumb {
+  background: #0dcaf0;
+  transition: transform 0.2s ease;
+}
+
+.form-range:active::-webkit-slider-thumb {
+  transform: scale(1.3);
+}
+
 .allergen-neon-card {
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
 }
 
 .btn-check:checked + .allergen-neon-card {
-  transform: scale(1.05);
-  color: white !important;
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 .allergen-neon-card:hover {
-  box-shadow: 0 0 10px currentColor !important;
   filter: brightness(1.1);
+  transform: translateY(-2px);
 }
 
-.sticky-top{
-  top: 40px;
+.form-check-input {
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }

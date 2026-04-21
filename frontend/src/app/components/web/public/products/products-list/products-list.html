@@ -1,7 +1,7 @@
 <div class="hero-carta d-flex align-items-center justify-content-center">
   <div class="text-center text-white">
-    <h1 class="display-5 fw-bold">Nuestro Menú</h1>
-    <p class="lead">Cocina mediterránea · Producto fresco</p>
+    <h1 class="display-5 fw-bold animate-fade-in-up delay-1">Nuestro Menú</h1>
+    <p class="lead animate-fade-in-up delay-2">Cocina mediterránea · Producto fresco</p>
   </div>
 </div>
 <div class="container-fluid py-4">
@@ -65,23 +65,23 @@
               <div class="col-sm-6 col-lg-4 col-xl-3">
                 <div class="card h-100 border-0 shadow-sm hover-effect">
 
-                  <div class="position-relative overflow-hidden">
+                  <div class="card-image">
                     <img [src]="getProductImage(prod.image)"
-                         class="card-img-top"
-                         height="180"
                          [alt]="prod.name"
+                         class="image"
                          [routerLink]="'/product/detail/' + prod.id"
-                         style="cursor: pointer;"
                          #imgElement
                          (error)="imgElement.src = 'assets/images/placeholder.jpg'">
-
+                    <span class="position-absolute top-0 end-0 m-2 badge" [style.background-color]="'var(--color-border-soft)'">
+                      {{prod.price | currency: 'EUR'}}
+                    </span>
                   </div>
 
                   <div class="card-body d-flex flex-column text-center">
                     <h5 class="card-title h6 fw-bold mb-3 text-capitalize">{{ prod.name }}</h5>
 
                     <div class="mt-auto d-flex gap-2">
-                      @if (auth.isAuthenticated()) {
+                      @if (auth.isLeaderOrAdmin()) {
                         <button class="btn btn-sm btn-outline-warning flex-grow-1"
                                 [routerLink]="['/auth/product-edit/', prod.id]">
                           Editar
