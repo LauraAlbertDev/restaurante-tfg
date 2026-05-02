@@ -22,6 +22,8 @@ import {UiService} from '../../../../services/ui-service';
 export class ProductsEdit implements OnInit {
   @Input('id') idProduct?: number;
 
+  private imageVersion = new Date().getTime();
+
   private readonly productService = inject(ProductService);
   private readonly categoryService = inject(CategoryService);
   private readonly fb = inject(FormBuilder);
@@ -38,10 +40,14 @@ export class ProductsEdit implements OnInit {
 
   imagePreviewUrl = computed(() => {
     if (this.imagePreview()) return this.imagePreview();
+
     const imageName = this.formProduct.get('image')?.value;
-    return (imageName && imageName !== 'placeholder.jpg')
-      ? `${environment.apiUrl}imagenes/${imageName}`
-      : 'assets/images/placeholder.jpg';
+    if (!imageName || imageName === 'placeholder.jpg') {
+      return 'assets/images/placeholder.jpg';
+    }
+
+    // Ahora la ruta es /assets/images/...
+    return `${environment.imagesUrl}${imageName}?t=${this.imageVersion}`;
   });
 
   selectedAllergenNames = computed(() => {
@@ -68,7 +74,6 @@ export class ProductsEdit implements OnInit {
       stock: [0, [Validators.required, FormValidators.minValue(0)]],
       vegan: [false],
       vegetarian: [false],
-      lactose_free: [false]
     });
   }
 
@@ -120,6 +125,9 @@ export class ProductsEdit implements OnInit {
       this.selectedAllergenIds()
     ).subscribe({
       next: () => {
+        if (this.selectedFile) {
+          this.imageVersion = new Date().getTime();
+        }
         this.ui.notify(this.idProduct ? "Producto actualizado" : "Producto creado");
         this.router.navigateByUrl('/menu');
       },

@@ -25,8 +25,7 @@ export class ProductsList implements OnInit {
   public readonly auth = inject(AuthService);
   private readonly ui = inject(UiService);
 
-  private readonly imageUpdateTrigger = signal(new Date().getTime());
-
+  private imageVersion = '1';
 
   @ViewChild('closeModal') closeModal!: ElementRef;
 
@@ -48,7 +47,6 @@ export class ProductsList implements OnInit {
 
   vegan = signal(false);
   vegetarian = signal(false);
-  lactoseFree = signal(false);
 
   private readonly filterWatcher = effect(() => {
     const cat = this.selectedCategory();
@@ -109,8 +107,7 @@ export class ProductsList implements OnInit {
     const matchPrice = p.price <= this.SelectedMaxPrice();
 
     const matchDiet = (!this.vegan() || p.vegan === 1) &&
-      (!this.vegetarian() || p.vegetarian === 1) &&
-      (!this.lactoseFree() || p.lactose_free === 1);
+      (!this.vegetarian() || p.vegetarian === 1);
     const selectedAlgs = this.selectedAllergens();
     const hasForbiddenAllergen = p.allergens?.some(a => selectedAlgs.includes(a.id));
     const matchAllergens = selectedAlgs.length === 0 || !hasForbiddenAllergen;
@@ -152,21 +149,22 @@ export class ProductsList implements OnInit {
     this.search.set('');
     this.vegan.set(false);
     this.vegetarian.set(false);
-    this.lactoseFree.set(false);
     this.selectedCategory.set(null);
     this.selectedAllergens.set([])
     this.loadProducts();
   }
 
   getProductImage(imageName: any): string {
-    const apiUploadsPath = `${environment.apiUrl}uploads/`;
+  // Asegúrate de que apiUrl sea 'http://localhost:8000/'
+  const base = environment.apiUrl;
 
-    if (!imageName || ['null', 'None', ''].includes(String(imageName).trim())) {
-      return 'assets/images/placeholder.jpg';
-    }
-
-    return `${apiUploadsPath}${imageName}?t=${this.imageUpdateTrigger()}`;
+  if (!imageName || ['null', 'None', '', 'placeholder.jpg'].includes(String(imageName).trim())) {
+    return 'assets/images/placeholder.jpg';
   }
+
+  // Si base ya termina en '/', no pongas otra barra
+  return `${base}assets/images/${imageName}?t=${this.imageVersion}`;
+}
 
   exportProducts() {
     this.productService.exportProducts().subscribe({
@@ -192,7 +190,7 @@ export class ProductsList implements OnInit {
   }
 
   downloadTemplate() {
-    const headers = 'name,price,category_name,stock,vegan,vegetarian,lactose_free,image';
+    const headers = 'name,price,category_name,stock,vegan,vegetarian,image';
     const blob = new Blob([headers], {type: 'text/csv;charset=utf-8;'});
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);

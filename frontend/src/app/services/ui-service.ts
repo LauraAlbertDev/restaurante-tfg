@@ -13,7 +13,7 @@ export class UiService {
     if (error) {
       console.error('LOG_ERROR:', error);
     }
-    alert(`❌ ${message}`);
+    alert(` ${message}`);
   }
 
   async confirm(message: string): Promise<boolean> {
