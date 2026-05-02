@@ -58,6 +58,15 @@
             </div>
           }
         </div>
+        <div class="form-floating mb-3">
+  <textarea class="form-control textarea"  id="rices"
+            placeholder="Arroces" formControlName="rices"
+            [class.border-danger]="r['status'].value === 'confirmed' && !r['rices'].value ">
+  </textarea>
+          <label for="rices">
+            <i class="bi bi-egg-fried me-1"></i> Arroces
+          </label>
+        </div>
 
         <div class="form-floating mb-3">
           <select class="form-select" id="hour" formControlName="hour"
@@ -90,11 +99,16 @@
             </div>
           }
         </div>
-
         <div class="form-floating mb-3">
-          <textarea class="form-control" style="height: 100px" id="notes" placeholder="Nota"
-                    formControlName="notes"></textarea>
-          <label for="notes"><i class="bi bi-sticky me-1"></i> Nota interna</label>
+          <textarea class="form-control textarea"
+                    id="notes"
+                    placeholder="Notas internas"
+                    formControlName="notes">
+          </textarea>
+
+          <label for="notes">
+            <i class="bi bi-sticky me-1"></i> Notas internas
+          </label>
         </div>
         <div class="form-floating mb-3">
           <select class="form-select" id="status" formControlName="status">
@@ -106,7 +120,7 @@
         </div>
 
         <div class="d-grid gap-3">
-          <button class="btn btn-primary btn-lg shadow-sm" [disabled]="formReservation.invalid" type="submit">
+          <button class="btn btn-primary btn-lg shadow-sm"  type="submit">
             <i class="bi bi-send me-2"></i> {{ id ? 'Guardar cambios' : 'Enviar reserva' }}
           </button>
           <button type="button" class="btn btn-outline-secondary" routerLink="/auth/reservations-list">
@@ -146,6 +160,7 @@
               </div>
             </div>
 
+
             <div class="d-flex align-items-center p-3 bg-light rounded-3">
               <i class="bi bi-people text-primary fs-4 me-3"></i>
               <div>
@@ -170,6 +185,13 @@
                 <div class="text-muted small">Estado actual</div>
                 <div class="fw-bold">{{ getStatusLabel(r['status']?.value) }}</div>
               </div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center p-3 bg-light rounded-3 mt-2">
+            <i class="bi bi-egg-fried text-primary fs-4 me-3"></i>
+            <div>
+              <div class="text-muted small">Arroces </div>
+              <div class="fw-bold text-wrap">{{ r['rices']?.value || 'No se han especificado arroces' }}</div>
             </div>
           </div>
 

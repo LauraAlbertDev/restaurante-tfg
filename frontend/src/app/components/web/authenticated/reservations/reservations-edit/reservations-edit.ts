@@ -37,6 +37,7 @@ export class ReservationsEdit implements OnInit {
     date: ['', [Validators.required]],
     hour: ['', [Validators.required]],
     phone: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
+    rices: [''],
     n_people: [2, [Validators.required, Validators.min(2)]],
     notes: [''],status: ['unconfirmed', Validators.required]
   });
@@ -61,20 +62,32 @@ export class ReservationsEdit implements OnInit {
   }
 
 
-  onSubmit() {
+  async onSubmit() { // Añadimos async por si usas el ui.confirm
     if (this.formReservation.invalid || !this.id) {
       this.formReservation.markAllAsTouched();
       return;
     }
 
+    const rawData = this.formReservation.value;
+
+    // VALIDACIÓN: Confirmada sin arroces
+    // Asumiendo que el campo en el formulario o interfaz se llama 'rices'
+    if (rawData.status === 'confirmed' && !rawData.rices?.trim()) {
+      alert("No puedes confirmar una reserva sin indicar los arroces.");
+      return;
+    }
+
     const reservationData: Reservation = {
-      ...this.formReservation.value,
+      ...rawData,
       id: Number(this.id)
     };
 
     this.reservationService.updateReservation(Number(this.id), reservationData).subscribe({
-      next: () => this.router.navigate(['/auth/reservations-list']),
-      error: (err) => console.error(err)
+      next: () => {
+        this.ui.notify('Reserva actualizada correctamente');
+        this.router.navigate(['/auth/reservations-list']);
+      },
+      error: (err) => this.ui.handleError('No se pudo actualizar', err)
     });
   }
 
