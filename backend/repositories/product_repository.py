@@ -5,14 +5,13 @@ class ProductRepository(BaseRepository, AuditMixin):
         super().__init__(db)
 
     def _get_cursor(self, dictionary=True):
-        # buffered=True evita el error "Unread result found" cuando haces SELECT y luego UPDATE
         return self.db.cursor(dictionary=dictionary, buffered=True)
 
     def get_all(self, category_id=None, archived=0, name_filter=None):
         sql = f"""
               SELECT p.*, c.name as category_name, {self.get_audit_select(alias='p')},
                      a.id as allergen_id, a.name as allergen_name, 
-                     a.color as allergen_color
+                     a.color as allergen_color, p.updated_at
               FROM products p
                        LEFT JOIN categories c ON p.category_id = c.id
                        LEFT JOIN product_allergens pa ON p.id = pa.product_id
@@ -37,10 +36,10 @@ class ProductRepository(BaseRepository, AuditMixin):
     def get_one(self, product_id):
         with self._get_cursor() as cur:
             sql = """
-                  SELECT p.*, c.name as category_name
+                  SELECT p.*, c.name as category_name, p.updated_at
                   FROM products p
                            LEFT JOIN categories c ON p.category_id = c.id
-                  WHERE p.id = %s
+                  WHERE p.id = %s \
                   """
             cur.execute(sql, (product_id,))
             product = cur.fetchone()
@@ -58,15 +57,15 @@ class ProductRepository(BaseRepository, AuditMixin):
     def create(self, product_data, allergen_ids,creator_id):
         sql = """
               INSERT INTO products (name, description, image, price, category_id, stock,
-                                    vegan, vegetarian, lactose_free, created_by)
-              VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                    vegan, vegetarian, created_by)
+              VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
               """
         params = (
             product_data.name, getattr(product_data, 'description', None),
             product_data.image or "placeholder.jpg", product_data.price,
             product_data.category_id, int(product_data.stock),
             getattr(product_data, 'vegan', 0), getattr(product_data, 'vegetarian', 0),
-            getattr(product_data, 'lactose_free', 0), creator_id
+            creator_id
         )
 
         try:
@@ -92,7 +91,7 @@ class ProductRepository(BaseRepository, AuditMixin):
             sql = """
                   UPDATE products
                   SET name=%s, description=%s, image=COALESCE(%s, image), price=%s,
-                      category_id=%s, stock=%s, vegan=%s, vegetarian=%s, lactose_free=%s,
+                      category_id=%s, stock=%s, vegan=%s, vegetarian=%s,
                       updated_by=%s, updated_at=NOW()
                   WHERE id=%s
                   """
@@ -100,14 +99,13 @@ class ProductRepository(BaseRepository, AuditMixin):
                 product_data.name, product_data.description, new_image, product_data.price,
                 product_data.category_id, int(product_data.stock),
                 getattr(product_data, 'vegan', 0), getattr(product_data, 'vegetarian', 0),
-                getattr(product_data, 'lactose_free', 0),
                 editor_id, product_id
             )
 
             try:
                 cur.execute(sql, params)
-                cur.execute("DELETE FROM product_allergens WHERE product_id = %s", (product_id,))
-                if allergen_ids:
+                if allergen_ids is not None:
+                    cur.execute("DELETE FROM product_allergens WHERE product_id = %s", (product_id,))
                     self._set_allergens_internal(cur, product_id, allergen_ids)
 
                 self.db.commit()
@@ -146,14 +144,12 @@ class ProductRepository(BaseRepository, AuditMixin):
                 raise e
 
     def _set_allergens_internal(self, cur, product_id, allergen_ids):
-        """Método auxiliar para insertar alérgenos en una transacción activa."""
         if not allergen_ids: return
         sql = "INSERT INTO product_allergens (product_id, allergen_id) VALUES (%s, %s)"
         vals = [(product_id, aid) for aid in allergen_ids]
         cur.executemany(sql, vals)
 
     def group_allergens(self, rows):
-        """Transforma filas planas de la DB en objetos Producto con listas de alérgenos."""
         products = {}
         for row in rows:
             pid = row['id']
@@ -190,15 +186,15 @@ class ProductRepository(BaseRepository, AuditMixin):
         product = self.get_one(product_id)
         if not product: return None
 
-        sql = """INSERT INTO products (name, description, image, price, category_id, stock, vegan, vegetarian, lactose_free)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        sql = """INSERT INTO products (name, description, image, price, category_id, stock, vegan, vegetarian)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
 
         try:
             with self._get_cursor(dictionary=False) as cur:
                 cur.execute(sql, (
                     f"{product['name']} (Copia)", product['description'], product['image'],
                     product['price'], product['category_id'], product['stock'],
-                    product['vegan'], product['vegetarian'], product['lactose_free']
+                    product['vegan'], product['vegetarian']
                 ))
                 new_id = cur.lastrowid
                 if product.get('allergens'):
@@ -218,13 +214,65 @@ class ProductRepository(BaseRepository, AuditMixin):
 
     def get_all_for_export(self, archived=0):
         sql = """
-              SELECT p.name, p.price, c.name as category_name, p.stock,
-                     p.vegan, p.vegetarian, p.lactose_free, p.image
+              SELECT p.id, p.name, p.price, c.name AS category_name, p.stock, p.vegan, p.vegetarian,p.image,
+                     GROUP_CONCAT(a.name SEPARATOR ', ') AS allergens_names
               FROM products p
                        LEFT JOIN categories c ON p.category_id = c.id
+                       LEFT JOIN product_allergens pa ON p.id = pa.product_id
+                       LEFT JOIN allergens a ON pa.allergen_id = a.id
               WHERE p.archived = %s
-              ORDER BY p.id ASC
+              GROUP BY p.id
+              ORDER BY p.id ASC 
               """
         with self._get_cursor() as cur:
             cur.execute(sql, [archived])
-            return cur.fetchall()
+            rows = cur.fetchall()
+
+            for row in rows:
+                names = row.get('allergens_names')
+                row['allergens_names'] = [n.strip() for n in names.split(',')] if names else []
+            return rows
+
+    def get_allergen_map(self):
+        with self._get_cursor() as cur:
+            cur.execute("SELECT id, name FROM allergens")
+            return {row['name'].lower().strip(): row['id'] for row in cur.fetchall()}
+
+    def import_data(self, records, creator_id):
+        allergen_map = self.get_allergen_map()
+
+        for row in records:
+            category_id = self.get_or_create_category(row.get('category_name'))
+            allergen_ids = self._parse_allergens(row.get('allergens_names'), allergen_map)
+            prod_data = self._map_to_product(row, category_id)
+            pid = row.get('id')
+            if pid:
+                self.update(int(pid), prod_data, allergen_ids, creator_id)
+            else:
+                self.create(prod_data, allergen_ids or [], creator_id)
+
+        return len(records)
+
+    def _map_to_product(self, row, category_id):
+        return type('obj', (object,), {
+            'name': row.get('name'),
+            'description': row.get('description', ''),
+            'price': float(row.get('price', 0)),
+            'category_id': category_id,
+            'stock': int(row.get('stock', 0)),
+            'image': row.get('image') or 'placeholder.jpg',
+            'vegan': int(row.get('vegan', 0)),
+            'vegetarian': int(row.get('vegetarian', 0))
+        })
+
+    def _parse_allergens(self, raw_val, allergen_map):
+        if not raw_val or str(raw_val).strip() in ["", "[]", "None"]:
+            return None
+        clean_str = str(raw_val).translate(str.maketrans('', '', "[]'\""))
+        names = [n.strip().lower() for n in clean_str.split(',') if n.strip()]
+        return [allergen_map[n] for n in names if n in allergen_map]
+
+    def get_allergen_ids_by_names(self, names):
+        if not names: return []
+        allergen_map = self.get_allergen_map()
+        return [allergen_map[n.lower()] for n in names if n.lower() in allergen_map]

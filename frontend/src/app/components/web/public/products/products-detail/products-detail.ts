@@ -44,6 +44,6 @@ export class ProductsDetail implements OnInit {
 
   hasDiet(): boolean {
     const p = this.product();
-    return !!(p?.vegan || p?.vegetarian || p?.lactose_free);
+    return !!(p?.vegan || p?.vegetarian);
   }
 }

@@ -7,18 +7,23 @@ class FileService:
     UPLOAD_DIR = os.path.join(BASE_DIR, "..", "frontend", "public", "assets", "images")
 
     @classmethod
-    async def save_image(cls, file: UploadFile) -> str:
+    async def save_image(cls, file: UploadFile, old_image: str = None) -> str:
         if not file or not file.filename:
-            return "placeholder.jpg"
+            return old_image or "placeholder.jpg"
 
         os.makedirs(cls.UPLOAD_DIR, exist_ok=True)
 
+        # Si tenemos una imagen vieja, la borramos antes de guardar la nueva
+        if old_image and old_image != "placeholder.jpg":
+            cls.delete_image(old_image)
+
+        # Generamos el nombre.
+        # NOTA: Mantener el timestamp es bueno para evitar caché del navegador,
+        # pero ahora estamos borrando el anterior antes de crear este.
         clean_name = f"{int(time.time())}_{file.filename.replace(' ', '_')}"
         file_path = os.path.join(cls.UPLOAD_DIR, clean_name)
-        content = await file.read()
-        if not content:
-            return "placeholder.jpg"
 
+        content = await file.read()
         with open(file_path, "wb") as buffer:
             buffer.write(content)
 

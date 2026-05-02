@@ -21,13 +21,21 @@ def setup_middleware(app: FastAPI) -> None:
         allow_headers=["*"]
     )
 
+
+# En main.py
+# En main.py
 def setup_static_files(app: FastAPI) -> None:
-    # Cambiamos "/imagenes" por "/uploads" para que coincida con Angular
-    if IMAGES_DIR.exists():
-        app.mount("/uploads", StaticFiles(directory=str(IMAGES_DIR)), name="uploads")
-        print(f"INFO: Imágenes servidas desde {IMAGES_DIR} en la ruta /uploads")
+    # Si IMAGES_DIR es .../frontend/public/assets/images
+    # ASSETS_FOLDER debe ser .../frontend/public/assets
+    ASSETS_FOLDER = IMAGES_DIR.parent
+
+    if ASSETS_FOLDER.exists():
+        # Montamos la carpeta 'assets' para que todo lo que cuelgue de ella
+        # esté disponible bajo la URL /assets/
+        app.mount("/assets", StaticFiles(directory=str(ASSETS_FOLDER)), name="assets")
+        print(f"INFO: Servidor montado en /assets apuntando a {ASSETS_FOLDER}")
     else:
-        print(f"ERROR: No se encuentra la carpeta de imágenes en: {IMAGES_DIR}")
+        print(f"ERROR: No se encuentra la carpeta en: {ASSETS_FOLDER}")
 
 def create_application() -> FastAPI:
     application = FastAPI(

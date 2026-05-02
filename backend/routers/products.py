@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
 from fastapi.responses import StreamingResponse
 from database import get_db
 from repositories.product_repository import ProductRepository
-from models.product import ProductCreate, ProductResponse
+from models.product import ProductCreate, ProductResponse, ProductForm
 from auth.security import get_current_user
 from services.file_service import FileService
 
@@ -51,82 +51,54 @@ def get_one_product(product_id: int, db = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     return product
 
+
 @router.post("/")
 async def create_product(
-        name: str = Form(...),
-        description: str = Form(...),
-        price: float = Form(...),
-        category_id: int = Form(...),
-        stock: int = Form(0),
-        vegan: int = Form(0),
-        vegetarian: int = Form(0),
-        lactose_free: int = Form(0),
-        allergen_ids: str = Form("[]"),
-        image_file: UploadFile = File(None),
-        current_user = Depends(get_current_user),
-        db = Depends(get_db)
+        data: ProductForm = Depends(ProductForm),
+        current_user=Depends(get_current_user),
+        db=Depends(get_db)
 ):
-    filename = await FileService.save_image(image_file)
-
-    product_data = ProductCreate(
-        name=name, description=description, price=price, category_id=category_id,
-        stock=stock, image=filename,
-        vegan=vegan, vegetarian=vegetarian, lactose_free=lactose_free
-    )
+    filename = await FileService.save_image(data.image_file)
+    product_create = data.to_product_create(filename)
 
     repo = ProductRepository(db)
-    pid = repo.create(product_data, json.loads(allergen_ids), creator_id=current_user["id"])
+    pid = repo.create(product_create, product_create.allergen_ids, creator_id=current_user["id"])
     return {"id": pid, "message": "Product created"}
+
 
 @router.put("/{product_id}")
 async def update_product(
         product_id: int,
-        name: str = Form(...),
-        description: str = Form(None),
-        price: float = Form(...),
-        category_id: int = Form(...),
-        stock: str = Form("0"),
-        vegan: int = Form(0),
-        vegetarian: int = Form(0),
-        lactose_free: int = Form(0),
-        allergen_ids: str = Form("[]"),
-        image_file: UploadFile = File(None),
-        current_user = Depends(get_current_user),
-        db = Depends(get_db)
+        data: ProductForm = Depends(ProductForm),
+        current_user=Depends(get_current_user),
+        db=Depends(get_db)
 ):
-    filename = None
-    if image_file and image_file.filename:
-        filename = await FileService.save_image(image_file)
-    try:
-        val_stock = int(stock)
-    except (ValueError, TypeError):
-        val_stock = 0
-
-    # 3. Preparar datos para el repositorio
-    product_data = ProductCreate(
-        name=name,
-        description=description,
-        price=price,
-        category_id=category_id,
-        stock=val_stock,
-        image=filename,
-        vegan=vegan,
-        vegetarian=vegetarian,
-        lactose_free=lactose_free
-    )
-
     repo = ProductRepository(db)
-    old_image = repo.update(product_id, product_data, json.loads(allergen_ids), editor_id=current_user["id"])
 
-    if filename and old_image and old_image != "placeholder.jpg":
-        delete_physical_file(old_image)
-
-    updated_product = repo.get_one(product_id)
-
-    if not updated_product:
+    old_product = repo.get_one(product_id)
+    if not old_product:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
 
-    return updated_product
+    old_image_name = old_product.get('image')
+    new_filename = None
+
+    if data.image_file and data.image_file.filename:
+        new_filename = await FileService.save_image(data.image_file)
+
+    product_data = data.to_product_create(new_filename)
+
+    repo.update(
+        product_id,
+        product_data,
+        json.loads(data.allergen_ids),
+        editor_id=current_user["id"]
+    )
+
+    if new_filename and old_image_name and old_image_name != "placeholder.jpg":
+        if repo.count_image_usage(old_image_name) == 0:
+            FileService.delete_image(old_image_name)
+
+    return repo.get_one(product_id)
 
 @router.put("/archive/{product_id}")
 def toggle_archive(product_id: int, db = Depends(get_db)):
@@ -145,51 +117,48 @@ def delete_product(product_id: int, db = Depends(get_db)):
 
     repo.delete(product_id)
 
-    if image_to_delete:
-        if repo.count_image_usage(image_to_delete) == 0:
-            delete_physical_file(image_to_delete)
+    if image_to_delete and repo.count_image_usage(image_to_delete) == 0:
+        FileService.delete_image(image_to_delete)
 
     return {"message": "Deleted"}
 
 
-def delete_physical_file(filename: str):
-    if filename and filename != "placeholder.jpg":
-        file_path = os.path.join(UPLOAD_DIR, filename)
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-            except Exception as e:
-                print(f"DEBUG: Error al borrar {filename}: {e}")
-
-
 @router.post("/import")
-async def import_products(file: UploadFile = File(...), db=Depends(get_db)):
+async def import_products(
+        file: UploadFile = File(...),
+        current_user=Depends(get_current_user),
+        db=Depends(get_db)
+):
     if not file.filename.endswith(('.xlsx', '.xls', '.csv')):
         raise HTTPException(status_code=400, detail="Formato no soportado")
 
     try:
         contents = await file.read()
-        # Cargar datos
         if file.filename.endswith('.csv'):
             df = pd.read_csv(io.BytesIO(contents))
         else:
             df = pd.read_excel(io.BytesIO(contents))
 
-        # Limpiar nombres de columnas (quitar espacios y poner minúsculas)
         df.columns = [c.lower().strip() for c in df.columns]
-
-        # Validación mínima según tu plantilla
-        if 'name' not in df.columns or 'category_name' not in df.columns:
-            raise HTTPException(status_code=400, detail="Faltan columnas: 'name' o 'category_name'")
-
+        df = df.where(pd.notnull(df), None)
         repo = ProductRepository(db)
         records = df.to_dict(orient='records')
+        for record in records:
+            if 'allergens_names' in record and record['allergens_names']:
+                raw_val = str(record['allergens_names'])
+                clean_str = raw_val.replace('[', '').replace(']', '').replace("'", "").replace('"', "")
+                names = [n.strip() for n in clean_str.split(',') if n.strip()]
+                print(f"DEBUG: Producto {record.get('name')} - Alérgenos detectados: {names}")
 
-        count = repo.import_data(records)
-        return {"message": f"Éxito: {count} productos importados."}
+                record['allergen_ids'] = repo.get_allergen_ids_by_names(names)
+            else:
+                record['allergen_ids'] = None
+        count = repo.import_data(records, creator_id=current_user['id'])
+
+        return {"message": f"Éxito: {count} productos procesados."}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error procesando archivo: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo: {str(e)}")
 
 
 
@@ -202,3 +171,5 @@ def duplicate_product(product_id: int, db = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Producto no encontrado")
 
     return repo.get_one(new_product_id)
+
+
