@@ -1,0 +1,97 @@
+<div class="container py-4">
+  <h3 class="text-center mb-4">⚙️ Gestión de {{ title() }}</h3>
+
+  <!-- ZONA DE CREACIÓN -->
+  <div class="row justify-content-center mb-4">
+    <div class="col-md-7 d-flex gap-2 align-items-center bg-light p-3 rounded shadow-sm">
+      <input type="text" class="form-control"
+             [placeholder]="'Nombre de ' + title().toLowerCase() + '...'"
+             [ngModel]="newName()"
+             (ngModelChange)="newNameChange.emit($event)"
+             (keyup.enter)="onCreate.emit()"
+             [disabled]="loading()">
+
+      @if (showColor()) {
+        <input type="color" class="form-control form-control-color border-0"
+               [ngModel]="newColor()"
+               (ngModelChange)="newColorChange.emit($event)"
+               title="Elegir color">
+      }
+
+      <button class="btn btn-sm btn-dark px-3"
+              (click)="onCreate.emit()"
+              [disabled]="!newName() || loading()">
+        <i class="bi bi-plus-lg me-1"></i> {{ loading() ? '...' : 'Añadir' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- LISTADO DINÁMICO -->
+  <div class="row justify-content-center">
+    <div class="col-md-7">
+      @if (items().length === 0 && !loading()) {
+        <p class="text-muted text-center py-4">No hay {{ title().toLowerCase() }} registrados.</p>
+      }
+
+      @for (item of items(); track item.id) {
+        <div class="border rounded p-3 mb-2 shadow-sm bg-white"
+             [class.border-start]="showColor()"
+             [class.border-4]="showColor()"
+             [style.border-left-color]="item.color">
+
+          <!-- MODO EDICIÓN -->
+          @if (editId() === item.id) {
+            <div class="d-flex gap-2 animate__animated animate__fadeIn align-items-center">
+              <input class="form-control"
+                     [ngModel]="editText()"
+                     (ngModelChange)="editTextChange.emit($event)"
+                     (keyup.enter)="onSaveEdit.emit(item.id)"
+                     [disabled]="loading()"
+                     autoFocus>
+
+              @if (showColor()) {
+                <input type="color" class="form-control form-control-color border-0 bg-transparent"
+                       [ngModel]="editColor()"
+                       (ngModelChange)="editColorChange.emit($event)">
+              }
+
+              <button class="btn btn-success btn-sm" (click)="onSaveEdit.emit(item.id)" [disabled]="loading()">
+                <i class="bi bi-check-lg"></i>
+              </button>
+              <button class="btn btn-secondary btn-sm" (click)="onCancelEdit.emit()" [disabled]="loading()">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+          }
+
+          <!-- MODO VISUALIZACIÓN -->
+          @else {
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center gap-3">
+                @if (showColor()) {
+                  <div class="rounded-circle shadow-sm"
+                       [style.background-color]="item.color"
+                       style="width: 18px; height: 18px; border: 1px solid #ddd;"></div>
+                }
+                <span class="fw-bold text-secondary">{{ item.name }}</span>
+              </div>
+
+              <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-outline-primary border-0"
+                        (click)="onStartEdit.emit(item)"
+                        [disabled]="loading()" title="Editar">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger border-0"
+                        (click)="onDelete.emit(item.id)"
+                        [disabled]="loading()" title="Eliminar">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

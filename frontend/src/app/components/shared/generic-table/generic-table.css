@@ -1,0 +1,24 @@
+.custom-admin-table thead th {
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.avatar-circle {
+  width: 38px;
+  height: 38px;
+  font-size: 0.9rem;
+}
+
+.page-item.btn {
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.page-item.btn:hover:not(:disabled) {
+  background-color: var(--bs-primary);
+  color: white;
+}
+
+.dot-status {
+  font-size: 0.5rem;
+}
