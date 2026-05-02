@@ -341,3 +341,25 @@ Configuración de la arquitectura base y entornos de ejecución.
 - **Seguridad**: Adaptación del `AuthGuard` y `AuthService` para reconocer el nuevo rol leader y aplicar restricciones de navegación basadas en permisos. 
 - **Gestión Operativa**: Refactorización de los módulos de reservas y usuarios para inyectar los metadatos de auditoría en los formularios.
 - **UI/UX**: Ajustes de estilo en el sidebar y vistas públicas para mejorar la experiencia móvil y la consistencia visual del sistema.
+
+
+## [1.3.0] - 02/05/2026
+
+### ✨ Gestión de Tablas, Refactorización de UI y Optimización de Negocio
+
+### 🖥️ Backend
+- **Core Refactor**: Refactorización profunda del backend para mejorar la modularidad y el rendimiento de las consultas.
+- **Seguridad**: Optimización de los validadores de tokens y gestión de sesiones de usuario.
+- **Modelado**: Ajuste en los esquemas de datos para soportar la eliminación de etiquetas de dieta específicas (lactose free).
+
+- **Modelos**: Introducción de la clase base _AuditBase_ mediante Pydantic para el control de trazabilidad para metadatos de auditoria.
+### 🌐 Frontend
+- **Arquitectura de Componentes (Generics):**: Implementación de un sistema de Tablas Genéricas reutilizables para optimizar el código en todas las vistas administrativas.
+- **Módulo de Reservas:**: Rediseño completo de la Vista de Reservas para mejorar la legibilidad y gestión de estados. Optimización del flujo de envío de datos en el formulario de reserva.
+- **UI/UX & Estilos**:
+  - **Dashboard**: Mejora visual y funcional de los botones de acción rápida en el panel de control.
+  - **Multimedia**: Actualización masiva de recursos gráficos y optimización de carga de imágenes.
+  - **Carousel**: Reestructuración del componente carrusel para solucionar conflictos de renderizado y mejorar la fluidez de las transiciones.
+- **Mantenimiento**:
+  - Resolución de conflictos en dependencias de **npm** y limpieza de paquetes obsoletos.
+  - Eliminación de la opción **"Lactose Free"** de los filtros y visualizaciones siguiendo las nuevas directrices de la carta.
