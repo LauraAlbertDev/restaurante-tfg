@@ -16,11 +16,6 @@ export const formatISOToDisplay = (isoString: string | Date | null): string => {
   return new Intl.DateTimeFormat('es-ES').format(new Date(isoString));
 };
 
-export const getEndOfMonthISO = (): string => {
-  const now = new Date();
-  return toLocalISO(new Date(now.getFullYear(), now.getMonth() + 1, 0));
-};
-
 export function generateDayNames(): string[] {
   const baseDate = new Date(2024, 0, 1, 12, 0, 0);
   return Array.from({ length: 7 }, (_, i) => {
