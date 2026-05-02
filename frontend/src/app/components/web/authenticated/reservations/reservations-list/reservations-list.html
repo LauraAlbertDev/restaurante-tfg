@@ -5,8 +5,7 @@
       <div class="d-flex align-items-center gap-2">
         <h2 class="h4 fw-bold mb-0 text-uppercase">Panel de Reservas</h2>
         @if (auth.isLeaderOrAdmin()) {
-          <a [routerLink]="['/reservas']"
-             class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm">
+          <a [routerLink]="['/reservas']" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm">
             <i class="bi bi-plus-lg me-1"></i> NUEVA RESERVA
           </a>
         }
@@ -20,70 +19,46 @@
                    [ngModel]="f.signal()" (ngModelChange)="f.signal.set($event)">
           </div>
         }
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex gap-2 align-items-center">
           <label class="small fw-bold text-muted text-uppercase">Estado:</label>
-          <select class="form-select form-select-sm shadow-none border-2"
-                  [ngModel]="statusFilter().join(',')"
-                  (change)="onStatusFilterChange($event)"
-                  name="statusSelect">
+          <select (change)="onStatusFilterChange($event)" class="form-select form-select-sm shadow-none border-2">
             @for (opt of FILTER_OPTIONS; track opt.value) {
-              <option [value]="opt.value">{{ opt.label }}</option>
+              <option [value]="opt.value" [selected]="statusFilter().join(',') === opt.value">
+                {{ opt.label }}
+              </option>
             }
           </select>
         </div>
       </div>
+
     </div>
 
-    <div class="table-responsive">
-      <table class="table table-hover align-middle">
-        <thead class="table-light text-uppercase small fw-bold">
-        <tr>
-          @for (col of COLUMNS; track col.field) {
-            <th class="cursor-pointer" (click)="toggleSort(col.field)">
-              {{ col.label }} <i class="bi" [ngClass]="getSortIcon(col.field)"></i>
-            </th>
-          }
-          <th class="text-end">Acciones</th>
-        </tr>
-        </thead>
-        <tbody>
-          @for (res of filteredReservations(); track res.id) {
-            <tr [class]="getRowClass(res.status)">
-              <td>
-                <div class="fw-bold">{{ res.name }}</div>
-                <div class="text-muted small">{{ res.phone }}</div>
-                @if (res.updated_at) {
-                  <small class="text-muted fst-italic d-block mt-2" style="font-size: 0.7rem;">
-                    Editado por <strong>{{ res.editor_name || 'Sistema' }}</strong> {{ res.updated_at | date:'dd/MM/yyyy HH:mm' }}
-                  </small>
-                }
-              </td>
-              <td>{{ formatDate(res.date) }}</td>
-              <td><span class="badge bg-dark">{{ res.hour }}</span></td>
-              <td><strong>{{ res.n_people }}</strong></td>
-              <td>{{ res.rices }}</td>
-              <td>
-                <span class="badge bg-light text-dark border">{{ res.creator_name || 'Web' }}</span>
-              </td>
-              <td class="text-end">
-                <div class="d-flex justify-content-end gap-2">
-                  <a class="btn btn-sm btn-outline-primary border-0" [routerLink]="['/auth/reservations-detail/', res.id]"><i class="bi bi-eye"></i></a>
-                  @if (auth.isLeaderOrAdmin()) {
-                    <a class="btn btn-sm btn-outline-primary border-0" [routerLink]="['/leader/reservations-edit/', res.id]"><i class="bi bi-pencil-square"></i></a>
-                    <button class="btn btn-sm btn-outline-danger border-0" (click)="deleteReservation(res.id)"><i class="bi bi-trash3-fill"></i></button>
-                  }
-                </div>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="7" class="text-center py-5 text-muted">
-                <i class="bi bi-calendar-x fs-2 d-block mb-2"></i> No hay reservas disponibles.
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+    <app-generic-table
+      [data]="filteredReservations()"
+      [columns]="reservationsColumns"
+      [actionTemplate]="reservaActions"
+      [rowClassFunc]="getRowClass">
+    </app-generic-table>
+
+    <ng-template #reservaActions let-res>
+      <div class="d-flex justify-content-end gap-2">
+        <a class="btn btn-sm btn-outline-primary border-0"
+           [routerLink]="['/auth/reservations-detail/', res.id]">
+          <i class="bi bi-eye"></i>
+        </a>
+
+        @if (auth.isLeaderOrAdmin()) {
+          <a class="btn btn-sm btn-outline-primary border-0"
+             [routerLink]="['/leader/reservations-edit/', res.id]">
+            <i class="bi bi-pencil-square"></i>
+          </a>
+          <button class="btn btn-sm btn-outline-danger border-0"
+                  (click)="deleteReservation(res.id)">
+            <i class="bi bi-trash3-fill"></i>
+          </button>
+        }
+      </div>
+    </ng-template>
+
   </div>
 </div>

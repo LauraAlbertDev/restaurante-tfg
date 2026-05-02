@@ -1,70 +1,23 @@
-<div class="container py-4">
-  <h3 class="text-center mb-4">⚙️ Panel de Alérgenos</h3>
+<app-admin-list-manager
+  title="Alérgenos"
+  [showColor]="true"
+  [items]="items()"
+  [loading]="loading()"
+  [editId]="editId()"
+  [newName]="newName()"
+  [newColor]="newColor()"
+  [editText]="editText()"
+  [editColor]="editColor()"
 
-  <div class="row justify-content-center mb-2">
-    <div class="col-md-7 d-flex gap-2 align-items-center bg-light p-3 rounded shadow-sm">
-      <input type="text" class="form-control" placeholder="Nombre del nuevo alérgeno..."
-             [ngModel]="newName()" (ngModelChange)="newName.set($event)"
-             (keyup.enter)="create()" [disabled]="loading()">
+  (newNameChange)="newName.set($event)"
+  (newColorChange)="newColor.set($event)"
+  (editTextChange)="editText.set($event)"
+  (editColorChange)="editColor.set($event)"
 
-      <input type="color" class="form-control form-control-color border-0"
-             [ngModel]="newColor()" (ngModelChange)="newColor.set($event)"
-             title="Elige el color del alérgeno">
+  (onCreate)="create()"
+  (onDelete)="delete($event)"
+  (onStartEdit)="startEdit($event)"
+  (onSaveEdit)="saveEdit($event)"
+  (onCancelEdit)="cancelEdit()">
+</app-admin-list-manager>
 
-      <button class="btn btn-sm btn-dark " (click)="create()" [disabled]="!newName() || loading()">
-        <i class="bi bi-plus-lg me-1"></i> {{ loading() ? '...' : 'Añadir' }}
-      </button>
-    </div>
-  </div>
-
-  <div class="row justify-content-center">
-    <div class="col-md-7">
-      @if (allergens().length === 0 && !loading()) {
-        <p class="text-muted text-center py-4">No hay alérgenos registrados.</p>
-      }
-
-      @for (cat of allergens(); track cat.id) {
-        <div class="border rounded p-3 mb-2 shadow-sm bg-white border-start border-4"
-             [style.border-left-color]="cat.color">
-
-          @if (editId() === cat.id) {
-            <div class="d-flex gap-2 animate__animated animate__fadeIn align-items-center">
-              <input class="form-control" [ngModel]="editText()" (ngModelChange)="editText.set($event)"
-                     (keyup.enter)="saveEdit(cat.id)" [disabled]="loading()">
-
-              <input type="color" class="form-control form-control-color border-0 bg-transparent"
-                     [ngModel]="editColor()" (ngModelChange)="editColor.set($event)">
-
-              <button class="btn btn-success btn-sm" (click)="saveEdit(cat.id)" [disabled]="loading()">
-                <i class="bi bi-check-lg"></i>
-              </button>
-              <button class="btn btn-secondary btn-sm" (click)="cancelEdit()" [disabled]="loading()">
-                <i class="bi bi-x-lg"></i>
-              </button>
-            </div>
-          } @else {
-            <div class="d-flex justify-content-between align-items-center">
-              <div class="d-flex align-items-center gap-3">
-                <div class="rounded-circle shadow-sm"
-                     [style.background-color]="cat.color"
-                     style="width: 20px; height: 20px; border: 1px solid #ddd;"></div>
-                <span class="fw-bold text-secondary">{{ cat.name }}</span>
-              </div>
-
-              <div class="d-flex gap-1">
-                <button class="btn btn-sm btn-outline-primary border-0" (click)="startEdit(cat)"
-                        [disabled]="loading()" title="Editar">
-                  <i class="bi bi-pencil-square"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger border-0" (click)="delete(cat.id)"
-                        [disabled]="loading()" title="Eliminar">
-                  <i class="bi bi-trash3"></i>
-                </button>
-              </div>
-            </div>
-          }
-        </div>
-      }
-    </div>
-  </div>
-</div>

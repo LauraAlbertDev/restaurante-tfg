@@ -1,0 +1,24 @@
+:host ::ng-deep .table-success-custom td {
+  background-color: #d1e7dd;
+}
+
+:host ::ng-deep .table-danger-custom td {
+  background-color: #f8d7da;
+}
+
+:host ::ng-deep .table-success-custom {
+  border-left: 6px solid #198754;
+}
+
+:host ::ng-deep .table-danger-custom {
+  border-left: 6px solid #dc3545;
+}
+
+:host ::ng-deep .table-grey-custom td {
+  background-color: #efefe5;
+  border-bottom: 1px solid #cdcd9b;
+}
+
+:host ::ng-deep .table-grey-custom {
+  border-left: 6px solid #cdcd9b;
+}

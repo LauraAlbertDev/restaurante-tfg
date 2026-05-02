@@ -1,24 +1,21 @@
 import {Component, computed, inject, OnInit, signal} from '@angular/core';
-import {Reservation, ReservationStatus, STATUS_LABELS} from '../../../../../common/interfaces/interfaces';
+import {Reservation, TableColumn} from '../../../../../common/interfaces/interfaces';
 import {ReservationsService} from '../../../../../services/reservation-service';
-import {DatePipe, NgClass} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {
-  formatISOToDisplay,
-  getEndOfMonthISO,
   getTodayISO
 } from '../../../../../common/utils/date-utils';
 import {UiService} from '../../../../../services/ui-service';
 import {AuthService} from '../../../../../services/auth-service';
+import {GenericTable} from '../../../../shared/generic-table/generic-table';
 
 @Component({
   selector: 'app-reservations-list',
   imports: [
     RouterLink,
     FormsModule,
-    DatePipe,
-    NgClass
+    GenericTable
   ],
   templateUrl: './reservations-list.html',
   styleUrl: './reservations-list.css',
@@ -29,11 +26,9 @@ export class ReservationsList implements OnInit {
   private readonly ui = inject(UiService);
 
   startDate = signal<string>(getTodayISO());
-  endDate = signal<string>(getEndOfMonthISO());
+  endDate = signal<string>(getTodayISO());
   allReservations = signal<Reservation[]>([]);
   statusFilter = signal<string[]>(['unconfirmed', 'confirmed']);
-  sortField = signal<string>('date');
-  sortDirection = signal<'asc' | 'desc'>('asc');
 
   protected readonly FILTER_OPTIONS = [
     { label: 'Todos', value: 'unconfirmed,confirmed,cancelled' },
@@ -43,31 +38,31 @@ export class ReservationsList implements OnInit {
     { label: 'Canceladas', value: 'cancelled' }
   ];
 
+  reservationsColumns: TableColumn<Reservation>[] = [
+    { label: 'Cliente', key: 'name', subKey: 'phone', type: 'avatar', sortable: true },
+    { label: 'Fecha', key: 'date', type: 'date', sortable: true },
+    { label: 'Hora', key: 'hour', type: 'badge', sortable: true },
+    { label: 'Personas', key: 'n_people', type: 'text', sortable: true },
+    { label: 'Arroces', key: 'rices', type: 'text', sortable: true },
+    { label: 'Creador', key: 'creator_name', type: 'badge', sortable: true },
+    { label: 'Acciones', key: 'actions', type: 'actions' }
+  ];
+
   protected readonly COLUMNS = [
     { field: 'name',         label: 'Cliente' },
     { field: 'date',         label: 'Fecha' },
     { field: 'hour',         label: 'Hora' },
     { field: 'n_people',     label: 'Pax' },
-    { field: 'rices',        label: 'Paellas' },
+    { field: 'rices',        label: 'Arroces' },
     { field: 'creator_name', label: 'Creador' }
   ] as const;
 
-  formatDate = formatISOToDisplay;
-
-
   filteredReservations = computed(() => {
-    const field = this.sortField();
-    const dir = this.sortDirection() === 'asc' ? 1 : -1;
-    return [...this.allReservations()]
-      .filter(res => res.date >= this.startDate() && res.date <= this.endDate() && this.statusFilter().includes(res.status))
-      .sort((a: any, b: any) => {
-        const valA = a[field];
-        const valB = b[field];
-
-        if (valA < valB) return -1 * dir;
-        if (valA > valB) return 1 * dir;
-        return a.date.localeCompare(b.date) || a.hour.localeCompare(b.hour);
-      });
+    return this.allReservations().filter(res =>
+      res.date >= this.startDate() &&
+      res.date <= this.endDate() &&
+      this.statusFilter().includes(res.status)
+    );
   });
 
   ngOnInit() {
@@ -111,26 +106,11 @@ export class ReservationsList implements OnInit {
     { label: 'Hasta', signal: this.endDate }
   ];
 
-  protected getSortIcon(field: string): string {
-    if (this.sortField() !== field) return 'bi-filter';
-    return this.sortDirection() === 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill';
-  }
-
-  toggleSort(field: string) {
-    if (this.sortField() === field) {
-      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
-    } else {
-      this.sortField.set(field);
-      this.sortDirection.set('asc');
-    }
-  }
-
-  protected getRowClass(status: string): string {
-    const map: Record<string, string> = {
-      unconfirmed: 'table-warning',
-      confirmed: 'table-success',
-      cancelled: 'table-danger'
-    };
-    return map[status] || '';
+  getRowClass = (res: Reservation): string => {
+    const status = res.status;
+    if (status === 'confirmed') return 'table-success-custom';
+    if (status === 'unconfirmed') return 'table-grey-custom';
+    if (status === 'cancelled') return 'table-danger-custom';
+    return '';
   }
 }

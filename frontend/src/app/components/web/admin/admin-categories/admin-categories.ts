@@ -3,87 +3,26 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CategoryService } from '../../../../services/category-service';
 import { Category } from '../../../../common/interfaces/interfaces';
+import {BaseAdminManager} from '../base-admin-manager/base-admin-manager';
+import {AdminListManager} from '../admin-list-manager/admin-list-manager';
 
 @Component({
   selector: 'app-admin-categories',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AdminListManager],
   templateUrl: './admin-categories.html',
   styleUrl: './admin-categories.css'
 })
-export class AdminCategories implements OnInit {
-  private categorySrv = inject(CategoryService);
-
-  categories = this.categorySrv.categories;
-
-  newName = signal('');
-  editId = signal<number | null>(null);
-  editText = signal('');
-  loading = signal(false);
+export class AdminCategories extends BaseAdminManager<Category> implements OnInit {
+  private readonly categorySrv = inject(CategoryService);
 
   ngOnInit() {
-    this.categorySrv.load().subscribe();
+    this.init();
   }
 
-  create() {
-    const name = this.newName().trim();
-    if (!name || this.loading()) return;
+  loadItems() { return this.categorySrv.load(); }
+  createItem(name: string) { return this.categorySrv.create(name); }
+  updateItem(id: number, name: string) { return this.categorySrv.update(id, name); }
+  deleteItem(id: number) { return this.categorySrv.delete(id); }
 
-    this.loading.set(true);
-    this.categorySrv.create(name).subscribe({
-      next: (cat) => {
-        this.categorySrv.addLocal(cat);
-        this.newName.set('');
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.loading.set(false);
-        alert(err.error?.detail || "Error al crear");
-      }
-    });
-  }
-
-  delete(id: number) {
-    if (!confirm("¿Eliminar categoría?")) return;
-
-    this.loading.set(true);
-    this.categorySrv.delete(id).subscribe({
-      next: () => {
-        this.categorySrv.removeLocal(id);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.loading.set(false);
-        alert(err.error?.detail || "No se pudo eliminar");
-      }
-    });
-  }
-
-  saveEdit(id: number) {
-    const name = this.editText().trim();
-    if (!name || this.loading()) return;
-
-    this.loading.set(true);
-    this.categorySrv.update(id, name).subscribe({
-      next: () => {
-        this.categorySrv.updateLocal(id, name);
-        this.cancelEdit();
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.loading.set(false);
-        alert(err.error?.detail || "Error al actualizar");
-      }
-    });
-  }
-
-  startEdit(cat: Category) {
-    this.editId.set(cat.id);
-    this.editText.set(cat.name);
-  }
-
-  cancelEdit() {
-    this.editId.set(null);
-    this.editText.set('');
-  }
 }

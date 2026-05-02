@@ -61,7 +61,6 @@ export interface Product {
   category_name?: string;
   vegan: number;
   vegetarian: number;
-  lactose_free: number;
   archived: number;
   allergens: Allergen[];
 }
@@ -114,3 +113,17 @@ export interface Shift{
 }
 
 
+export interface ManagedItem {
+  id: number;
+  name: string;
+  color?: string;
+}
+
+
+export interface TableColumn<T> {
+  label: string;
+  key: keyof T | 'actions';
+  type: 'avatar' | 'badge' | 'status' | 'date' | 'actions' | 'text' | 'template';
+  subKey?: keyof T;
+  sortable?: boolean;
+}

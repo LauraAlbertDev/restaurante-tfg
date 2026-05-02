@@ -1,0 +1,21 @@
+.avatar-circle {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+}
+
+.dot-status {
+  font-size: 0.55rem;
+}
+
+.btn-sm { padding: 0.4rem 0.6rem; }
+
+.table {
+  font-size: 0.925rem;
+}
+
+.text-bg-light {
+  background-color: #f8f9fa !important;
+}
+
+
