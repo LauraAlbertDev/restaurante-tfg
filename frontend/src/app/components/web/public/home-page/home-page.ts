@@ -2,8 +2,6 @@ import { Component } from '@angular/core';
 import {MatSidenav, MatSidenavContainer, MatSidenavContent} from '@angular/material/sidenav';
 import {MatButton} from '@angular/material/button';
 import {RouterLink} from '@angular/router';
-import {Carousel} from 'primeng/carousel';
-import {PrimeTemplate} from 'primeng/api';
 
 @Component({
   selector: 'app-home-page',
@@ -12,9 +10,7 @@ import {PrimeTemplate} from 'primeng/api';
     MatSidenav,
     MatButton,
     RouterLink,
-    Carousel,
-    MatSidenavContent,
-    PrimeTemplate
+    MatSidenavContent
   ],
   templateUrl: './home-page.html',
   styleUrl: './home-page.css',
