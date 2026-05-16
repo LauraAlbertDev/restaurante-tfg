@@ -363,3 +363,29 @@ Configuración de la arquitectura base y entornos de ejecución.
 - **Mantenimiento**:
   - Resolución de conflictos en dependencias de **npm** y limpieza de paquetes obsoletos.
   - Eliminación de la opción **"Lactose Free"** de los filtros y visualizaciones siguiendo las nuevas directrices de la carta.
+
+## [1.4.0] - 16/05/2026
+
+### ✨ Gestión de Mesas, Control de Pedidos y Optimización del Flujo de Reservas
+
+### 🖥️ Backend
+- **Core Refactor:** Refactorización profunda del backend para mejorar la modularidad y el rendimiento de las consultas.
+- **Seguridad:** Optimización de los validadores de tokens y gestión de sesiones de usuario.
+- **Modelos:** Introducción de la clase base AuditBase mediante Pydantic para el control de trazabilidad para metadatos de auditoria.
+
+### 🌐 Frontend
+- **Módulo de mesas:**
+  - Creación de un nuevo servicio dedicado (tables_service.ts) para la comunicación con la API.
+  - Implementación de la arquitectura de componentes y vistas para el control, distribución y estado de las mesas en tiempo real.
+
+
+- **Módulo de Pedidos (Orders):**
+  - Desarrollo del nuevo servicio de lógica de negocio (order-service.ts).
+  - Creación del nuevo módulo de componentes para la gestión, seguimiento y actualización del estado de los pedidos del restaurante.
+
+
+- **Módulo de Reservas:**
+  - Rediseño completo de la Vista de Reservas para mejorar la legibilidad y gestión de estados.
+  - Optimización del flujo de envío de datos en el formulario de reserva.
+  - Refactorización de las pantallas de listado (reservations-list) y edición (reservations-edit) para integrarse con el nuevo ecosistema de componentes.
+  - Arquitectura de Componentes (**Generics**): Implementación de un sistema de Tablas Genéricas reutilizables para optimizar el código en todas las vistas administrativas.

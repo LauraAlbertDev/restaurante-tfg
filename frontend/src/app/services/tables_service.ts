@@ -107,14 +107,14 @@ export class TablesService {
             tableFound = true;
 
             if (obj.data.customer_name.includes(' / ')) {
-              const names = obj.data.customer_name.split(' / ');
-              const phones = obj.data.customer_phone.split(' / ');
-              const turnos = obj.data.turno.split(' / ');
+              const names = obj.data.customer_name.split(' / ').map((n: string) => n.trim());
+              const phones = (obj.data.customer_phone || '').split(' / ').map((p: string) => p.trim());
+              const turnos = (obj.data.turno || '').split(' / ').map((t: string) => t.trim());
               const idx = names.indexOf(customerName);
               if (idx !== -1) {
                 names.splice(idx, 1);
-                phones.splice(idx, 1);
-                turnos.splice(idx, 1);
+                if (phones.length > idx) phones.splice(idx, 1);
+                if (turnos.length > idx) turnos.splice(idx, 1);
               }
 
               obj.data.customer_name = names.join(' / ');
@@ -144,6 +144,49 @@ export class TablesService {
 
         if (!tableFound) return of(null);
         return this.saveDailyPlan(plan.area_name || 'Salón', data, date);
+      })
+    );
+  }
+
+
+  setTableAsReservedEmpty(tableId: string | number, date: string): Observable<any> {
+    return this.getFloorPlanByDate(date).pipe(
+      switchMap(plan => {
+        if (!plan?.layout_data) return of(null);
+
+        const data = typeof plan.layout_data === 'string'
+          ? JSON.parse(plan.layout_data)
+          : plan.layout_data;
+
+        let tableFound = false;
+
+        data.objects = data.objects.map((obj: any) => {
+          if (obj.data && String(obj.data.id) === String(tableId)) {
+            tableFound = true;
+
+            // Vaciamos los campos de texto del cliente por completo
+            obj.data.customer_name = '';
+            obj.data.customer_phone = '';
+            obj.data.turno = '';
+            obj.data.notes = '';
+
+            // Forzamos el estado visual estable a Reservado
+            obj.data.status = 'reserved';
+            obj.data.estado = 'reserved';
+
+            // Actualizamos los colores de los vectores del Canvas (Fabric.js) inmediatamente
+            const targetColor = STATUS_COLORS['reserved'] || '#FFC107';
+            if (obj.objects) {
+              obj.objects.forEach((child: any) => {
+                if (child.type !== 'i-text' && child.type !== 'text') child.fill = targetColor;
+              });
+            }
+          }
+          return obj;
+        });
+
+        if (!tableFound) return of(null);
+        return this.saveDailyPlan(plan.area_name || 'Salón principal', data, date);
       })
     );
   }

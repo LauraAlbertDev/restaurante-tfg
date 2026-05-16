@@ -1,15 +1,17 @@
 import {
-  Component, OnInit, AfterViewInit, inject, signal, OnDestroy, ViewChild, ElementRef, computed, effect
+  Component, OnInit, AfterViewInit, inject, signal, OnDestroy, ViewChild, ElementRef, computed, effect, untracked
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import {Canvas, Group, Rect, Circle, IText, Object as FabricObject, TOriginX, TOriginY, util} from 'fabric';
+import { Canvas, Group, Rect, Circle, IText, Object as FabricObject, TOriginX, TOriginY, util } from 'fabric';
 import { TablesService } from '../../../../services/tables_service';
 import { OrderService } from '../../../../services/order-service';
 import { AuthService } from '../../../../services/auth-service';
 import { Subscription } from 'rxjs';
 import { MapTool, STATUS_COLORS, TableStatus } from '../../../../common/interfaces/interfaces';
 import { formatDateToISO, getTodayISO } from '../../../../common/utils/date-utils';
+import { ReservationsService } from '../../../../services/reservation-service';
+import {UiService} from '../../../../services/ui-service';
 
 const GRID_SIZE = 20;
 
@@ -23,7 +25,9 @@ const GRID_SIZE = 20;
 export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly tablesService = inject(TablesService);
   private readonly orderService = inject(OrderService);
+  private readonly ui = inject(UiService);
   protected readonly auth = inject(AuthService);
+  private readonly reservationService = inject(ReservationsService);
 
   public isLocked = signal(true);
   public areaName = signal('Salón principal');
@@ -49,13 +53,22 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   constructor() {
+    // 🌟 SEÑALES CONTROLADAS: Usamos 'untracked' para evitar sub-suscripciones cíclicas con Fabric
     effect(() => {
-      const orders = this.orderService.allActiveOrders();
-      if (this.canvas) setTimeout(() => {this.syncTableColors();}, 50);
+      this.orderService.allActiveOrders();
+      const date = this.selectedDate();
+
+      if (this.canvas) {
+        untracked(() => {
+          setTimeout(() => { this.syncTableColors(); }, 50);
+        });
+      }
     });
   }
 
-  ngOnInit(): void { this.initSubscriptions();}
+  ngOnInit(): void {
+    this.initSubscriptions();
+  }
 
   ngAfterViewInit(): void {
     this.setupCanvas();
@@ -80,8 +93,11 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initSubscriptions(): void {
+    // Escuchador reactivo para cuando se libera la mesa desde clearOrder
     this.subscriptions.add(
-      this.orderService.tableReleased$.subscribe(id => this.updateTableStatusVisuals(id, TableStatus.Available))
+      this.orderService.tableReleased$.subscribe(() => {
+        this.syncTableColors();
+      })
     );
   }
 
@@ -183,14 +199,21 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
   private handleTableClick(event: any): void {
     if (!this.isLocked()) return;
 
-    const selected = event.selected?.[0] as any;
+    this.canvas.discardActiveObject();
+    this.canvas.requestRenderAll();
 
+    if (this.selectedDate() !== getTodayISO()) {
+      this.ui.handleError('No se pueden abrir comandas un día que no sea hoy');
+      return;
+    }
+
+    const selected = event.selected?.[0] as any;
     if (!selected?.data?.id) return;
 
     const tableId = selected.data.id;
     const tableName = selected.data.nombre || selected.data.name || `Mesa ${tableId}`;
-
     const tableMetadata = selected.data;
+
     this.orderService.navigateToTable(tableId, tableName, tableMetadata);
     this.applyStatusVisuals(selected, TableStatus.Occupied);
   }
@@ -205,12 +228,16 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private loadFloorPlan(): void {
     this.tablesService.getFloorPlanByDate(this.selectedDate()).subscribe(res => {
-      if (!res?.layout_data) return;
+      if (!res?.layout_data) {
+        console.warn('⚠️ No se encontraron datos de distribución para la fecha seleccionada.');
+        return;
+      }
 
       const data = typeof res.layout_data === 'string'
         ? JSON.parse(res.layout_data)
         : res.layout_data;
 
+      // Renderizado en el lienzo de Fabric
       this.canvas.loadFromJSON(data).then(() => {
         this.canvas.getObjects().forEach(obj => {
           this.applyLockStateToObj(obj as FabricObject);
@@ -261,30 +288,88 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
   private syncTableColors(): void {
     if (!this.canvas) return;
 
-    const activeOrders = this.orderService.allActiveOrders();
+    const fechaMapa = this.selectedDate();
+    const esHoy = fechaMapa === getTodayISO();
+
+    const activeOrders = esHoy ? this.orderService.allActiveOrders() : [];
     const occupiedTableIds = activeOrders.map(o => String(o.table_id));
 
-    this.canvas.getObjects().forEach(obj => {
-      if (obj instanceof Group) {
-        const data = (obj as any).data;
-        if (!data?.id) return;
+    // Tomamos una instantánea (suscripción atómica) para evitar bucles asíncronos cruzados
+    this.reservationService.getReservations().subscribe({
+      next: (todasLasReservas) => {
+        const reservasActivasDelDia = todasLasReservas.filter(res =>
+          res.date === fechaMapa && res.status !== 'cancelled'
+        );
 
-        const tableId = String(data.id);
-        const isOccupied = occupiedTableIds.includes(tableId);
+        let huboMutacionVisual = false;
 
-        let targetStatus: string;
-        if (isOccupied) {
-          targetStatus = TableStatus.Occupied;
-        } else {
-          targetStatus = data.customer_name ? TableStatus.Reserved : TableStatus.Available;
+        this.canvas.getObjects().forEach(obj => {
+          if (obj instanceof Group) {
+            const data = (obj as any).data;
+            if (!data?.id) return;
+
+            const tableId = String(data.id);
+            const isOccupied = occupiedTableIds.includes(tableId);
+
+            let targetStatus: string;
+            let nuevoNombre = '';
+            let nuevoTelefono = '';
+            let nuevoTurno = '';
+
+            if (isOccupied) {
+              targetStatus = TableStatus.Occupied;
+            } else {
+              // 🌟 REGLA TRIPLE: Si se hizo clearOrder (el name viene limpio de origen), forzamos libre
+              if (!data.customer_name || String(data.customer_name).trim() === '') {
+                targetStatus = TableStatus.Available;
+              } else {
+                // 🌟 REGLA BIDIRECCIONAL (De 1 a 2 y de 2 a 1 reservas dinámicamente)
+                const reservasDeEstaMesa = reservasActivasDelDia.filter(r =>
+                  r.table_id ? String(r.table_id).trim() === tableId : false
+                );
+
+                const totalReservas = reservasDeEstaMesa.length;
+
+                if (totalReservas === 0) {
+                  targetStatus = TableStatus.Available;
+                }
+                else if (totalReservas === 1) {
+                  const unicaReserva = reservasDeEstaMesa[0];
+                  targetStatus = TableStatus.Reserved;
+                  nuevoNombre = unicaReserva.name || '';
+                  nuevoTelefono = unicaReserva.phone || '';
+                  nuevoTurno = unicaReserva.hour || '';
+                }
+                else {
+                  targetStatus = 'double_reserved';
+                  nuevoNombre = reservasDeEstaMesa.map(r => r.name).join(' / ');
+                  nuevoTelefono = reservasDeEstaMesa.map(r => r.phone).join(' / ');
+                  nuevoTurno = reservasDeEstaMesa.map(r => r.hour).join(' / ');
+                }
+              }
+            }
+
+            // 🌟 ANTI-LOOP DEFENSIVO: Solo alteramos metadatos si el valor real difiere del actual
+            if (data.estado !== targetStatus || (nuevoNombre && data.customer_name !== nuevoNombre)) {
+              data.estado = targetStatus;
+              data.customer_name = nuevoNombre;
+              data.customer_phone = nuevoTelefono;
+              data.turno = nuevoTurno;
+              huboMutacionVisual = true;
+            }
+
+            this.applyStatusVisuals(obj, targetStatus);
+          }
+        });
+
+        if (huboMutacionVisual) {
+          this.canvas.requestRenderAll();
         }
-
-        this.applyStatusVisuals(obj, targetStatus);
-      }
+      },
+      error: (err) => console.error('Error al sincronizar estados con el servidor de reservas:', err)
     });
-
-    this.canvas.requestRenderAll();
   }
+
   private resizeCanvas(): void {
     if (!this.container?.nativeElement || !this.canvas) return;
 
@@ -419,7 +504,6 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.canvas.requestRenderAll();
   }
 
-
   private async extractPersistentShapes(group: Group): Promise<FabricObject[]> {
     const geometries = group.getObjects().filter(o =>
       o instanceof Rect || o instanceof Circle || o.type === 'rect' || o.type === 'circle'
@@ -455,7 +539,6 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public saveAsTemplate(): void {
     this.canvas.getObjects().forEach(obj => obj.setCoords());
-
     const layout = this.canvas.toObject(['data']);
 
     this.tablesService.saveTemplatePlan(this.areaName(), layout).subscribe({

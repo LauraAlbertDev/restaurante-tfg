@@ -118,6 +118,17 @@
           </select>
           <label for="status"><i class="bi bi-shield-check me-1"></i> Estado</label>
         </div>
+        @if (this.authService.isLeaderOrAdmin()) {
+          <div class="form-floating mb-3">
+            <select class="form-select" id="table_id" formControlName="table_id">
+              <option [ngValue]="null">-- Sin Mesa Asignada --</option>
+              @for (table of filteredTables(); track table.id) {
+                <option [ngValue]="table.id">{{ table.name }}</option>
+              }
+            </select>
+            <label for="table_id"><i class="bi bi-layout-three-columns me-1"></i> Mesa Asignada</label>
+          </div>
+        }
 
         <div class="d-grid gap-3">
           <button class="btn btn-primary btn-lg shadow-sm"  type="submit">

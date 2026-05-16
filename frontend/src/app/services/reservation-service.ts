@@ -48,14 +48,12 @@ export class ReservationsService {
     });
   }
 
-// Añadir un nuevo horario de turno (ej: "21:00")
   addShift(time: string): Observable<any> {
     return this.http.post(`${this.apiUrl}admin/shifts/add`, {
       time: time
     });
   }
 
-// Eliminar un turno por su ID
   removeShift(shiftId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}admin/shifts/${shiftId}`);
   }
@@ -69,7 +67,6 @@ export class ReservationsService {
   }
 
   deleteSpecialDay(date: string): Observable<any> {
-    // Pasamos la fecha como parámetro para que el backend sepa cuál borrar
     return this.http.delete(`${this.apiUrl}admin/special-day/${date}`);
   }
 

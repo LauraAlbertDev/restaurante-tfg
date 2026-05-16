@@ -1,5 +1,5 @@
 from .base_repository import BaseRepository
-from .audit_mixin import AuditMixin
+from models.audit_mixin import AuditMixin
 class ProductRepository(BaseRepository, AuditMixin):
     def __init__(self, db):
         super().__init__(db)

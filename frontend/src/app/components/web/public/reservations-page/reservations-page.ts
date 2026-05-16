@@ -27,6 +27,7 @@ export class ReservationsPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly ui = inject(UiService);
   public readonly tablesService = inject(TablesService);
+
   isAdminMode = signal<boolean>(false);
   dayRules = signal<DayRule[]>([]);
   closedDates = signal<string[]>([]);
@@ -62,7 +63,6 @@ export class ReservationsPage implements OnInit {
 
       this.tablesService.getFloorPlanByDate(selectedDate).subscribe({
         next: (res) => {
-          // Si no hay layout, vaciamos las mesas
           if (!res?.layout_data) {
             this.allTables.set([]);
             this.filteredTables.set([]);
@@ -82,9 +82,6 @@ export class ReservationsPage implements OnInit {
             .sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
           this.allTables.set(tables);
-
-          // Una vez cargadas todas las mesas del diseño de ese día,
-          // filtramos cuáles están ocupadas por reservas existentes
           this.updateAvailableTables();
         },
         error: (err) => {
@@ -96,44 +93,40 @@ export class ReservationsPage implements OnInit {
   }
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      const isServiceAdmin = params['mode'] === 'admin' || this.auth.isLeaderOrAdmin();
+      this.isAdminMode.set(isServiceAdmin);
+
+      const nPeopleControl = this.reservationForm.get('n_people');
+      nPeopleControl?.setValidators([Validators.required, Validators.min(isServiceAdmin ? 1 : 2)]);
+      nPeopleControl?.updateValueAndValidity();
+
+      this.loadTablesForAdmin();
+    });
+
     this.reservationForm.get('date')?.valueChanges.subscribe(date => {
       if (date) {
-        // 1. Limpiamos la mesa seleccionada anteriormente para evitar errores
         this.reservationForm.get('table_id')?.patchValue(null);
-
-        // 2. Cargamos el mapa/mesas de ese nuevo día
         this.loadTablesForAdmin();
-
-        // 3. Comprobamos la disponibilidad (turnos llenos, etc)
         this.checkAvailability(date);
       }
     });
 
     this.reservationForm.get('n_people')?.valueChanges.subscribe(() => {
-      const date = this.reservationForm.get('date')?.value;
-      if (date) this.checkAvailability(date);
+      this.updateAvailableTables();
     });
 
-    this.reservationForm.get('hour')?.valueChanges.subscribe(() => {
-      this.updateAvailableTables();
+    this.reservationForm.get('hour')?.valueChanges.subscribe(hour => {
+      if (hour) {
+        this.updateAvailableTables();
+      }
     });
 
     this.reservationService.getClosedDates().subscribe(dates => {
       this.closedDates.set(dates);
     });
     this.reservationService.getAdminSettings().subscribe(settings => {
-      this.dayRules.set(settings.dayRules); // El array de 0 a 6 con is_open
-    });
-
-    this.loadTablesForAdmin();
-    this.route.queryParams.subscribe(params => {
-      const userRole = this.auth.getType();
-      const isServiceAdmin = params['mode'] === 'admin' || userRole === 'admin' || userRole === 'employee';
-      this.isAdminMode.set(isServiceAdmin);
-
-      const nPeopleControl = this.reservationForm.get('n_people');
-      nPeopleControl?.setValidators([Validators.required, Validators.min(isServiceAdmin ? 1 : 2)]);
-      nPeopleControl?.updateValueAndValidity();
+      this.dayRules.set(settings.dayRules);
     });
 
     const id = this.route.snapshot.params['id'];
@@ -143,11 +136,6 @@ export class ReservationsPage implements OnInit {
         if (res.date) this.selectedDate.set(new Date(res.date));
       });
     }
-
-    this.reservationForm.get('n_people')?.valueChanges.subscribe(() => {
-      const date = this.reservationForm.get('date')?.value;
-      if (date) this.checkAvailability(date);
-    });
   }
 
   isSubmitting = signal<boolean>(false);
@@ -173,7 +161,6 @@ export class ReservationsPage implements OnInit {
     }
     return days;
   });
-
 
   changeMonth(quantity: number) {
     const today = new Date();
@@ -213,7 +200,6 @@ export class ReservationsPage implements OnInit {
         this.reservationForm.patchValue({ hour: '' });
       }
     } else {
-      // Opcional: limpiar la hora si el admin selecciona un día bloqueado
       this.reservationForm.patchValue({ hour: '' });
     }
   }
@@ -226,15 +212,12 @@ export class ReservationsPage implements OnInit {
     const n_people = Number(this.reservationForm.get('n_people')?.value) || 0;
     this.reservationService.getOccupancyByDate(date).subscribe({
       next: (occupancy: any[]) => {
-        // Calculamos qué horas están llenas para este día específico
         const full = occupancy
           .filter(item => (Number(item.total) + n_people) > Number(item.max))
           .map(item => item.hour);
 
         this.fullShifts.set(full);
 
-        // CRUCIAL: Si el usuario ya tenía una hora seleccionada pero
-        // al cambiar de día/personas esa hora está llena o es pasada, la borramos.
         const currentHour = this.reservationForm.get('hour')?.value;
         if (currentHour && (full.includes(currentHour) || this.isTimeDisabled(currentHour))) {
           this.reservationForm.patchValue({ hour: '' });
@@ -252,7 +235,6 @@ export class ReservationsPage implements OnInit {
 
     this.isSubmitting.set(true);
 
-    // Extraemos los valores
     const formValue = this.reservationForm.value;
     const payload = {
       ...formValue,
@@ -261,9 +243,7 @@ export class ReservationsPage implements OnInit {
 
     this.reservationService.createReservation(payload).pipe(
       switchMap((res) => {
-        // Si somos admin y se ha seleccionado una mesa en el desplegable
         if (this.isAdminMode() && formValue.table_id) {
-          // Llamamos al servicio para pintar la mesa de amarillo ('reservada')
           const customerInfo = {
             customer_name: formValue.name,
             customer_phone: formValue.phone,
@@ -287,7 +267,7 @@ export class ReservationsPage implements OnInit {
   }
 
   selectHour(time: string) {
-    this.reservationForm.patchValue({ hour: time });
+    this.reservationForm.get('hour')?.setValue(time, { emitEvent: true });
     this.reservationForm.get('hour')?.markAsTouched();
     this.reservationForm.get('hour')?.updateValueAndValidity();
   }
@@ -354,7 +334,6 @@ export class ReservationsPage implements OnInit {
         );
         this.filteredTables.set(available);
 
-        // CORRECCIÓN: Usar table_id en lugar de tableId
         const currentTable = this.reservationForm.get('table_id')?.value;
         if (currentTable && occupiedTableIds.includes(String(currentTable))) {
           this.reservationForm.get('table_id')?.patchValue(null);

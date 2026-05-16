@@ -1,7 +1,6 @@
-<div class="col-md-12">
+<div class="d-flex justify-content-center align-items-center min-vh-100 w-100 p-3">
   <div class="card shadow-lg border-0 h-100 rounded-4 overflow-hidden shadow-hover">
     <div class="card-header bg-gradient bg-primary text-white py-4 text-center border-0">
-      <div class="opacity-75 small text-uppercase fw-bold mb-1" style="letter-spacing: 2px;">Confirmación de reserva</div>
       <h5 class="mb-0 fs-4"><i class="bi bi-receipt-cutoff me-2"></i> Vista Previa</h5>
     </div>
 
@@ -37,11 +36,7 @@
             <small class="text-muted d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem;">Fecha y Hora</small>
             <p class="mb-0 fw-bold text-dark">
               <i class="bi bi-calendar3 text-primary me-2"></i>
-              {{ (reservation()?.date | date:'dd/MM/yyyy') || '--/--/----' }}
-            </p>
-            <p class="mb-0 fw-bold text-dark">
-              <i class="bi bi-clock text-primary me-2"></i>
-              {{ reservation()?.hour || '00:00' }}
+              {{ (reservation()?.date | date:'dd/MM/yyyy') || '--/--/----' }} - {{ reservation()?.hour || '00:00' }}
             </p>
           </div>
         </div>
@@ -55,8 +50,25 @@
             </p>
           </div>
         </div>
+        <div class="col-6">
+          <div class="p-3 border rounded-3 bg-light">
+            <small class="text-muted d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem;">Mesa Asignada</small>
+            <div class="d-flex align-items-center">
+              @if (reservation()?.table_id) {
+                <span class="fw-bold text-dark ">
+                  <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>
+                  {{ reservation()?.table_name }}
+                </span>
+              } @else {
+                <span class="text-muted fst-italic">
+                  <i class="bi bi-dash-circle me-2"></i>Sin mesa asignada
+                </span>
+              }
+            </div>
+          </div>
+        </div>
 
-        <div class="col-12">
+        <div class="col-6">
           <div class="p-3 border rounded-3 bg-light">
             <small class="text-muted d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem;">Contacto</small>
             <div class="d-flex justify-content-between align-items-center">
@@ -94,7 +106,7 @@
     </div>
 
     <div class="card-footer bg-light py-3 border-0 text-center">
-      <small class="text-muted fst-italic">GastroManager System v1.2</small>
+      <small class="text-muted fst-italic">GastroManager System</small>
     </div>
   </div>
 </div>

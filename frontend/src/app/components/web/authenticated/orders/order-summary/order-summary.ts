@@ -1,5 +1,5 @@
 import {Component, computed, inject} from '@angular/core';
-import {CurrencyPipe, JsonPipe} from '@angular/common';
+import {CurrencyPipe, JsonPipe, NgClass} from '@angular/common';
 import {Router, RouterLink} from '@angular/router';
 import { OrderService } from '../../../../../services/order-service';
 import {UiService} from '../../../../../services/ui-service';
@@ -9,7 +9,8 @@ import {UiService} from '../../../../../services/ui-service';
   imports: [
     CurrencyPipe,
     RouterLink,
-    JsonPipe
+    JsonPipe,
+    NgClass
   ],
   templateUrl: './order-summary.html',
   styleUrl: './order-summary.css',

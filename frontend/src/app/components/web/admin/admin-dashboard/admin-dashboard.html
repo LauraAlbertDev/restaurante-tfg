@@ -16,7 +16,6 @@
 
           <div class="card-body p-4">
             <div class="d-flex align-items-center mb-4">
-              <!-- Icono dinámico -->
               <div class="p-3 rounded-3 me-3"
                    [ngClass]="'bg-' + module.colorClass + ' bg-opacity-10 text-' + module.colorClass">
                 <span class="fs-3">{{ module.icon }}</span>
@@ -24,7 +23,6 @@
               <h2 class="h4 fw-bold m-0 text-white">{{ module.title }}</h2>
             </div>
 
-            <!-- Iteración de Enlaces internos -->
             <div class="d-grid gap-3 list-group list-group-flush">
               @for (link of module.links; track $index){
 
@@ -39,9 +37,6 @@
         </div>
       </div>
       }
-
-
-
     </div>
   </div>
 </div>

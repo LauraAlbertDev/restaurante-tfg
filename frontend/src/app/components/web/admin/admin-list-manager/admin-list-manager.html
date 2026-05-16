@@ -1,7 +1,6 @@
 <div class="container py-4">
   <h3 class="text-center mb-4">⚙️ Gestión de {{ title() }}</h3>
 
-  <!-- ZONA DE CREACIÓN -->
   <div class="row justify-content-center mb-4">
     <div class="col-md-7 d-flex gap-2 align-items-center bg-light p-3 rounded shadow-sm">
       <input type="text" class="form-control"
@@ -26,7 +25,6 @@
     </div>
   </div>
 
-  <!-- LISTADO DINÁMICO -->
   <div class="row justify-content-center">
     <div class="col-md-7">
       @if (items().length === 0 && !loading()) {
@@ -39,7 +37,6 @@
              [class.border-4]="showColor()"
              [style.border-left-color]="item.color">
 
-          <!-- MODO EDICIÓN -->
           @if (editId() === item.id) {
             <div class="d-flex gap-2 animate__animated animate__fadeIn align-items-center">
               <input class="form-control"
@@ -62,10 +59,7 @@
                 <i class="bi bi-x-lg"></i>
               </button>
             </div>
-          }
-
-          <!-- MODO VISUALIZACIÓN -->
-          @else {
+          } @else {
             <div class="d-flex justify-content-between align-items-center">
               <div class="d-flex align-items-center gap-3">
                 @if (showColor()) {

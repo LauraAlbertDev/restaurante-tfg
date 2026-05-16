@@ -1,1 +1,71 @@
-<p>my-profile works!</p>
+<div class="d-flex justify-content-center align-items-center min-vh-100 w-100 ">
+  @if (user()) {
+    <div class="card border-secondary shadow bg-dark text-light w-100 rounded-4 overflow-hidden">
+
+      <div class="card-header  bg-opacity-50 border-secondary text-center py-4">
+        <div class="d-inline-block bg-primary bg-opacity-10 p-3 rounded-circle mb-2 border border-primary border-opacity-25">
+          <i class="bi bi-person-gear text-primary fs-2"></i>
+        </div>
+        <h4 class="mb-1 fw-bold text-white">Mi Perfil</h4>
+        <p class="text-secondary small mb-0">Gestiona tus credenciales de acceso</p>
+      </div>
+
+      <div class="card-body p-4">
+        <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold text-uppercase">Correo Electrónico</label>
+            <div class="input-group border-secondary border-opacity-25">
+              <span class="input-group-text bg-black border-secondary text-secondary"><i class="bi bi-envelope-fill"></i></span>
+              <input type="email"
+                     formControlName="email"
+                     class="form-control bg-transparent text-light border-secondary"
+                     [ngClass]="{'is-invalid': profileForm.get('email')?.touched && profileForm.get('email')?.invalid}">
+            </div>
+            @if (profileForm.get('email')?.touched && profileForm.get('email')?.invalid) {
+              <div class="text-danger small mt-1">
+                Por favor, introduce un correo electrónico válido.
+              </div>
+            }
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label text-secondary small fw-bold text-uppercase">Nueva Contraseña</label>
+            <div class="input-group border-secondary border-opacity-25">
+              <span class="input-group-text bg-black border-secondary text-secondary"><i class="bi bi-lock-fill"></i></span>
+              <input type="password"
+                     formControlName="password"
+                     placeholder="Dejar en blanco para mantener actual"
+                     class="form-control bg-transparent text-light border-secondary"
+                     [ngClass]="{'is-invalid': profileForm.get('password')?.touched && profileForm.get('password')?.invalid}">
+            </div>
+            @if (profileForm.get('password')?.touched && profileForm.get('password')?.invalid) {
+              <div class="text-danger small mt-1">
+                La contraseña debe tener al menos 6 caracteres.
+              </div>
+            }
+          </div>
+
+          <div class="d-grid">
+            <button type="submit"
+                    class="btn btn-primary py-2 fw-bold shadow-sm"
+                    [disabled]="profileForm.invalid || isSubmitting()">
+              @if (isSubmitting()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Guardando...
+              } @else {
+                <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+              }
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  } @else {
+    <div class="text-center text-secondary py-5">
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="small text-uppercase tracking-wider">Cargando tu perfil...</p>
+    </div>
+  }
+</div>

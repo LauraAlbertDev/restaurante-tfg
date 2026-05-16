@@ -72,9 +72,9 @@
 
               @if (isAdminMode()) {
                 <div class="input-group">
-      <span class="input-group-text bg-white border-2 border-end-0 rounded-start-pill">
-        <i class="bi bi-people-fill text-primary"></i>
-      </span>
+                  <span class="input-group-text bg-white border-2 border-end-0 rounded-start-pill">
+                    <i class="bi bi-people-fill text-primary"></i>
+                  </span>
                   <input type="number"
                          formControlName="n_people"
                          class="form-control border-2 border-start-0 rounded-end-pill shadow-none"
@@ -82,7 +82,7 @@
                          min="1">
                 </div>
                 <small class="text-primary ms-3 mt-1 d-block">
-                  <i class="bi bi-info-circle"></i> Modo Administrador: Introduce cualquier cantidad.
+                  <i class="bi bi-info-circle"></i> Permisos especiales: Introduce cualquier cantidad.
                 </small>
               } @else {
                 <select class="form-select form-select-md rounded-pill border-2 shadow-none"
@@ -101,21 +101,20 @@
                 <div class="text-danger small ms-3 mt-1">Debes indicar el número de personas.</div>
               }
             </div>
+
             @if (this.auth.isLeaderOrAdmin()) {
-
-
-            <select formControlName="table_id" class="form-select">
-              <option [value]="null">Sin mesa asignada</option>
-              @for (table of filteredTables(); track table.id) {
-                <option [value]="table.id">{{ table.name }}</option>
-              }
-            </select>
+              <select formControlName="table_id" class="form-select mb-4">
+                <option [value]="null">Sin mesa asignada</option>
+                @for (table of filteredTables(); track table.id) {
+                  <option [value]="table.id">{{ table.name }}</option>
+                }
+              </select>
             }
 
             <div class="mt-auto d-none d-md-block pt-4">
               <button type="submit" class="btn btn-dark btn-lg w-100 rounded-pill py-3 fw-bold shadow-sm transition-btn"
                       [disabled]="isSubmitting()">
-                  CONFIRMAR RESERVA
+                CONFIRMAR RESERVA
               </button>
             </div>
           </div>
@@ -130,7 +129,7 @@
                 {{ viewDate() | date:'MMMM yyyy' }}
               </span>
               <button type="button" class="btn btn-sm btn-link text-white p-0" (click)="changeMonth(1)">
-                <i class="bi bi-chevron-right fs-5"></i>
+                <i class="bi bi-chevron-right fs-5 ="></i>
               </button>
             </div>
 
@@ -203,15 +202,9 @@
                 @else { CONFIRMAR RESERVA }
               </button>
             </div>
-            <div class="text-center pt-4 ">
-
-            </div>
-
           </div>
         </div>
       </div>
     </div>
   </form>
-
-
 </div>
