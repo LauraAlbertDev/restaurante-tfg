@@ -73,8 +73,11 @@ export class ReservationsList implements OnInit {
   loadReservations() {
     this.reservationService.getReservations().subscribe({
       next: (data) => {
-        this.allReservations.set(data);
-        console.log('Datos recibidos de la API:', data);
+        const transformedData = data.map(res => ({
+          ...res,
+          creator_name: res.creator_name?.trim() ? res.creator_name : 'WEB'
+        }));
+        this.allReservations.set(transformedData);
       },
       error: (err) => console.error('Error al cargar reservas:', err)
     });

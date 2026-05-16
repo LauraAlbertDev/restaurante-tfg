@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal, computed, ViewChild, ElementRef, effect } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import {ActivatedRoute, RouterLink} from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../../services/auth-service';
 import {Product, Category, Allergen} from '../../../../../common/interfaces/interfaces';
@@ -10,11 +10,15 @@ import { environment } from '../../../../../environment/environment';
 import { FileService } from '../../../../../services/file-service';
 import {Sidebar} from '../../../../structure/sidebar/sidebar';
 import {UiService} from '../../../../../services/ui-service';
+import {OrderService} from '../../../../../services/order-service';
+import {OrderSummary} from '../../../authenticated/orders/order-summary/order-summary';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {map} from 'rxjs';
 
 @Component({
   selector: 'app-products-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, Sidebar,],
+  imports: [CommonModule, RouterLink, FormsModule, Sidebar, OrderSummary,],
   templateUrl: './products-list.html',
   styleUrl: './products-list.css',
 })
@@ -24,12 +28,14 @@ export class ProductsList implements OnInit {
   private readonly fileService = inject(FileService);
   public readonly auth = inject(AuthService);
   private readonly ui = inject(UiService);
+  private route = inject(ActivatedRoute);
+  protected orderService = inject(OrderService);
 
   private imageVersion = '1';
 
   @ViewChild('closeModal') closeModal!: ElementRef;
 
-  allProducts = signal<Product[]>([]);
+  public allProducts = computed(() => this.productService.products());
   categories = signal<Category[]>([]);
   allergens = signal<Allergen[]>([]);
 
@@ -48,6 +54,16 @@ export class ProductsList implements OnInit {
   vegan = signal(false);
   vegetarian = signal(false);
 
+  showSummary = toSignal(
+    this.route.queryParamMap.pipe(
+      map(params => params.has('table_id'))
+    ),
+    { initialValue: false }
+  );
+
+  public currentTableId: string | null = null;
+  public currentTableName: string | null = null;
+
   private readonly filterWatcher = effect(() => {
     const cat = this.selectedCategory();
     const arch = this.viewArchived();
@@ -60,8 +76,31 @@ export class ProductsList implements OnInit {
         this.categories.set(data)
         this.loadAllergens();
       },
-      error: (err) => console.error('Error cargando categorías', err)
+      error: (err) => this.ui.handleError('Error cargando categorías: ', err)
     });
+    this.loadProducts();
+    // ESTO ES LO QUE DEBES CORREGIR
+    this.route.queryParams.subscribe(params => {
+      const tableId = params['table_id'];
+      const tableName = params['tableName'];
+
+      if (tableId) {
+        const mesaActual = this.orderService.activeTable();
+
+        // CORRECCIÓN: Comparamos cuidadosamente.
+        // Si no hay mesa o el ID es distinto, seteamos.
+        // Si la mesa es la misma, NO llamamos a setActiveTable para no borrar los 'data' (reserva).
+        if (!mesaActual || mesaActual.id !== String(tableId)) {
+          this.orderService.setActiveTable(String(tableId), tableName);
+        }
+      }
+
+      // Sincronizamos las variables locales por si se usan en el HTML
+      this.currentTableId = tableId;
+      this.currentTableName = tableName;
+    });
+    this.currentTableId = this.route.snapshot.queryParamMap.get('tableId');
+    this.currentTableName = this.route.snapshot.queryParamMap.get('tableName');
   }
 
   private loadProducts() {
@@ -69,7 +108,6 @@ export class ProductsList implements OnInit {
 
     this.productService.getProducts(this.selectedCategory() || undefined, isArchived).subscribe({
       next: (prods) => {
-        this.allProducts.set(prods);
         if (this.search() === '') {
           this.updatePriceRange(prods);
         }
@@ -130,18 +168,20 @@ export class ProductsList implements OnInit {
       next: (res) => {
         const modo = res.new_archived_status === 1 ? 'archivado' : 'restaurado';
         this.ui.handleError(`Producto ${modo} con éxito`);
-
-        this.allProducts.update(prev => prev.filter(p => p.id !== id));
         this.loadProducts()
       },
-      error: () => alert("Error al cambiar el estado")
+      error: () => this.ui.handleError('Error al cambiar el estado')
     });
   }
 
   deleteProduct(id: number) {
     if (!confirm("¿Eliminar producto definitivamente?")) return;
-    this.productService.deleteProduct(id).subscribe(() => {
-      this.allProducts.update(prev => prev.filter(p => p.id !== id));
+    this.productService.deleteProduct(id).subscribe({
+      next: () => {
+        this.ui.notify('Producto eliminado');
+        this.loadProducts(); // Refresca la señal del servicio
+      },
+      error: (err) => this.ui.handleError('Error al eliminar', err)
     });
   }
 
@@ -185,7 +225,7 @@ export class ProductsList implements OnInit {
         this.loadProducts();
         this.closeModal.nativeElement.click();
       },
-      error: () => alert("❌ Error en el formato del archivo")
+      error: () => this.ui.handleError("Error en el formato del archivo")
     });
   }
 
@@ -199,16 +239,31 @@ export class ProductsList implements OnInit {
   }
 
   duplicateProduct(id: number) {
-    if (confirm('¿Estás seguro de que deseas duplicar este producto?')) {
-      this.productService.duplicate(id).subscribe({
-        next: () => {
-          this.loadProducts();
-          console.log('Producto duplicado con éxito');
-        },
-        error: (err) => {
-          console.error('Error al duplicar:', err);
-        }
-      });
-    }
+    this.ui.confirm('¿Estás seguro de que deseas duplicar este producto?').then((confirmed) => {
+      if (confirmed) {
+        this.productService.duplicate(id).subscribe({
+          next: () => {
+            this.loadProducts();
+          },
+          error: (err) => this.ui.handleError('Error al duplicar:', err)
+        });
+      }
+    });
   }
+
+
+  public agregarAlPedido(producto: Product): void {
+    // Buscamos la versión más reciente del producto en la señal
+    const prodEnStock = this.allProducts().find(p => String(p.id) === String(producto.id));
+
+    if (!prodEnStock || prodEnStock.stock <= 0) {
+      this.ui.notify(`Lo sentimos, no queda stock de ${producto.name}`);
+      return;
+    }
+
+    // Enviamos al servicio de pedidos
+    // Nota: El servicio de pedidos se encargará de llamar a productService.updateStock(id, -1)
+    this.orderService.addItemToOrder(producto);
+  }
+
 }

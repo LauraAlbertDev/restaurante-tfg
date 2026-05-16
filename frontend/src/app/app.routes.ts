@@ -20,6 +20,8 @@ import {AdminSpecialDays} from './components/web/admin/admin-special-days/admin-
 import {MyProfile} from './components/web/authenticated/my-profile/my-profile';
 import {AdminDashboard} from './components/web/admin/admin-dashboard/admin-dashboard';
 import {ReservationsDetail} from './components/web/authenticated/reservations/reservations-detail/reservations-detail';
+import {TableMapComponent} from './components/web/tables/table-map/table-map';
+import {OrderResume} from './components/web/authenticated/orders/order-resume/order-resume';
 
 
 export const routes: Routes = [
@@ -64,9 +66,12 @@ export const routes: Routes = [
       { path: 'reservations-list', component: ReservationsList },
       { path: 'reservations-detail/:id', component: ReservationsDetail },
       { path: 'my-profile', component: MyProfile },
+      { path: 'orders-list', component: OrderResume },
+      { path: 'mesas', component: TableMapComponent},
       { path: '', redirectTo: '/inicio', pathMatch: 'full' },
     ]
   },
+
   {
     path: '**',
     redirectTo: '',

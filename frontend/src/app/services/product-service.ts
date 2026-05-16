@@ -36,10 +36,8 @@ export class ProductService {
       tap((updatedProduct) => {
         this.products.update(prev => {
           if (id) {
-            // Si es edición: reemplazamos el producto viejo por el nuevo
             return prev.map(p => p.id === id ? updatedProduct : p);
           } else {
-            // Si es creación: añadimos el nuevo al principio
             return [updatedProduct, ...prev];
           }
         });
@@ -85,5 +83,44 @@ export class ProductService {
 
   exportProducts() {
     return this.http.get(`${environment.apiUrl}products/export`, {responseType: 'blob'});
+  }
+
+  updateStock(id: string | number, change: number): boolean {
+    let found = false;
+
+    this.products.update(currentProducts => {
+      const updated = currentProducts.map(p => {
+        if (String(p.id) === String(id)) {
+          found = true;
+          return { ...p, stock: (p.stock || 0) + change };
+        }
+        return p;
+      });
+
+      // IMPORTANTE: Si usas localStorage, debes guardar aquí
+      localStorage.setItem('products', JSON.stringify(updated));
+
+      return updated;
+    });
+
+    return found;
+  }
+
+  updateStockOnServer(productId: string | number, amount: number): Observable<Product> {
+    const id = Number(productId);
+
+    if (isNaN(id)) throw new Error('ID de producto no válido');
+
+    const body = { amount: Number(amount) };
+
+    return this.http.patch<Product>(`${this.baseUrl}/${id}/stock`, body).pipe(
+      tap({
+        next: (updatedProduct) => {
+          this.products.update(list =>
+            list.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+          );
+        }
+      })
+    );
   }
 }

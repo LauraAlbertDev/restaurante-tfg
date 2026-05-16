@@ -7,86 +7,40 @@
 
   <div class="container">
     <div class="row g-4 justify-content-center">
+      @for(module of modules; track $index){
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card h-100 shadow border-top border-4 rounded-3 hover-card bg-transparent border-secondary border-opacity-25"
+             [class.border-primary]="module.colorClass === 'primary'"
+             [class.border-success]="module.colorClass === 'success'"
+             [class.border-info]="module.colorClass === 'info'">
 
-      <div class="col-12 col-md-6 col-lg-4">
-        <div class="card h-100 shadow border-top border-primary border-4 rounded-3 hover-card bg-transparent border-secondary border-opacity-25">
           <div class="card-body p-4">
             <div class="d-flex align-items-center mb-4">
-              <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary">
-                <span class="fs-3">🍱</span>
+              <!-- Icono dinámico -->
+              <div class="p-3 rounded-3 me-3"
+                   [ngClass]="'bg-' + module.colorClass + ' bg-opacity-10 text-' + module.colorClass">
+                <span class="fs-3">{{ module.icon }}</span>
               </div>
-              <h2 class="h4 fw-bold m-0 text-white">Gestión de Carta</h2>
+              <h2 class="h4 fw-bold m-0 text-white">{{ module.title }}</h2>
             </div>
 
+            <!-- Iteración de Enlaces internos -->
             <div class="d-grid gap-3 list-group list-group-flush">
-              <a routerLink="/admin/categories" class="list-group-item list-group-item-action p-3 rounded-3 bg-transparent text-white-50 border-0 hover-btn">
-                <div class="fw-bold text-white">Categorías</div>
-                <div class="small">Menús, bebidas y postres</div>
-              </a>
+              @for (link of module.links; track $index){
 
-              <a routerLink="/admin/allergens" class="list-group-item list-group-item-action p-3 rounded-3 bg-transparent text-white-50 border-0 hover-btn">
-                <div class="fw-bold text-white">Alérgenos</div>
-                <div class="small">Seguridad alimentaria y trazas</div>
+              <a [routerLink]="link.url"
+                 class="list-group-item list-group-item-action p-3 rounded-3 bg-transparent text-white-50 border-0 hover-btn">
+                <div class="fw-bold text-white">{{ link.label }}</div>
+                <div class="small">{{ link.description }}</div>
               </a>
+              }
             </div>
           </div>
         </div>
       </div>
+      }
 
-      <div class="col-12 col-md-6 col-lg-4">
-        <div class="card h-100 shadow border-top border-success border-4 rounded-3 hover-card bg-transparent border-secondary border-opacity-25">
-          <div class="card-body p-4">
-            <div class="d-flex align-items-center mb-4">
-              <div class="bg-success bg-opacity-10 p-3 rounded-3 me-3 text-success">
-                <span class="fs-3">📅</span>
-              </div>
-              <h2 class="h4 fw-bold m-0 text-white">Reservas</h2>
-            </div>
 
-            <div class="d-grid gap-3 list-group list-group-flush">
-              <a routerLink="/auth/reservations-list" class="list-group-item list-group-item-action p-3 rounded-3 bg-transparent text-white-50 border-0 hover-btn">
-                <div class="fw-bold text-white">Lista Maestra</div>
-                <div class="small">Gestión de clientes y mesas</div>
-              </a>
-
-              <a routerLink="/admin/shifts" class="list-group-item list-group-item-action p-3 rounded-3 bg-transparent text-white-50 border-0 hover-btn">
-                <div class="fw-bold text-white">Turnos</div>
-                <div class="small">Horarios y capacidades máximas</div>
-              </a>
-
-              <a routerLink="/admin/special-days" class="list-group-item list-group-item-action p-3 rounded-3 bg-transparent text-white-50 border-0 hover-btn">
-                <div class="fw-bold text-white">Días Especiales</div>
-                <div class="small">Festivos y cierres temporales</div>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-12 col-md-6 col-lg-4">
-        <div class="card h-100 shadow border-top border-info border-4 rounded-3 hover-card bg-transparent border-secondary border-opacity-25">
-          <div class="card-body p-4">
-            <div class="d-flex align-items-center mb-4">
-              <div class="bg-info bg-opacity-10 p-3 rounded-3 me-3 text-info text-white">
-                <span class="fs-3">🛡️</span>
-              </div>
-              <h2 class="h4 fw-bold m-0 text-white">Sistema</h2>
-            </div>
-
-            <div class="d-grid gap-3 list-group list-group-flush">
-              <a routerLink="/admin/users" class="list-group-item list-group-item-action p-3 rounded-3 bg-transparent text-white-50 border-0 hover-btn">
-                <div class="fw-bold text-white">Usuarios</div>
-                <div class="small">Control de staff y permisos</div>
-              </a>
-
-              <a routerLink="/admin/comments-list" class="list-group-item list-group-item-action p-3 rounded-3 bg-transparent text-white-50 border-0 hover-btn">
-                <div class="fw-bold text-white">Reseñas</div>
-                <div class="small">Feedback y comentarios</div>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
 
     </div>
   </div>

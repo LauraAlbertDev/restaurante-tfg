@@ -1,0 +1,24 @@
+/* Container principal */
+.map-container {
+  flex-direction: column;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background-color: #e5e7eb;
+  margin: 0 0.5rem;
+}
+
+.canvas-wrapper {
+  height: calc(90vh - 150px);
+}
+
+
+canvas {
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  background-color: #ffffff;
+  border-radius: 4px;
+  display: block;
+}

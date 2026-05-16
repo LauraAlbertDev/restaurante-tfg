@@ -1,0 +1,82 @@
+<div class="container-fluid py-5  min-vh-100 text-light">
+
+  <div class="d-flex align-items-center justify-content-between mb-5 border-bottom border-secondary pb-3">
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-outline-light border rounded-circle d-flex align-items-center justify-content-center"
+              routerLink="/auth/mesas" style="width: 45px; height: 45px;">
+        <i class="bi bi-arrow-left fs-4"></i>
+      </button>
+      <div>
+        <h1 class="h3 fw-bold m-0 text-white">Panel de Comandas</h1>
+        <p class="text-secondary small m-0 text-uppercase tracking-wider">Gestión en tiempo real</p>
+      </div>
+    </div>
+    <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm">
+      {{ activeOrders().length }} Mesas Activas
+    </span>
+  </div>
+
+  <div class="row g-4">
+    @for (order of activeOrders(); track order.table_id) {
+      <div class="col-md-6 col-lg-4 col-xl-3">
+        <div class="card bg-secondary bg-opacity-10 border border-secondary rounded-4 h-100 shadow-lg">
+          <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+              <div class="bg-primary bg-gradient rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                <i class="bi bi-receipt-cutoff text-white"></i>
+              </div>
+              <h5 class="fw-bold m-0 text-white">{{ order.tableName }}</h5>
+            </div>
+            <div class="spinner-grow spinner-grow-sm text-info" role="status"></div>
+          </div>
+
+          <div class="card-body px-4 py-3">
+            <div class="rounded-3 bg-black bg-opacity-25 p-3 border border-secondary border-opacity-25" style="max-height: 180px; overflow-y: auto;">
+              <ul class="list-unstyled m-0">
+                @for (item of order.items; track item.id) {
+                  <li class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-25">
+                    <div class="small">
+                      <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 me-1">{{ item.quantity }}</span>
+                      <span class="text-light opacity-75 text-capitalize fw-medium">{{ item.name }}</span>
+                    </div>
+                    <span class="small font-monospace text-info">
+                      {{ (item.price * item.quantity) | currency:'EUR' }}
+                    </span>
+                  </li>
+                }
+              </ul>
+            </div>
+          </div>
+
+          <div class="card-footer bg-transparent border-0 p-4 pt-0">
+            <div class="d-flex justify-content-between align-items-end mb-4">
+              <span class="text-secondary small text-uppercase fw-bold">Total a cobrar</span>
+              <span class="h3 fw-bold m-0 text-white">{{ order.total | currency:'EUR' }}</span>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button class="btn btn-outline-light border-secondary opacity-75 fw-bold py-2 rounded-3"
+                      (click)="orderService.navigateToTable(order.table_id, order.tableName)">
+                <i class="bi bi-pencil-square me-1"></i> Ver Detalle
+              </button>
+              <button class="btn btn-primary fw-bold py-2 rounded-3 shadow"
+                      (click)="finalizarPedido(order.table_id, order.tableName)">
+                <i class="bi bi-cash-stack me-1"></i> Finalizar Pedido
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="col-12 text-center py-5">
+        <div class="py-5 border border-secondary border-dashed rounded-5 bg-secondary bg-opacity-10">
+          <i class="bi bi-moon-stars display-1 text-secondary opacity-25"></i>
+          <h3 class="text-secondary mt-3">Sin actividad en el turno</h3>
+          <button class="btn btn-outline-primary mt-3 px-4 rounded-pill" routerLink="/auth/mesas">
+            Abrir Plano de Mesas
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

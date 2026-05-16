@@ -44,6 +44,8 @@
 }
 
 .time-chip {
+  min-width: 100px;
+  transition: all 0.2s ease-in-out;
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -60,6 +62,11 @@
 
 .transition-all:hover {
   transform: translateY(-2px);
+}
+
+.time-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 

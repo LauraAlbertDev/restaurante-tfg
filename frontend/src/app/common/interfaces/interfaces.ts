@@ -1,3 +1,5 @@
+import {Component} from '@angular/core';
+
 export interface Philosophy {
   id: number;
   icon: string;
@@ -52,6 +54,7 @@ export interface Allergen {
 
 export interface Product {
   id: number;
+
   name: string;
   description: string;
   price: number;
@@ -87,6 +90,7 @@ export interface Reservation {
   hour: string;
   rices?: string;
   n_people: number;
+  table_id: string;
   notes: string;
   status: ReservationStatus;
   created_by?: number;
@@ -126,4 +130,61 @@ export interface TableColumn<T> {
   type: 'avatar' | 'badge' | 'status' | 'date' | 'actions' | 'text' | 'template';
   subKey?: keyof T;
   sortable?: boolean;
+}
+
+export interface FloorPlanResponse {
+  id: number;
+  area_name: string;
+  layout_data: any;
+}
+
+export interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  timestamp: Date;
+}
+
+export interface ActiveOrder {
+  table_id: string;
+  tableName: string;
+  items: OrderItem[];
+  total: number;
+}
+
+
+export enum TableStatus {
+  Available = 'available',
+  Occupied = 'occupied',
+  Reserved = 'reserved',
+}
+export const STATUS_COLORS: Record<string, string> = {
+  [TableStatus.Available]: '#4CAF50', // Verde
+  [TableStatus.Occupied]: '#F44336',  // Rojo
+  [TableStatus.Reserved]: '#FFC107',  // Amarillo
+  'double_reserved': '#FF9800',       // Naranja
+};
+
+
+export interface TableData {
+  id: string;
+  name: string;
+  status: TableStatus;
+  reservation?: any;
+  isFused?: boolean;
+}
+
+export interface MapTool {
+  icon: string;
+  class: string;
+  title: string;
+  action: () => void;
+}
+
+export interface ActiveTable {
+  id: string;
+  name: string;
+  status: string;
+  reservation?: any;
 }

@@ -72,4 +72,10 @@ export class ReservationsService {
     // Pasamos la fecha como parámetro para que el backend sepa cuál borrar
     return this.http.delete(`${this.apiUrl}admin/special-day/${date}`);
   }
+
+  getOccupiedTables(date: string, hour: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}occupied-tables`, {
+      params: { date, hour }
+    });
+  }
 }

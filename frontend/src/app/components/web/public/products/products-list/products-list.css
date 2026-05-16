@@ -99,3 +99,26 @@ section {
   max-width: 100%;
   object-fit: contain;
 }
+
+
+/* Ajuste de imágenes para que todas midan lo mismo */
+.image-fixed-height {
+  height: 180px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.hover-effect {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* Para que el resumen no se mueva al hacer scroll */
+.sticky-top {
+  max-height: 90vh;
+  overflow-y: auto;
+}

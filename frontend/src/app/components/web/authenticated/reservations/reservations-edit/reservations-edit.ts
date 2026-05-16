@@ -7,6 +7,7 @@ import {DatePipe, KeyValuePipe, NgClass, TitleCasePipe} from '@angular/common';
 import {FormValidators} from '../../../../../Validators/FormValidators';
 import {formatDateToISO} from '../../../../../common/utils/date-utils';
 import {UiService} from '../../../../../services/ui-service';
+import {TablesService} from '../../../../../services/tables_service';
 
 @Component({
   selector: 'app-reservations-edit',
@@ -24,6 +25,7 @@ export class ReservationsEdit implements OnInit {
   @Input() id?: number;
 
   private readonly reservationService = inject(ReservationsService);
+  private readonly tablesService = inject(TablesService);
   private readonly formBuilder: FormBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly ui = inject(UiService);
@@ -62,7 +64,7 @@ export class ReservationsEdit implements OnInit {
   }
 
 
-  async onSubmit() { // Añadimos async por si usas el ui.confirm
+  async onSubmit() {
     if (this.formReservation.invalid || !this.id) {
       this.formReservation.markAllAsTouched();
       return;
@@ -70,11 +72,21 @@ export class ReservationsEdit implements OnInit {
 
     const rawData = this.formReservation.value;
 
-    // VALIDACIÓN: Confirmada sin arroces
-    // Asumiendo que el campo en el formulario o interfaz se llama 'rices'
     if (rawData.status === 'confirmed' && !rawData.rices?.trim()) {
       alert("No puedes confirmar una reserva sin indicar los arroces.");
       return;
+    }
+
+    if (rawData.status === 'cancelled') {
+      const confirmCancel = await this.ui.confirm(
+        '¿Estás seguro? Al cancelar se liberará la mesa en el mapa y se restarán las personas del conteo diario.'
+      );
+
+      if (!confirmCancel) return;
+
+      this.tablesService.releaseTableByCustomer(rawData.name, rawData.date).subscribe({
+        error: (err) => console.error('Error al liberar mesa en el mapa:', err)
+      });
     }
 
     const reservationData: Reservation = {
@@ -111,7 +123,6 @@ export class ReservationsEdit implements OnInit {
   }
 
   protected getStatusLabel(status: string) {
-    // Aquí forzamos a que TS entienda que status es una llave válida
     return STATUS_LABELS[status as keyof typeof STATUS_LABELS] || 'Desconocido';
   }
 }
