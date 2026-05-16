@@ -1,8 +1,7 @@
-import os
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles # Importante
+from fastapi.staticfiles import StaticFiles
 from routers import api_router 
 
 PROJECT_NAME = "Restaurante TFG API"
@@ -21,19 +20,11 @@ def setup_middleware(app: FastAPI) -> None:
         allow_headers=["*"]
     )
 
-
-# En main.py
-# En main.py
 def setup_static_files(app: FastAPI) -> None:
-    # Si IMAGES_DIR es .../frontend/public/assets/images
-    # ASSETS_FOLDER debe ser .../frontend/public/assets
     ASSETS_FOLDER = IMAGES_DIR.parent
 
     if ASSETS_FOLDER.exists():
-        # Montamos la carpeta 'assets' para que todo lo que cuelgue de ella
-        # esté disponible bajo la URL /assets/
         app.mount("/assets", StaticFiles(directory=str(ASSETS_FOLDER)), name="assets")
-        print(f"INFO: Servidor montado en /assets apuntando a {ASSETS_FOLDER}")
     else:
         print(f"ERROR: No se encuentra la carpeta en: {ASSETS_FOLDER}")
 

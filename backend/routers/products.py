@@ -3,11 +3,11 @@ import os
 import io
 import pandas as pd
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile, Body, status
 from fastapi.responses import StreamingResponse
 from database import get_db
 from repositories.product_repository import ProductRepository
-from models.product import ProductCreate, ProductResponse, ProductForm
+from models.product import ProductCreate, ProductResponse, ProductForm, StockUpdate
 from auth.security import get_current_user
 from services.file_service import FileService
 
@@ -172,4 +172,41 @@ def duplicate_product(product_id: int, db = Depends(get_db)):
 
     return repo.get_one(new_product_id)
 
+@router.patch("/{product_id}/stock", response_model=ProductResponse)
+async def update_product_stock(
+    product_id: int,
+    data: StockUpdate = Body(...),
+    db = Depends(get_db)
+):
+    repo = ProductRepository(db)
 
+    product = repo.get_one(product_id)
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Producto no encontrado"
+        )
+
+    new_stock_value = product['stock'] + data.amount
+
+    if data.amount < 0 and new_stock_value < 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Stock insuficiente. Disponible: {product['stock']}, solicitado: {abs(data.amount)}"
+        )
+
+    try:
+        updated_product = repo.update_stock(product_id, data.amount)
+        if not updated_product:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error al recuperar el producto actualizado"
+            )
+
+        return updated_product
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error en la base de datos: {str(e)}"
+        )

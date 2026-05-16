@@ -1,10 +1,12 @@
 import json
-
 from fastapi import UploadFile, File, Form
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from .allergen import AllergenResponse
 from .audit import AuditBase
+
+class StockUpdate(BaseModel):
+    amount: int
 
 class ProductBase(BaseModel):
     name: str
@@ -16,18 +18,28 @@ class ProductBase(BaseModel):
     vegan: int = 0
     vegetarian: int = 0
 
+class ProductCreate(ProductBase):
+    allergen_ids: List[int] = []
+
+class ProductResponse(ProductBase, AuditBase):
+    id: int
+    category_name: Optional[str] = None
+    archived: int = 0
+    allergens: List[AllergenResponse] = []
+    model_config = ConfigDict(from_attributes=True)
+
 class ProductForm:
     def __init__(
-        self,
-        name: str = Form(...),
-        price: float = Form(...),
-        category_id: int = Form(...),
-        description: Optional[str] = Form(None),
-        stock: int = Form(0),
-        vegan: int = Form(0),
-        vegetarian: int = Form(0),
-        allergen_ids: str = Form("[]"),
-        image_file: Optional[UploadFile] = File(None)
+            self,
+            name: str = Form(...),
+            price: float = Form(...),
+            category_id: int = Form(...),
+            description: Optional[str] = Form(None),
+            stock: int = Form(0),
+            vegan: int = Form(0),
+            vegetarian: int = Form(0),
+            allergen_ids: str = Form("[]"),
+            image_file: Optional[UploadFile] = File(None)
     ):
         self.name = name
         self.price = price
@@ -52,16 +64,5 @@ class ProductForm:
             allergen_ids=json.loads(self.allergen_ids)
         )
 
-class ProductCreate(ProductBase):
-    allergen_ids: List[int] = []
-
-class ProductResponse(ProductBase, AuditBase):
-    id: int
-    category_name: Optional[str] = None
-    archived: int = 0
-    allergens: List[AllergenResponse] = []
-
-    class Config:
-        from_attributes = True
-
 ProductResponse.model_rebuild()
+StockUpdate.model_rebuild()

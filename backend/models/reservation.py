@@ -17,6 +17,7 @@ class ReservationSchema(BaseModel):
     rices: Optional[str] = None
     n_people: int
     notes: Optional[str] = None
+    table_id: Optional[str] = None
     status: ReservationStatus = ReservationStatus.UNCONFIRMED
     created_by: Optional[int] = None
 

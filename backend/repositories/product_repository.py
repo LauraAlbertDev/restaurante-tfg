@@ -276,3 +276,14 @@ class ProductRepository(BaseRepository, AuditMixin):
         if not names: return []
         allergen_map = self.get_allergen_map()
         return [allergen_map[n.lower()] for n in names if n.lower() in allergen_map]
+
+    def update_stock(self, product_id: int, amount: int):
+        sql = "UPDATE products SET stock = stock + %s WHERE id = %s"
+        try:
+            with self._get_cursor() as cur:
+                cur.execute(sql, (amount, product_id))
+                self.db.commit()
+                return self.get_one(product_id)
+        except Exception as e:
+            self.db.rollback()
+            raise e

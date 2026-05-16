@@ -4,18 +4,30 @@ from repositories.base_repository import BaseRepository
 class ReservationRepository(BaseRepository, AuditMixin):
     def create(self, data: dict, user_id: int = None):
         sql = """
-              INSERT INTO reservations (name, phone, date, hour, n_people, rices, notes, created_by, status)
-              VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+              INSERT INTO reservations (name, phone, date, hour, n_people, rices, notes, created_by, status, table_id)
+              VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
               """
         params = (
             data.get('name'), data.get('phone'), data.get('date'),
             data.get('hour'), data.get('n_people'), data.get('rices'),
-            data.get('notes', ""), user_id, data.get('status', 'unconfirmed')
+            data.get('notes', ""), user_id, data.get('status', 'unconfirmed'),
+            data.get('table_id')
         )
         with self._get_cursor() as cur:
             cur.execute(sql, params)
             self.db.commit()
             return cur.lastrowid
+
+    def get_by_date_and_hour(self, date: str, hour: str):
+        query = """
+                SELECT id, name, phone, date, hour, n_people, table_id
+                FROM reservations
+                WHERE date = %s
+                  AND hour = %s
+                """
+        with self._get_cursor() as cursor:
+            cursor.execute(query, (date, hour))
+            return cursor.fetchall()
 
     def get_all(self):
         query = f"""

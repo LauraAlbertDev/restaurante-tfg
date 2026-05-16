@@ -25,27 +25,70 @@ def get_closed_dates(db=Depends(get_db)):
 def get_settings(db=Depends(get_db)):
     return SettingsRepository(db).get_admin_settings()
 
+
+@router.get("/occupied-tables", response_model=List[str])  # Cambiado a List[str]
+def get_occupied_tables(date: str, hour: str, db=Depends(get_db)):
+    repo = ReservationRepository(db)
+    try:
+        reservas = repo.get_by_date_and_hour(date, hour)
+
+        # Eliminamos el int() y devolvemos el valor tal cual (como string)
+        occupied_ids = [
+            str(r['table_id'])
+            for r in reservas
+            if r.get('table_id') is not None
+        ]
+        return occupied_ids
+    except Exception as e:
+        print(f"Error en get_occupied_tables: {e}")
+        raise HTTPException(status_code=500, detail="Error al consultar mesas")
+
+
+@router.get("/filter")
+def filter_reservations(date: str, hour: str, db=Depends(get_db)):
+    repo = ReservationRepository(db)
+    try:
+        # Asegúrate de que tu repositorio devuelva una lista de dicts o modelos
+        return repo.get_by_date_and_hour(date, hour)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/occupancy/{date_str}")
 def get_occupancy(date_str: str, db=Depends(get_db)):
     res_repo = ReservationRepository(db)
     set_repo = SettingsRepository(db)
     try:
+        # Validación de formato de fecha
         fecha_dt = datetime.strptime(date_str, '%Y-%m-%d').date()
+
         config = set_repo.get_capacity_for_day(fecha_dt.weekday())
         settings = set_repo.get_admin_settings()
         turnos = settings.get('shifts', [])
 
         num_turnos = len(turnos)
+        # Evitar división por cero
         limite = (config['max_capacity'] // num_turnos) if num_turnos > 0 else 0
 
-        return [{
-            "hour": t['start_time'],
-            "total": res_repo.get_total_people_by_shift(date_str, t['start_time']),
-            "max": limite,
-            "is_open": config['is_open']
-        } for t in turnos]
-    except Exception:
-        raise HTTPException(status_code=400, detail="Fecha o formato inválido")
+        # Mapeo de ocupación por turno
+        results = []
+        for t in turnos:
+            hora_turno = t['start_time']
+            # Asegúrate de que este método devuelva un entero
+            actual = res_repo.get_total_people_by_shift(date_str, hora_turno)
+            results.append({
+                "hour": hora_turno,
+                "total": actual,
+                "max": limite,
+                "is_open": config['is_open']
+            })
+        return results
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato de fecha inválido. Use YYYY-MM-DD")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 # =============================================================================
 # 2. RUTAS DE ACCIÓN Y ESCRITURA (POST / PUT)
@@ -57,13 +100,31 @@ def create_reservation(
         db=Depends(get_db),
         auth_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Crea una reserva validando capacidad si no es personal del restaurante."""
+    """Crea una reserva validando capacidad y disponibilidad de mesa específica."""
     res_repo = ReservationRepository(db)
     set_repo = SettingsRepository(db)
     user_id = auth_user.get("id") if auth_user else None
 
     try:
         is_staff = auth_user and auth_user.get("type") in ["admin", "employee", "leader"]
+
+        if reservation.table_id:
+            query_check = """
+                          SELECT id 
+                          FROM reservations
+                          WHERE table_id = %s 
+                            AND date = %s 
+                            AND hour = %s 
+                          """
+            with res_repo._get_cursor() as cursor:
+                cursor.execute(query_check, (reservation.table_id, reservation.date, reservation.hour))
+                conflict = cursor.fetchone()
+
+                if conflict:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="La mesa seleccionada ya está ocupada para este día y hora."
+                    )
 
         if not is_staff:
             dia_semana = reservation.date.weekday()
@@ -90,10 +151,11 @@ def create_reservation(
         new_id = res_repo.create(reservation.model_dump(), user_id=user_id)
         return {"status": "success", "id": new_id, "message": "Reserva confirmada"}
 
-    except HTTPException as e: raise e
-    except Exception as e:
-        print(f"ERROR EN REPOSITORIO: {e}") # <--- ¡MIRA ESTO!
+    except HTTPException as e:
         raise e
+    except Exception as e:
+        print(f"ERROR EN REPOSITORIO: {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor al crear la reserva")
 
 @router.post("/admin/update-day")
 def update_day(data: dict, db=Depends(get_db)):
@@ -119,15 +181,6 @@ def add_special_day(data: dict, db=Depends(get_db)):
         ))
         db.commit()
     return {"status": "success"}
-
-@router.delete("/admin/special-day/{date_str}")
-def delete_special_day(date_str: str, db=Depends(get_db)):
-    repo = SettingsRepository(db)
-    query = "DELETE FROM special_days WHERE day_date = %s"
-    with repo._get_cursor() as cursor:
-        cursor.execute(query, (date_str,))
-        db.commit()
-        return {"status": "success"}
 
 @router.post("/admin/shifts/add")
 def add_shift(data: dict, db=Depends(get_db)):

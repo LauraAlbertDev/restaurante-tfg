@@ -13,13 +13,8 @@ class FileService:
 
         os.makedirs(cls.UPLOAD_DIR, exist_ok=True)
 
-        # Si tenemos una imagen vieja, la borramos antes de guardar la nueva
         if old_image and old_image != "placeholder.jpg":
             cls.delete_image(old_image)
-
-        # Generamos el nombre.
-        # NOTA: Mantener el timestamp es bueno para evitar caché del navegador,
-        # pero ahora estamos borrando el anterior antes de crear este.
         clean_name = f"{int(time.time())}_{file.filename.replace(' ', '_')}"
         file_path = os.path.join(cls.UPLOAD_DIR, clean_name)
 
