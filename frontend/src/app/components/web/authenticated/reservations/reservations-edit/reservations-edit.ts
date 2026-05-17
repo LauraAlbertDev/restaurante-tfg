@@ -193,7 +193,7 @@ export class ReservationsEdit implements OnInit {
     }
 
     if (rawData.status === 'confirmed' && !rawData.rices?.trim()) {
-      alert("No puedes confirmar una reserva sin indicar los arroces.");
+      this.ui.handleError("No puedes confirmar una reserva sin indicar los arroces.");
       return;
     }
 

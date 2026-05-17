@@ -118,7 +118,16 @@ export class OrderService {
           return newMap;
         });
       },
-      error: () => this.ui.notify('Error al actualizar stock')
+      error: (err) => {
+        const errorMsg = err.error?.detail || err.error?.message;
+        if (errorMsg && (errorMsg.toLowerCase().includes('stock') || errorMsg.toLowerCase().includes('existencias'))) {
+          this.ui.handleError(`No queda stock disponible para: ${product.name}`);
+        } else if (err.status === 400 || err.status === 409) {
+          this.ui.handleError(`Agotado: ${product.name} no tiene suficiente stock.`);
+        } else {
+          this.ui.handleError('Error al actualizar stock');
+        }
+      }
     });
   }
 
@@ -207,7 +216,7 @@ export class OrderService {
           return newMap;
         });
       },
-      error: () => this.ui.notify('Error al devolver el producto al stock')
+      error: () => this.ui.handleError('Error al devolver el producto al stock')
     });
   }
 }

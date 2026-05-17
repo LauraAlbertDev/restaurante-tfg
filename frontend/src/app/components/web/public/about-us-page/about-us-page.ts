@@ -74,7 +74,7 @@ export class AboutUsPage implements  OnInit {
           );
           this.modalInstance?.hide();
         },
-        error: (err) => this.ui.notify("Error al guardar: " + err.message)
+        error: (err) => this.ui.handleError("Error al guardar: " + err.message)
       });
   }
 }

@@ -8,8 +8,6 @@ class ReservationRepository(BaseRepository, AuditMixin):
               INSERT INTO reservations (name, phone, date, hour, n_people, rices, notes, created_by, status, table_id)
               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) \
               """
-
-        # Saneamos el table_id: si viene vacío '' o nulo, guardamos None (NULL en la DB)
         table_id = data.get('table_id')
         if table_id == '' or table_id is None:
             table_id = None
@@ -75,18 +73,17 @@ class ReservationRepository(BaseRepository, AuditMixin):
         update_data['updated_by'] = editor_id
         update_data['id'] = reservation_id
 
-        # 🌟 CORREGIDO: Añadimos table_id=%(table_id)s a la sentencia SQL del UPDATE
         query = """
                 UPDATE reservations
-                SET name=%(name)s, \
-                    phone=%(phone)s, \
+                SET name=%(name)s, 
+                    phone=%(phone)s, 
                     n_people=%(n_people)s,
-                    date=%(date)s, \
-                    hour=%(hour)s, \
-                    rices=%(rices)s, \
+                    date=%(date)s, 
+                    hour=%(hour)s, 
+                    rices=%(rices)s,
                     notes=%(notes)s,
-                    status=%(status)s, \
-                    table_id=%(table_id)s, \
+                    status=%(status)s,
+                    table_id=%(table_id)s,
                     updated_by=%(updated_by)s,
                     updated_at=NOW()
                 WHERE id = %(id)s
@@ -108,9 +105,8 @@ class ReservationRepository(BaseRepository, AuditMixin):
         query = """
                 SELECT SUM(n_people) as total
                 FROM reservations
-                WHERE date = %s \
-                  AND LEFT (hour \
-                    , 5) = %s
+                WHERE date = %s
+                  AND LEFT (hour, 5) = %s
                 """
         with self._get_cursor() as cursor:
             cursor.execute(query, (date_str, hour_str))
@@ -118,7 +114,6 @@ class ReservationRepository(BaseRepository, AuditMixin):
             return int(res['total']) if res and res['total'] else 0
 
     def _format_row_hour(self, row):
-        # 🌟 CORREGIDO: Se cierra la función que estaba cortada en tu prompt
         if row is not None and row.get('raw_hour'):
             row['hour'] = str(row['raw_hour'])[:5]
         return row

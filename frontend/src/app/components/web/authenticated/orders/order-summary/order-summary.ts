@@ -9,7 +9,6 @@ import {UiService} from '../../../../../services/ui-service';
   imports: [
     CurrencyPipe,
     RouterLink,
-    JsonPipe,
     NgClass
   ],
   templateUrl: './order-summary.html',

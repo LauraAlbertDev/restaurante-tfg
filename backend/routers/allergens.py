@@ -34,16 +34,13 @@ def edit_allergen(id: int, data: AllergenCreate, db = Depends(get_db)):
     if repo.get_by_name(data.name, exclude_id=id):
         raise HTTPException(status_code=400, detail="Ese nombre ya está en uso")
 
-    # 1. Realizamos la actualización
     repo.update(id, data.name, data.color)
-
-    # 2. Obtenemos el objeto actualizado de la DB para que incluya el 'color'
     updated_allergen = repo.get_by_id(id)
 
     if not updated_allergen:
         raise HTTPException(status_code=404, detail="No encontrado")
 
-    return updated_allergen # Esto ya llevará id, name y color
+    return updated_allergen
 
 @router.delete("/{id}")
 def delete_allergen(id: int, db = Depends(get_db)):

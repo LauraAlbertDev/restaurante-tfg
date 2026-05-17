@@ -3,7 +3,7 @@
   <div class="d-flex align-items-center justify-content-between mb-5 border-bottom border-secondary pb-3">
     <div class="d-flex align-items-center gap-3">
       <button class="btn btn-outline-light border rounded-circle d-flex align-items-center justify-content-center"
-              routerLink="/auth/mesas" style="width: 45px; height: 45px;">
+              routerLink="/auth/mesas">
         <i class="bi bi-arrow-left fs-4"></i>
       </button>
       <div>
@@ -22,7 +22,7 @@
         <div class="card bg-secondary bg-opacity-10 border border-secondary rounded-4 h-100 shadow-lg">
           <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-2">
-              <div class="bg-primary bg-gradient rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+              <div class="bg-primary bg-gradient rounded-3 p-2 d-flex align-items-center justify-content-center">
                 <i class="bi bi-receipt-cutoff text-white"></i>
               </div>
               <h5 class="fw-bold m-0 text-white">{{ order.tableName }}</h5>
@@ -31,13 +31,13 @@
           </div>
 
           <div class="card-body px-4 py-3">
-            <div class="rounded-3 bg-black bg-opacity-25 p-3 border border-secondary border-opacity-25" style="max-height: 180px; overflow-y: auto;">
+            <div class="rounded-3 bg-black bg-opacity-25 p-3 border border-secondary border-opacity-25" >
               <ul class="list-unstyled m-0">
                 @for (item of order.items; track item.id) {
                   <li class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-25">
                     <div class="small">
                       <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 me-1">{{ item.quantity }}</span>
-                      <span class="text-light opacity-75 text-capitalize fw-medium">{{ item.name }}</span>
+                      <span class="text-light opacity-75 text-uppercase fw-medium">{{ item.name }}</span>
                     </div>
                     <span class="small font-monospace text-info">
                       {{ (item.price * item.quantity) | currency:'EUR' }}

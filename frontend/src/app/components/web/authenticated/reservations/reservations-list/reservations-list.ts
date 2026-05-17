@@ -54,11 +54,16 @@ export class ReservationsList implements OnInit {
   ];
 
   constructor() {
-    // 🌟 ANTI-LOOP: Desacoplamos la ejecución del hilo reactivo de Angular usando untracked
     effect(() => {
-      this.startDate();
-      this.endDate();
+      const start = this.startDate();
+      const end = this.endDate();
       this.statusFilter();
+
+      if (start && end && start > end) {
+        this.ui.notify("La fecha 'Desde' no puede ser posterior a la fecha 'Hasta'");
+        untracked(() => this.endDate.set(start));
+        return;
+      }
 
       untracked(() => {
         this.loadData();
@@ -89,91 +94,98 @@ export class ReservationsList implements OnInit {
   }
 
   loadData() {
-    const fechaConsulta = this.startDate();
+    const dateFrom = this.startDate();
 
-    forkJoin({
-      plan: this.tablesService.getFloorPlanByDate(fechaConsulta),
-      reservas: this.reservationService.getReservations()
-    }).subscribe({
-      next: ({ plan, reservas }) => {
-        this.tableNamesMap = {};
-        const mesasA主动Liberar: string[] = [];
-
-        const reservasActivasDelDia = reservas.filter(r =>
-          r.date === fechaConsulta && r.status !== 'cancelled'
+    this.reservationService.getReservations().subscribe({
+      next: (reservations) => {
+        const uniqueDatesWithReservation = Array.from(
+          new Set(
+            reservations
+              .filter(r => r.date >= this.startDate() && r.date <= this.endDate())
+              .map(r => r.date)
+          )
         );
 
-        if (plan && plan.layout_data) {
-          try {
-            const layout = typeof plan.layout_data === 'string'
-              ? JSON.parse(plan.layout_data)
-              : plan.layout_data;
+        if (!uniqueDatesWithReservation.includes(dateFrom)) uniqueDatesWithReservation.push(dateFrom);
 
-            if (layout && Array.isArray(layout.objects)) {
-              layout.objects.forEach((obj: any) => {
-                if (obj.data) {
-                  const mesaId = String(obj.data.id || obj.data.table_id || '').trim();
-                  const nombreMesa = obj.data.name || obj.data.nombre || obj.data.number || obj.data.table_name;
+        const requestsPlans$ = uniqueDatesWithReservation.map(fecha => this.tablesService.getFloorPlanByDate(fecha));
 
-                  if (mesaId && nombreMesa) {
-                    this.tableNamesMap[mesaId] = nombreMesa;
-                  }
+        forkJoin(requestsPlans$).subscribe({
+          next: (plans) => {
+            this.tableNamesMap = {};
+            const releaseTables: { customer: string; date: string }[] = [];
+            plans.forEach((plan, index) => {
+              const planDate = uniqueDatesWithReservation[index];
+              if (!plan || !plan.layout_data) return;
 
-                  if (obj.data.customer_name && obj.data.customer_name.trim() !== '') {
-                    const nombreClienteEnMapa = obj.data.customer_name.trim();
-                    const clientes = nombreClienteEnMapa.split(' / ');
+              try {
+                const layout = typeof plan.layout_data === 'string'
+                  ? JSON.parse(plan.layout_data)
+                  : plan.layout_data;
 
-                    clientes.forEach((cliente: string) => {
-                      const nombreLimpio = cliente.trim();
-                      if (!nombreLimpio) return;
+                if (layout && Array.isArray(layout.objects)) {
+                  layout.objects.forEach((obj: any) => {
+                    if (obj.data) {
+                      const mesaId = String(obj.data.id || obj.data.table_id || '').trim();
+                      const tableName = obj.data.nombre;
 
-                      const tieneReservaActiva = reservasActivasDelDia.some(r =>
-                        r.name?.trim().toLowerCase() === nombreLimpio.toLowerCase()
-                      );
+                      if (mesaId && tableName) this.tableNamesMap[mesaId] = tableName;
 
-                      if (!tieneReservaActiva && !mesasA主动Liberar.includes(nombreLimpio)) {
-                        mesasA主动Liberar.push(nombreLimpio);
+                      if (obj.data.customer_name && obj.data.customer_name.trim() !== '') {
+                        const activeReservationsOfTheDay = reservations.filter(r =>
+                          r.date === planDate && r.status !== 'cancelled'
+                        );
+                        const customers = obj.data.customer_name.split(' / ');
+
+                        customers.forEach((customer: string) => {
+                          const cleanName = customer.trim();
+                          if (!cleanName) return;
+
+                          const hasActiveReservation = activeReservationsOfTheDay.some(r =>
+                            r.name?.trim().toLowerCase() === cleanName.toLowerCase()
+                          );
+
+                          const alreadyAdded = releaseTables.some(m => m.customer === cleanName && m.date === planDate);
+                          if (!hasActiveReservation && !alreadyAdded) {
+                            releaseTables.push({ customer: cleanName, date: planDate });
+                          }
+                        });
                       }
-                    });
-                  }
+                    }
+                  });
                 }
+              } catch (e) {
+                console.error('Error al parsear layout_data:', e);
+              }
+            });
+
+            if (releaseTables.length > 0) {
+              console.warn(`🧹 Auditoría: Se detectaron mesas inconsistentes ocupadas. Liberando...`, releaseTables);
+              const releases$ = releaseTables.map(item =>
+                this.tablesService.releaseTableByCustomer(item.customer, item.date)
+              );
+              forkJoin(releases$).subscribe({
+                next: () => console.log('✨ Planos saneados en el servidor.'),
+                error: (err) => console.error('Error en auto-limpieza:', err)
               });
             }
-          } catch (e) {
-            console.error('Error al parsear el layout_data del plano:', e);
-          }
-        }
 
-        // 🌟 CORRECCIÓN DE AUTO-LIMPIEZA: Liberamos pero no llamamos a loadData() en bucle recursivo
-        if (mesasA主动Liberar.length > 0) {
-          console.warn(`🧹 Auditoría: Se detectaron mesas ocupadas inconsistentes. Liberando...`, mesasA主动Liberar);
+            const transformedData = reservations.map(res => {
+              const mesaIdStr = res.table_id ? String(res.table_id).trim() : '';
+              return {
+                ...res,
+                creator_name: res.creator_name?.trim() ? res.creator_name : 'WEB',
+                table_name: this.tableNamesMap[mesaIdStr] || (res.table_id ? `Mesa ${res.table_id}` : 'Sin Mesa')
+              };
+            });
 
-          const liberaciones$ = mesasA主动Liberar.map(cliente =>
-            this.tablesService.releaseTableByCustomer(cliente, fechaConsulta)
-          );
-
-          forkJoin(liberaciones$).subscribe({
-            next: () => {
-              console.log('✨ Plano saneado correctamente en el servidor.');
-            },
-            error: (err) => console.error('Error en el proceso de auto-limpieza:', err)
-          });
-        }
-
-        // 🌟 CORRECCIÓN DE TRASFORMACIÓN: No disparamos operaciones de escritura (.updateReservation) en un bucle de lectura
-        const transformedData = reservas.map(res => {
-          const mesaIdStr = res.table_id ? String(res.table_id).trim() : '';
-
-          return {
-            ...res,
-            creator_name: res.creator_name?.trim() ? res.creator_name : 'WEB',
-            table_name: this.tableNamesMap[mesaIdStr] || (res.table_id ? `ID: ${res.table_id} (Sin nombre)` : 'Sin Mesa')
-          };
+            this.allReservations.set(transformedData);
+          },
+          error: (err) => console.error('Error al recuperar los planos agregados:', err)
         });
 
-        this.allReservations.set(transformedData);
       },
-      error: (err) => console.error('Error al cargar los datos en paralelo:', err)
+      error: (err) => console.error('Error al recuperar reservas:', err)
     });
   }
 

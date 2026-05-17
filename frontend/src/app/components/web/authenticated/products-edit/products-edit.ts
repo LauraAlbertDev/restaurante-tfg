@@ -46,7 +46,6 @@ export class ProductsEdit implements OnInit {
       return 'assets/images/placeholder.jpg';
     }
 
-    // Ahora la ruta es /assets/images/...
     return `${environment.imagesUrl}${imageName}?t=${this.imageVersion}`;
   });
 
@@ -70,7 +69,7 @@ export class ProductsEdit implements OnInit {
       description: ['', [Validators.minLength(4), Validators.maxLength(450)]],
       image: ['placeholder.jpg'], // Valor por defecto
       price: [0, [Validators.required, FormValidators.minValue(0)]],
-      category_id: ['', [Validators.required]],
+      category_id: [null, [Validators.required]],
       stock: [0, [Validators.required, FormValidators.minValue(0)]],
       vegan: [false],
       vegetarian: [false],

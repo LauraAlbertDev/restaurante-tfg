@@ -221,7 +221,7 @@ export class ProductsList implements OnInit {
 
     this.productService.importProducts(formData).subscribe({
       next: () => {
-        alert("✅ Importación exitosa");
+        this.ui.notify("Importación exitosa");
         this.loadProducts();
         this.closeModal.nativeElement.click();
       },

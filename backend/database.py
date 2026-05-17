@@ -1,7 +1,5 @@
-import mysql.connector
 from mysql.connector import pooling
 
-# pool de conexiones (MUY recomendable)
 connection_pool = pooling.MySQLConnectionPool(
     pool_name="mypool",
     pool_size=10,

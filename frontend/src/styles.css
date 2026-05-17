@@ -38,15 +38,21 @@ a:hover{
 .form-control, .form-select{
   background: var(--color-bg-main) !important;
   border-color:var(--color-border-primary);
-  color:var(--color-text-main);
+  color:#ffffff !important;
 }
 
 .form-control::placeholder{
   color:var(--color-text-muted);
 }
 
-label, .form-control{
+label, .form-label{
+  color:var(--color-text-main) !important;
+  font-weight: normal !important;
+}
+
+label, .form-check-label{
   color:var(--color-text-muted) !important;
+  font-weight: normal !important;
 }
 
 footer{

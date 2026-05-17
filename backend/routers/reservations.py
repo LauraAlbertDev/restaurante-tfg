@@ -26,13 +26,12 @@ def get_settings(db=Depends(get_db)):
     return SettingsRepository(db).get_admin_settings()
 
 
-@router.get("/occupied-tables", response_model=List[str])  # Cambiado a List[str]
+@router.get("/occupied-tables", response_model=List[str])
 def get_occupied_tables(date: str, hour: str, db=Depends(get_db)):
     repo = ReservationRepository(db)
     try:
         reservas = repo.get_by_date_and_hour(date, hour)
 
-        # Eliminamos el int() y devolvemos el valor tal cual (como string)
         occupied_ids = [
             str(r['table_id'])
             for r in reservas
@@ -48,7 +47,6 @@ def get_occupied_tables(date: str, hour: str, db=Depends(get_db)):
 def filter_reservations(date: str, hour: str, db=Depends(get_db)):
     repo = ReservationRepository(db)
     try:
-        # Asegúrate de que tu repositorio devuelva una lista de dicts o modelos
         return repo.get_by_date_and_hour(date, hour)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -59,22 +57,16 @@ def get_occupancy(date_str: str, db=Depends(get_db)):
     res_repo = ReservationRepository(db)
     set_repo = SettingsRepository(db)
     try:
-        # Validación de formato de fecha
         fecha_dt = datetime.strptime(date_str, '%Y-%m-%d').date()
-
         config = set_repo.get_capacity_for_day(fecha_dt.weekday())
         settings = set_repo.get_admin_settings()
         turnos = settings.get('shifts', [])
-
         num_turnos = len(turnos)
-        # Evitar división por cero
         limite = (config['max_capacity'] // num_turnos) if num_turnos > 0 else 0
 
-        # Mapeo de ocupación por turno
         results = []
         for t in turnos:
             hora_turno = t['start_time']
-            # Asegúrate de que este método devuelva un entero
             actual = res_repo.get_total_people_by_shift(date_str, hora_turno)
             results.append({
                 "hour": hora_turno,
@@ -225,19 +217,13 @@ def get_reservation(reservation_id: int, db=Depends(get_db)):
 @router.put("/update/{reservation_id}")
 def update_reservation(
         reservation_id: int,
-        reservation: ReservationSchema, # Usa el esquema, no un dict genérico
+        reservation: ReservationSchema,
         db=Depends(get_db),
-        auth_user: Optional[dict] = Depends(get_current_user_optional) # Necesitamos saber quién edita
+        auth_user: Optional[dict] = Depends(get_current_user_optional)
 ):
     repo = ReservationRepository(db)
-
-    # Obtenemos el ID del editor
     editor_id = auth_user.get("id") if auth_user else None
-
-    # Convertimos el esquema a dict
     data = reservation.model_dump()
-
-    # Pasamos el editor_id al repo
     if repo.update(reservation_id, data, editor_id=editor_id):
         return {"status": "success", "message": "Actualizada"}
 

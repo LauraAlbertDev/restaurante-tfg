@@ -221,7 +221,7 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
   public saveFloorPlan(showAlert = true): void {
     const layout = this.canvas.toObject(['data']);
     this.tablesService.saveDailyPlan(this.areaName(), layout, this.selectedDate()).subscribe({
-      next: () => showAlert && alert('Mapa guardado'),
+      next: () => showAlert && this.ui.notify('Mapa guardado'),
       error: (err) => console.error('Save error:', err)
     });
   }
@@ -542,7 +542,7 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
     const layout = this.canvas.toObject(['data']);
 
     this.tablesService.saveTemplatePlan(this.areaName(), layout).subscribe({
-      next: () => alert('Plantilla base actualizada correctamente.'),
+      next: () => this.ui.notify('Plantilla base actualizada correctamente.'),
       error: (err) => console.error('Error al guardar plantilla:', err)
     });
   }

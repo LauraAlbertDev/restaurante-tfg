@@ -1,5 +1,3 @@
-import mysql.connector
-
 class AllergenRepository:
     DEFAULT_COLOR = "#0d6efd"
 
@@ -57,8 +55,6 @@ class AllergenRepository:
             (name, color or self.DEFAULT_COLOR),
             commit=True
         )
-
-
 
     def update(self, allergen_id: int, name: str, color: str = None):
         with self.db.cursor() as cur:

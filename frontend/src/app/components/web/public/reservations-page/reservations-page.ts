@@ -169,7 +169,7 @@ export class ReservationsPage implements OnInit {
     const limitDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
 
     if (quantity > 0 && nextDate > limitDate) {
-      alert("Se pueden realizar reservas solo de un mes de antelación");
+      this.ui.handleError("Se pueden realizar reservas solo de un mes de antelación");
       return;
     }
     if (quantity < 0 && nextDate < new Date(today.getFullYear(), today.getMonth(), 1)) return;
