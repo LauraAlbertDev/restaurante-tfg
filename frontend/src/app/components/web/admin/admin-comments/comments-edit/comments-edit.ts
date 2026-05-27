@@ -37,7 +37,7 @@ export class CommentsEdit implements OnInit {
       name: ['', [Validators.required, Validators.minLength(3)]],
       tel: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      message: ['', [Validators.required]],
+      message: ['', [Validators.required, Validators.maxLength(255)]],
       note: ['']
     });
   }

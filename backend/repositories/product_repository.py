@@ -1,3 +1,6 @@
+from types import SimpleNamespace
+from typing import List
+
 from .base_repository import BaseRepository
 from models.audit_mixin import AuditMixin
 class ProductRepository(BaseRepository, AuditMixin):
@@ -36,10 +39,24 @@ class ProductRepository(BaseRepository, AuditMixin):
     def get_one(self, product_id):
         with self._get_cursor() as cur:
             sql = """
-                  SELECT p.*, c.name as category_name, p.updated_at
+                  SELECT p.id,
+                         p.name,
+                         p.description,
+                         p.price,
+                         p.image,
+                         p.stock,
+                         p.category_id,
+                         p.vegan,
+                         p.vegetarian,
+                         p.archived,
+                         p.updated_by,
+                         p.updated_at,
+                         c.name as category_name,
+                         u.name as editor_name
                   FROM products p
                            LEFT JOIN categories c ON p.category_id = c.id
-                  WHERE p.id = %s \
+                           LEFT JOIN users u ON p.updated_by = u.id
+                  WHERE p.id = %s
                   """
             cur.execute(sql, (product_id,))
             product = cur.fetchone()
@@ -52,6 +69,7 @@ class ProductRepository(BaseRepository, AuditMixin):
                             WHERE pa.product_id = %s
                             """, (product_id,))
                 product['allergens'] = cur.fetchall()
+
             return product
 
     def create(self, product_data, allergen_ids,creator_id):
@@ -81,6 +99,7 @@ class ProductRepository(BaseRepository, AuditMixin):
             raise e
 
     def update(self, product_id, product_data, allergen_ids, editor_id):
+        print(f"DEBUG UPDATE: ID={product_id}, Nombre={product_data.name}, Precio={product_data.price}")
         with self._get_cursor() as cur:
             cur.execute("SELECT image FROM products WHERE id = %s", (product_id,))
             row = cur.fetchone()
@@ -96,7 +115,7 @@ class ProductRepository(BaseRepository, AuditMixin):
                   WHERE id=%s
                   """
             params = (
-                product_data.name, product_data.description, new_image, product_data.price,
+                product_data.name, getattr(product_data, 'description', None), new_image, product_data.price,
                 product_data.category_id, int(product_data.stock),
                 getattr(product_data, 'vegan', 0), getattr(product_data, 'vegetarian', 0),
                 editor_id, product_id
@@ -109,8 +128,9 @@ class ProductRepository(BaseRepository, AuditMixin):
                     self._set_allergens_internal(cur, product_id, allergen_ids)
 
                 self.db.commit()
-                return old_image if product_data.image and product_data.image != "placeholder.jpg" else None
+                return self.get_one(product_id)
             except Exception as e:
+                print(f"ERROR CRÍTICO EN UPDATE: {str(e)}")  # <--- AÑADE ESTO
                 self.db.rollback()
                 raise e
 
@@ -233,31 +253,90 @@ class ProductRepository(BaseRepository, AuditMixin):
                 row['allergens_names'] = [n.strip() for n in names.split(',')] if names else []
             return rows
 
+
     def get_allergen_map(self):
         with self._get_cursor() as cur:
             cur.execute("SELECT id, name FROM allergens")
             return {row['name'].lower().strip(): row['id'] for row in cur.fetchall()}
 
-    def import_data(self, records, creator_id):
-        allergen_map = self.get_allergen_map()
+    def import_data(self, records, creator_id, update=False):
+        count = 0
+        from types import SimpleNamespace
 
-        for row in records:
-            category_id = self.get_or_create_category(row.get('category_name'))
-            allergen_ids = self._parse_allergens(row.get('allergens_names'), allergen_map)
-            prod_data = self._map_to_product(row, category_id)
-            pid = row.get('id')
-            if pid:
-                self.update(int(pid), prod_data, allergen_ids, creator_id)
+        for record in records:
+            # 1. Normalización estricta del nombre para la búsqueda
+            raw_name = record.get('name', '')
+            product_name = str(raw_name).strip() if raw_name else None
+            if not product_name:
+                continue
+
+            # 2. Preparar campos para el objeto
+            cat_name = record.get('category_name')
+            record['category_id'] = self.get_category_id_by_name(cat_name) if cat_name else None
+            record['stock'] = int(record.get('stock') or 0)
+
+            # Asegurar que los campos opcionales existan en el diccionario para evitar errores en SimpleNamespace
+            record.setdefault('description', None)
+            record.setdefault('image', 'placeholder.jpg')
+            record.setdefault('vegan', 0)
+            record.setdefault('vegetarian', 0)
+
+            # 3. Buscar usando normalización (SQL TRIM/LOWER)
+            existing = self.get_by_name(product_name)
+
+            # 4. Creación del objeto para pasar a las funciones del repo
+            product_obj = SimpleNamespace(**record)
+
+            if existing and update:
+                print(f"DEBUG: Actualizando producto '{product_name}' (ID: {existing['id']})")
+                self.update(existing['id'], product_obj, record.get('allergen_ids', []), creator_id)
+                count += 1
+            elif not existing:
+                print(f"DEBUG: Creando nuevo producto '{product_name}'")
+                self.create(product_obj, record.get('allergen_ids', []), creator_id)
+                count += 1
             else:
-                self.create(prod_data, allergen_ids or [], creator_id)
+                print(f"DEBUG: Producto '{product_name}' existe y update=False. Saltando.")
 
-        return len(records)
+        return count
+
+    def get_category_id_by_name(self, name: str):
+        cursor = self.db.cursor(dictionary=True)
+        query = "SELECT id FROM categories WHERE name = %s LIMIT 1"
+        cursor.execute(query, (name,))
+        result = cursor.fetchone()
+        cursor.close()
+        return result['id'] if result else None
+
+    def get_by_name(self, name: str):
+        cursor = self.db.cursor(dictionary=True)
+        query = "SELECT * FROM products WHERE TRIM(LOWER(name)) = TRIM(LOWER(%s)) LIMIT 1"
+        cursor.execute(query, (name,))
+        result = cursor.fetchone()
+        cursor.close()
+        return result
 
     def _map_to_product(self, row, category_id):
+        name = row.get('name')
+        if not name or str(name).strip() == "":
+            raise ValueError("El campo 'name' es obligatorio y no puede estar vacío.")
+
+        description = row.get('description')
+        if not description or str(description).strip() == "":
+            raise ValueError(f"El producto '{name}' requiere una descripción obligatoria.")
+
+        price_raw = row.get('price')
+        try:
+            price = float(price_raw)
+            if price < 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            raise ValueError(f"El producto '{name}' tiene un precio inválido: '{price_raw}'. Debe ser un número positivo.")
+
         return type('obj', (object,), {
-            'name': row.get('name'),
-            'description': row.get('description', ''),
-            'price': float(row.get('price', 0)),
+            'name': str(name).strip(),
+            'description': str(description).strip(),
+            'price': price,
             'category_id': category_id,
             'stock': int(row.get('stock', 0)),
             'image': row.get('image') or 'placeholder.jpg',

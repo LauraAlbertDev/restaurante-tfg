@@ -103,7 +103,9 @@
             </div>
 
             @if (this.auth.isLeaderOrAdmin()) {
-              <select formControlName="table_id" class="form-select mb-4">
+              <select formControlName="table_id"
+                      class="form-select mb-4"
+                      [disabled]="!reservationForm.get('hour')?.value">
                 <option [value]="null">Sin mesa asignada</option>
                 @for (table of filteredTables(); track table.id) {
                   <option [value]="table.id">{{ table.name }}</option>
@@ -112,8 +114,7 @@
             }
 
             <div class="mt-auto d-none d-md-block pt-4">
-              <button type="submit" class="btn btn-dark btn-lg w-100 rounded-pill py-3 fw-bold shadow-sm transition-btn"
-                      [disabled]="isSubmitting()">
+              <button type="submit" class="btn btn-dark btn-lg w-100 rounded-pill py-3 fw-bold shadow-sm transition-btn">
                 CONFIRMAR RESERVA
               </button>
             </div>
@@ -208,3 +209,40 @@
     </div>
   </form>
 </div>
+
+<ng-template #confirmModal let-modal>
+  <div class="modal-header bg-dark text-white">
+    <h5 class="modal-title">Actualizar reserva</h5>
+  </div>
+  <div class="modal-body">
+    <p class="mb-4">Ya existe una reserva asociada a este teléfono. ¿Deseas modificarla?</p>
+
+    <div class="row text-center mb-2">
+      <div class="col-5 fw-bold text-muted text-uppercase small">Reserva Actual</div>
+      <div class="col-2"></div>
+      <div class="col-5 fw-bold text-primary text-uppercase small">Nueva Reserva</div>
+    </div>
+
+    @for (field of compareFields; track field.key) {
+      <div class="row align-items-center mb-2">
+        <div class="col-5 p-2 bg-light rounded text-center small">
+          {{ field.key === 'date' ? (existingReservationSaved[field.key] | date:'dd/MM') : existingReservationSaved[field.key] }}
+          @if (field.key === 'n_people') { personas }
+        </div>
+
+        <div class="col-2 text-center">
+          <i class="bi bi-arrow-right text-muted"></i>
+        </div>
+
+        <div class="col-5 p-2 bg-primary text-white rounded text-center small fw-bold">
+          {{ field.key === 'date' ? (reservationForm.value[field.key] | date:'dd/MM') : reservationForm.value[field.key] }}
+          @if (field.key === 'n_people') { personas }
+        </div>
+      </div>
+    }
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-outline-secondary" (click)="modal.dismiss()">Cancelar</button>
+    <button class="btn btn-primary" (click)="modal.close('confirm')">Confirmar Cambios</button>
+  </div>
+</ng-template>

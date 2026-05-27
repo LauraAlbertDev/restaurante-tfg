@@ -389,3 +389,15 @@ Configuración de la arquitectura base y entornos de ejecución.
   - Optimización del flujo de envío de datos en el formulario de reserva.
   - Refactorización de las pantallas de listado (reservations-list) y edición (reservations-edit) para integrarse con el nuevo ecosistema de componentes.
   - Arquitectura de Componentes (**Generics**): Implementación de un sistema de Tablas Genéricas reutilizables para optimizar el código en todas las vistas administrativas.
+
+## [1.4.0] - 21/05/2026
+
+### 🐳 Infraestructura y Docker (DevOps)
+
+- **Contenerización Total**: Configuración de un entorno multicontenedor orquestado mediante docker-compose, integrando los servicios de Frontend (Nginx), Backend (FastAPI) y Base de Datos (MariaDB).
+
+- **Gestión de Activos Estáticos**: Resolución de la servidumbre de archivos estáticos mediante el mapeo de volúmenes compartidos y configuración de StaticFiles en FastAPI, permitiendo la carga correcta de imágenes de productos y recursos.
+
+- **Aislamiento y Redes**: Implementación de políticas de CORS en el middleware de FastAPI para permitir la comunicación segura entre el contenedor de Frontend y el de Backend.
+
+- **Optimización del Ciclo de Vida**: Estandarización del flujo de despliegue (build --no-cache), asegurando la sincronización entre el código fuente local y el entorno en ejecución para evitar conflictos de caché y versiones desactualizadas.

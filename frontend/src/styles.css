@@ -66,3 +66,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Esto fuerza a que cualquier .invalid-feedback que aparezca dentro de un form-floating
+   se muestre correctamente cuando exista en el DOM */
+.form-floating .invalid-feedback {
+  display: block !important;
+  position: relative;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.8em;
+  color: #dc3545; /* El rojo característico de error */
+}

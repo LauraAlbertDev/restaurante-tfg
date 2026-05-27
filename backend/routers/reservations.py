@@ -10,10 +10,6 @@ from repositories.settings_repository import SettingsRepository
 
 router = APIRouter(prefix="/reservations", tags=["Reservations"])
 
-# =============================================================================
-# 1. RUTAS DE CONFIGURACIÓN Y ESTADO (Rutas fijas - Prioridad Alta)
-# =============================================================================
-
 @router.get("/closed-dates")
 def get_closed_dates(db=Depends(get_db)):
     query = "SELECT day_date FROM special_days WHERE is_open = 0 AND day_date >= CURDATE()"
@@ -80,19 +76,12 @@ def get_occupancy(date_str: str, db=Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-
-# =============================================================================
-# 2. RUTAS DE ACCIÓN Y ESCRITURA (POST / PUT)
-# =============================================================================
-
 @router.post("/")
 def create_reservation(
         reservation: ReservationSchema,
         db=Depends(get_db),
         auth_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Crea una reserva validando capacidad y disponibilidad de mesa específica."""
     res_repo = ReservationRepository(db)
     set_repo = SettingsRepository(db)
     user_id = auth_user.get("id") if auth_user else None
@@ -139,8 +128,8 @@ def create_reservation(
             if (ocupacion_actual + reservation.n_people) > limite_por_turno:
                 plazas = max(0, limite_por_turno - ocupacion_actual)
                 raise HTTPException(status_code=400, detail=f"Solo quedan {plazas} plazas.")
-
-        new_id = res_repo.create(reservation.model_dump(), user_id=user_id)
+        clean_data = reservation.model_dump(mode="json")
+        new_id = res_repo.create(clean_data, user_id=user_id)
         return {"status": "success", "id": new_id, "message": "Reserva confirmada"}
 
     except HTTPException as e:
@@ -197,18 +186,12 @@ def delete_shift(shift_id: int, db=Depends(get_db)):
         db.commit()
     return {"status": "ok"}
 
-# =============================================================================
-# 3. RUTAS CRUD CON PARÁMETROS (IDs - Prioridad Baja)
-# =============================================================================
-
 @router.get("/", response_model=List[ReservationResponse])
 def list_reservations(db=Depends(get_db)):
-    """Lista todas las reservas."""
     return ReservationRepository(db).get_all()
 
 @router.get("/{reservation_id}", response_model=ReservationResponse)
 def get_reservation(reservation_id: int, db=Depends(get_db)):
-    """Obtiene una reserva por su ID (Soluciona el error 405)."""
     reserva = ReservationRepository(db).get_by_id(reservation_id)
     if not reserva:
         raise HTTPException(status_code=404, detail="Reserva no encontrada")
@@ -223,7 +206,7 @@ def update_reservation(
 ):
     repo = ReservationRepository(db)
     editor_id = auth_user.get("id") if auth_user else None
-    data = reservation.model_dump()
+    data = reservation.model_dump(mode="json")
     if repo.update(reservation_id, data, editor_id=editor_id):
         return {"status": "success", "message": "Actualizada"}
 
@@ -250,3 +233,20 @@ def delete_special_day(date_str: str, db=Depends(get_db)):
     except Exception:
         db.rollback()
         raise HTTPException(500)
+
+
+@router.patch("/status/{reservation_id}")
+def update_reservation_status(
+        reservation_id: int,
+        data: dict,
+        db=Depends(get_db),
+        auth_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    repo = ReservationRepository(db)
+    editor_id = auth_user.get("id") if auth_user else None
+    new_status = data.get("status")
+
+    if repo.update_status(reservation_id, new_status, editor_id=editor_id):
+        return {"status": "success", "message": "Estado actualizado"}
+
+    raise HTTPException(status_code=404, detail="Reserva no encontrada o sin cambios")

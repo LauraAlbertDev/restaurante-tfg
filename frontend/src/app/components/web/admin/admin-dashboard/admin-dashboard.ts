@@ -21,7 +21,7 @@ export class AdminDashboard{
       icon: '🍽️',
       colorClass: 'primary',
       links: [
-        { label: 'Órdenes Activas', description: 'Comandas en curso y facturación', url: '/auth/orders-list' }, // <-- NUEVO
+        { label: 'Órdenes Activas', description: 'Comandas en curso y facturación', url: '/auth/orders-list' },
         { label: 'Mapa de Mesas', description: 'Plano físico y estados', url: '/auth/mesas' },
         { label: 'Reservas', description: 'Lista maestra de clientes', url: '/auth/reservations-list' }
       ]

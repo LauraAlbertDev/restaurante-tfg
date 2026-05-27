@@ -63,7 +63,11 @@ export abstract class BaseAdminManager<T extends ManagedItem> {
       },
       error: (err) => {
         this.loading.set(false);
-        this.ui.handleError('Error al crear', err);
+        if (err.status === 400 && err.error?.detail) {
+          this.ui.handleError(err.error.detail, err);
+        } else {
+          this.ui.handleError('Error al crear', err);
+        }
       }
     });
   }
@@ -93,7 +97,11 @@ export abstract class BaseAdminManager<T extends ManagedItem> {
       },
       error: (err) => {
         this.loading.set(false);
-        this.ui.handleError('Error al actualizar', err);
+        if (err.status === 400 && err.error?.detail) {
+          this.ui.handleError(err.error.detail, err);
+        } else {
+          this.ui.handleError('Error al actualizar', err);
+        }
       }
     });
   }

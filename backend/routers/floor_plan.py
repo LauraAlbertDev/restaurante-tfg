@@ -17,6 +17,14 @@ def get_floor_plan(date: str = Query(None), db=Depends(get_db)):
             plan = cursor.fetchone()
             if plan:
                 return format_response(plan)
+            cursor.execute("SELECT * FROM floor_plans WHERE fecha IS NULL LIMIT 1")
+            default_plan = cursor.fetchone()
+            
+            if default_plan:
+                default_plan['fecha'] = date
+                return format_response(default_plan)
+            else:
+                return {"id": 0, "name": f"Mapa para {date}", "layout_data": {"objects": []}, "fecha": date}
 
         cursor.execute("SELECT * FROM floor_plans WHERE fecha IS NULL LIMIT 1")
         plan = cursor.fetchone()
@@ -25,6 +33,7 @@ def get_floor_plan(date: str = Query(None), db=Depends(get_db)):
             return {"id": 0, "name": "Default", "layout_data": {"objects": []}, "fecha": None}
 
         return format_response(plan)
+        
     finally:
         cursor.close()
 

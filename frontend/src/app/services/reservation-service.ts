@@ -75,4 +75,8 @@ export class ReservationsService {
       params: { date, hour }
     });
   }
+
+  updateReservationStatus(id: number, status: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}status/${id}`, { status });
+  }
 }

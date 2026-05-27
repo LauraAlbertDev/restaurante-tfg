@@ -1,9 +1,10 @@
 import json
 import os
 import io
+import mysql.connector
 import pandas as pd
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile, Body, status
+from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile, Body, status, Header
 from fastapi.responses import StreamingResponse
 from database import get_db
 from repositories.product_repository import ProductRepository
@@ -14,7 +15,7 @@ from services.file_service import FileService
 router = APIRouter(prefix="/products", tags=["Products"])
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-UPLOAD_DIR = os.path.join(BASE_DIR, "..", "frontend", "public", "assets", "images")
+UPLOAD_DIR = "/app/assets/images"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
@@ -58,13 +59,29 @@ async def create_product(
         current_user=Depends(get_current_user),
         db=Depends(get_db)
 ):
-    filename = await FileService.save_image(data.image_file)
-    product_create = data.to_product_create(filename)
+    try:
+        filename = "placeholder.jpg"
+        if data.image_file and data.image_file.filename:
+            saved_name = await FileService.save_image(data.image_file, old_image=None)
+            filename = f"assets/images/{saved_name}"
 
-    repo = ProductRepository(db)
-    pid = repo.create(product_create, product_create.allergen_ids, creator_id=current_user["id"])
-    return {"id": pid, "message": "Product created"}
+        product_create = data.to_product_create(filename)
 
+        repo = ProductRepository(db)
+        pid = repo.create(product_create, product_create.allergen_ids, creator_id=current_user["id"])
+
+        return repo.get_one(pid)
+
+    except mysql.connector.errors.IntegrityError as err:
+        if err.errno == 1062:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Ya existe un producto con el nombre '{data.name}'"
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error de integridad en la base de datos"
+        )
 
 @router.put("/{product_id}")
 async def update_product(
@@ -79,33 +96,55 @@ async def update_product(
     if not old_product:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
 
-    old_image_name = old_product.get('image')
-    new_filename = None
+    try:
+        old_image_name = old_product.get('image')
+        new_filename = old_image_name
 
-    if data.image_file and data.image_file.filename:
-        new_filename = await FileService.save_image(data.image_file)
+        if data.image_file and data.image_file.filename:
+            saved_name = await FileService.save_image(data.image_file, old_image=old_image_name)
+            new_filename = f"assets/images/{saved_name}"
+        else:
+            if old_image_name:
+                new_filename = old_image_name
 
-    product_data = data.to_product_create(new_filename)
+        product_data = data.to_product_create(new_filename)
 
-    repo.update(
-        product_id,
-        product_data,
-        json.loads(data.allergen_ids),
-        editor_id=current_user["id"]
-    )
+        repo.update(
+            product_id,
+            product_data,
+            json.loads(data.allergen_ids) if data.allergen_ids else [],
+            editor_id=current_user["id"]
+        )
 
-    if new_filename and old_image_name and old_image_name != "placeholder.jpg":
-        if repo.count_image_usage(old_image_name) == 0:
-            FileService.delete_image(old_image_name)
+        if data.image_file and data.image_file.filename and old_image_name and old_image_name != "placeholder.jpg":
+            if repo.count_image_usage(old_image_name) == 0:
+                filename_clean = old_image_name.replace("assets/images/", "")
+                try:
+                    FileService.delete_image(filename_clean)
+                except:
+                    pass
 
-    return repo.get_one(product_id)
+        return repo.get_one(product_id)
+
+    except mysql.connector.errors.IntegrityError as err:
+        if err.errno == 1062:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No se puede actualizar. Ya existe otro producto llamado '{data.name}'"
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error de integridad al actualizar el producto"
+        )
+
 
 @router.put("/archive/{product_id}")
 def toggle_archive(product_id: int, db = Depends(get_db)):
-    status = ProductRepository(db).toggle_archive(product_id)
-    if status is None:
+    status_archived = ProductRepository(db).toggle_archive(product_id)
+    if status_archived is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    return {"new_archived_status": status}
+    return {"new_archived_status": status_archived}
+
 
 @router.delete("/{product_id}")
 def delete_product(product_id: int, db = Depends(get_db)):
@@ -117,8 +156,13 @@ def delete_product(product_id: int, db = Depends(get_db)):
 
     repo.delete(product_id)
 
-    if image_to_delete and repo.count_image_usage(image_to_delete) == 0:
-        FileService.delete_image(image_to_delete)
+    if image_to_delete and image_to_delete != "placeholder.jpg":
+        if repo.count_image_usage(image_to_delete) == 0:
+            filename_clean = image_to_delete.replace("assets/images/", "")
+            try:
+                FileService.delete_image(filename_clean)
+            except:
+                pass
 
     return {"message": "Deleted"}
 
@@ -126,43 +170,55 @@ def delete_product(product_id: int, db = Depends(get_db)):
 @router.post("/import")
 async def import_products(
         file: UploadFile = File(...),
+        # 1. Recibimos como str para evitar el problema de conversión booleana de FastAPI
+        update_duplicates: str = Form("false"),
         current_user=Depends(get_current_user),
         db=Depends(get_db)
 ):
-    if not file.filename.endswith(('.xlsx', '.xls', '.csv')):
-        raise HTTPException(status_code=400, detail="Formato no soportado")
+    if not file.filename.lower().endswith(('.xlsx', '.xls', '.csv')):
+        raise HTTPException(status_code=400, detail="Formato no soportado.")
+
+    # 2. Conversión explícita a booleano
+    should_update = update_duplicates.lower() == "true"
 
     try:
         contents = await file.read()
         if file.filename.endswith('.csv'):
             df = pd.read_csv(io.BytesIO(contents))
         else:
-            df = pd.read_excel(io.BytesIO(contents))
+            df = pd.read_excel(io.BytesIO(contents), engine='openpyxl')
 
         df.columns = [c.lower().strip() for c in df.columns]
-        df = df.where(pd.notnull(df), None)
+        # Limpieza de valores nulos de Pandas
+        records = df.where(pd.notnull(df), None).to_dict(orient='records')
+
         repo = ProductRepository(db)
-        records = df.to_dict(orient='records')
+
+        # 3. Quitamos el db.start_transaction() manual.
+        # Dejamos que el repositorio gestione sus commits/rollbacks
+        # para evitar conflictos de transacciones.
+
         for record in records:
-            if 'allergens_names' in record and record['allergens_names']:
+            # Procesar alérgenos
+            if record.get('allergens_names'):
                 raw_val = str(record['allergens_names'])
                 clean_str = raw_val.replace('[', '').replace(']', '').replace("'", "").replace('"', "")
                 names = [n.strip() for n in clean_str.split(',') if n.strip()]
-                print(f"DEBUG: Producto {record.get('name')} - Alérgenos detectados: {names}")
-
                 record['allergen_ids'] = repo.get_allergen_ids_by_names(names)
             else:
                 record['allergen_ids'] = None
-        count = repo.import_data(records, creator_id=current_user['id'])
+
+        # 4. Llamamos a la importación
+        count = repo.import_data(records, creator_id=current_user['id'], update=should_update)
 
         return {"message": f"Éxito: {count} productos procesados."}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error en el servidor: {str(e)}")
 
-
-
-
+    
 @router.post("/{product_id}/duplicate")
 def duplicate_product(product_id: int, db = Depends(get_db)):
     repo = ProductRepository(db)
@@ -171,6 +227,7 @@ def duplicate_product(product_id: int, db = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Producto no encontrado")
 
     return repo.get_one(new_product_id)
+
 
 @router.patch("/{product_id}/stock", response_model=ProductResponse)
 async def update_product_stock(

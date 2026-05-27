@@ -4,7 +4,7 @@ import {CategoryService} from '../../../../services/category-service';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router, RouterLink} from '@angular/router';
 import {Allergen} from '../../../../common/interfaces/interfaces';
-import {CurrencyPipe} from '@angular/common';
+import {CurrencyPipe, DatePipe} from '@angular/common';
 import {environment} from '../../../../environment/environment';
 import {FormValidators} from '../../../../Validators/FormValidators';
 import {UiService} from '../../../../services/ui-service';
@@ -14,7 +14,8 @@ import {UiService} from '../../../../services/ui-service';
   imports: [
     CurrencyPipe,
     ReactiveFormsModule,
-    RouterLink
+    RouterLink,
+    DatePipe
   ],
   templateUrl: './products-edit.html',
   styleUrl: './products-edit.css',
@@ -22,7 +23,7 @@ import {UiService} from '../../../../services/ui-service';
 export class ProductsEdit implements OnInit {
   @Input('id') idProduct?: number;
 
-  private imageVersion = new Date().getTime();
+  public imageVersion = new Date().getTime().toString();
 
   private readonly productService = inject(ProductService);
   private readonly categoryService = inject(CategoryService);
@@ -42,11 +43,15 @@ export class ProductsEdit implements OnInit {
     if (this.imagePreview()) return this.imagePreview();
 
     const imageName = this.formProduct.get('image')?.value;
-    if (!imageName || imageName === 'placeholder.jpg') {
+    const imageStr = String(imageName).trim();
+
+    if (!imageName || ['null', 'None', ''].includes(imageStr) || imageStr.includes('placeholder')) {
       return 'assets/images/placeholder.jpg';
     }
-
-    return `${environment.imagesUrl}${imageName}?t=${this.imageVersion}`;
+    if (imageStr.startsWith('assets/images/')) {
+      return `${environment.apiUrl}${imageStr}?t=${this.imageVersion}`;
+    }
+    return `${environment.apiUrl}assets/images/${imageStr}?t=${this.imageVersion}`;
   });
 
   selectedAllergenNames = computed(() => {
@@ -66,13 +71,16 @@ export class ProductsEdit implements OnInit {
     return this.fb.group({
       id: [null],
       name: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(50), FormValidators.nonOnlyWhiteSpace]],
-      description: ['', [Validators.minLength(4), Validators.maxLength(450)]],
-      image: ['placeholder.jpg'], // Valor por defecto
+      description: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(450)]],
+      image: ['placeholder.jpg'],
       price: [0, [Validators.required, FormValidators.minValue(0)]],
       category_id: [null, [Validators.required]],
       stock: [0, [Validators.required, FormValidators.minValue(0)]],
       vegan: [false],
       vegetarian: [false],
+      updated_by: [null],
+      updated_at: [null],
+      editor_name: [null]
     });
   }
 
@@ -87,7 +95,12 @@ export class ProductsEdit implements OnInit {
     if (this.idProduct) {
       this.productService.getProductById(this.idProduct).subscribe({
         next: (prod) => {
+          console.log("Datos que vienen del backend:", prod);
           this.formProduct.patchValue(prod);
+          this.formProduct.patchValue({
+            updated_by: prod.updated_by  || 'Sistema',
+            updated_at: prod.updated_at  || null
+          });
           this.selectedAllergenIds.set(prod.allergens?.map(a => a.id) || []);
           this.loaded.set(true);
         },
@@ -116,19 +129,42 @@ export class ProductsEdit implements OnInit {
   }
 
   onSubmit() {
-    if (this.formProduct.invalid) return this.formProduct.markAllAsTouched();
+    console.log("¿Formulario válido?:", this.formProduct.valid);
+    if (this.formProduct.invalid) {
+      Object.keys(this.formProduct.controls).forEach(key => {
+        const controlErrors = this.formProduct.get(key)?.errors;
+        if (controlErrors != null) {
+          console.error(`Campo inválido -> ${key}:`, controlErrors);
+        }
+      });
+      return this.formProduct.markAllAsTouched();
+    }
     this.productService.saveProduct(
       this.idProduct,
       this.formProduct.getRawValue(),
       this.selectedFile,
       this.selectedAllergenIds()
     ).subscribe({
-      next: () => {
-        if (this.selectedFile) {
-          this.imageVersion = new Date().getTime();
-        }
+      next: (productoActualizado: any) => {
+        this.imageVersion = new Date().getTime().toString();
         this.ui.notify(this.idProduct ? "Producto actualizado" : "Producto creado");
-        this.router.navigateByUrl('/menu');
+
+        if (this.productService.products && productoActualizado) {
+          this.productService.products.update(prods => {
+            const index = prods.findIndex(p => p.id === productoActualizado.id);
+            if (index !== -1) {
+              prods[index] = productoActualizado;
+              return [...prods];
+            } else {
+              return [...prods, productoActualizado];
+            }
+          });
+        }
+
+        this.router.navigate(['/menu'], {
+          queryParams: { refresh: 'true', t: new Date().getTime() },
+          queryParamsHandling: 'merge'
+        });
       },
       error: (err) => this.ui.handleError("Error al guardar", err)
     });

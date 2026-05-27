@@ -68,7 +68,6 @@ export class AboutUsPage implements  OnInit {
       .updatePhilosophy(this.selectedPhilosophyId, this.editForm.value)
       .subscribe({
         next: (updated) => {
-          // Actualización inmutable del array (Clean Code)
           this.philosophies = this.philosophies.map(p =>
             p.id === updated.id ? updated : p
           );

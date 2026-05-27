@@ -3,9 +3,9 @@ from mysql.connector import pooling
 connection_pool = pooling.MySQLConnectionPool(
     pool_name="mypool",
     pool_size=10,
-    host="localhost",
+    host="db",
     user="root",
-    password="",
+    password="root_password",
     database="restaurante"
 )
 

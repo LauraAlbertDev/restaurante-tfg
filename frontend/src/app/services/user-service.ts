@@ -10,8 +10,6 @@ export class UserService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}users`;
 
-  // 📋 GESTIÓN DE ADMINISTRACIÓN (CRUD)
-
   getUsers(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
   }
@@ -27,8 +25,6 @@ export class UserService {
   toggleUserStatus(id: number): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/toggle/${id}`, {});
   }
-
-  // 👤 GESTIÓN DEL PERFIL (USUARIO ACTUAL)
 
   getProfile(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/me`);

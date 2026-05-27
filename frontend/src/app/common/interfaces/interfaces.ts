@@ -64,12 +64,16 @@ export interface Product {
   vegetarian: number;
   archived: number;
   allergens: Allergen[];
+  updated_at: Date;
+  updated_by: number;
+  editor_name?: string;
 }
 
 export const STATUS_CONFIG = {
   unconfirmed: { label: 'Pendiente', color: 'text-bg-warning', icon: 'bi-clock' },
   confirmed: { label: 'Confirmada', color: 'text-bg-success', icon: 'bi-patch-check-fill' },
-  cancelled: { label: 'Cancelada', color: 'text-bg-danger', icon: 'bi-x-circle-fill' }
+  cancelled: { label: 'Cancelada', color: 'text-bg-danger', icon: 'bi-x-circle-fill' },
+  completed: { label: 'Completada', color: 'text-bg-secondary', icon: 'bi-check-all' } // <--- Añade esto
 } as const;
 
 export type ReservationStatus = keyof typeof STATUS_CONFIG;
@@ -77,7 +81,8 @@ export type ReservationStatus = keyof typeof STATUS_CONFIG;
 export const STATUS_LABELS: Record<ReservationStatus, string> = {
   unconfirmed: STATUS_CONFIG.unconfirmed.label,
   confirmed: STATUS_CONFIG.confirmed.label,
-  cancelled: STATUS_CONFIG.cancelled.label
+  cancelled: STATUS_CONFIG.cancelled.label,
+  completed: STATUS_CONFIG.completed.label
 };
 
 export interface Reservation {
@@ -164,4 +169,9 @@ export interface MapTool {
   class: string;
   title: string;
   action: () => void;
+}
+
+export interface LegendItem {
+  color: string;
+  text: string;
 }

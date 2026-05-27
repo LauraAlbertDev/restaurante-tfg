@@ -28,6 +28,7 @@ class ProductResponse(ProductBase, AuditBase):
     allergens: List[AllergenResponse] = []
     model_config = ConfigDict(from_attributes=True)
 
+
 class ProductForm:
     def __init__(
             self,
@@ -36,8 +37,8 @@ class ProductForm:
             category_id: int = Form(...),
             description: Optional[str] = Form(None),
             stock: int = Form(0),
-            vegan: int = Form(0),
-            vegetarian: int = Form(0),
+            vegan: str = Form("0"),
+            vegetarian: str = Form("0"),
             allergen_ids: str = Form("[]"),
             image_file: Optional[UploadFile] = File(None)
     ):
@@ -46,22 +47,25 @@ class ProductForm:
         self.category_id = category_id
         self.description = description
         self.stock = stock
-        self.vegan = vegan
-        self.vegetarian = vegetarian
         self.allergen_ids = allergen_ids
         self.image_file = image_file
 
-    def to_product_create(self, filename: Optional[str]) -> ProductCreate:
+        self.vegan = 1 if vegan in ["1", "true", "True"] else 0
+        self.vegetarian = 1 if vegetarian in ["1", "true", "True"] else 0
+
+    def to_product_create(self, filename: Optional[str] = None) -> ProductCreate:
+        final_image = filename if filename is not None else "placeholder.jpg"
+
         return ProductCreate(
             name=self.name,
             description=self.description,
             price=self.price,
             category_id=self.category_id,
             stock=self.stock,
-            image=filename,
+            image=final_image,
             vegan=self.vegan,
             vegetarian=self.vegetarian,
-            allergen_ids=json.loads(self.allergen_ids)
+            allergen_ids=json.loads(self.allergen_ids) if isinstance(self.allergen_ids, str) else self.allergen_ids
         )
 
 ProductResponse.model_rebuild()

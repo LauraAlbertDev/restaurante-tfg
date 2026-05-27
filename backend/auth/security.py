@@ -9,14 +9,12 @@ from auth.jwt_config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_HOURS
 
 security = HTTPBearer()
 
-# ================= CREAR TOKEN =================
 def create_token(data: dict):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# ================= VERIFICAR TOKEN (Renombrado para el import) =================
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         token = credentials.credentials
@@ -28,22 +26,17 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
             detail="Token invalid or expired"
         )
 
-# ================= VERIFICAR TOKEN (Opcional) =================
-# Corregido: Usamos el header 'Authorization' directamente como string
 async def get_current_user_optional(authorization: Annotated[Optional[str], Header()] = None):
     if not authorization:
         return None
 
     try:
-        # Extraemos el token quitando el prefijo 'Bearer '
         token = authorization.split(" ")[1] if " " in authorization else authorization
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except Exception:
-        # Si el token es inválido o malformado, devolvemos None en lugar de error
         return None
 
-# ================= ROLES =================
 def admin_required(user=Depends(get_current_user)):
     if user.get("type") != "admin":
         raise HTTPException(
@@ -69,7 +62,6 @@ def employee_or_admin(user=Depends(get_current_user)):
     return user
 
 
-# ================= BCRYPT UTILS =================
 def hash_password(password: str) -> str:
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')

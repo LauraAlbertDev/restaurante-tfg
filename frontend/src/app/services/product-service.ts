@@ -26,40 +26,23 @@ export class ProductService {
     return this.http.get<Product>(`${this.baseUrl}/get/${id}`);
   }
 
-  saveProduct(id: number | undefined, productData: any, file: File | null, allergenIds: number[]): Observable<any> {
-    const body = this.buildProductFormData(productData, file, allergenIds);
-    const request$ = id
-      ? this.http.put<Product>(`${this.baseUrl}/${id}`, body)
-      : this.http.post<Product>(this.baseUrl, body);
-
-    return request$.pipe(
-      tap((updatedProduct) => {
-        this.products.update(prev => {
-          if (id) {
-            return prev.map(p => p.id === id ? updatedProduct : p);
-          } else {
-            return [updatedProduct, ...prev];
-          }
-        });
-      })
-    );
-  }
-
-  private buildProductFormData(data: any, file: File | null, allergenIds: number[]): FormData {
+  saveProduct(id: number | undefined, rawProduct: any, file: File | null, allergenIds: number[]) {
     const formData = new FormData();
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        const formattedValue = typeof value === 'boolean' ? (value ? '1' : '0') : value;
-        formData.append(key, formattedValue as string);
-      }
-    });
-
-    if (file) formData.append('image_file', file);
+    const fields = ['name', 'description'];
+    fields.forEach(key => formData.append(key, rawProduct[key] || ''));
+    formData.append('price', rawProduct.price?.toString() || '0');
+    formData.append('category_id', rawProduct.category_id?.toString() || '');
+    formData.append('stock', rawProduct.stock?.toString() || '0');
+    formData.append('vegan', rawProduct.vegan ? '1' : '0');
+    formData.append('vegetarian', rawProduct.vegetarian ? '1' : '0');
     formData.append('allergen_ids', JSON.stringify(allergenIds));
 
-    return formData;
+    if (file) formData.append('image_file', file, file.name);
+    const apiBase = environment.apiUrl.replace(/\/$/, '');
+    const url = `${apiBase}/products/${id ?? ''}`;
+    return id ? this.http.put(url, formData) : this.http.post(url, formData);
   }
+
 
   toggleArchive(id: number): Observable<{new_archived_status: number}> {
     return this.http.put<{new_archived_status: number}>(`${this.baseUrl}/archive/${id}`, {});
@@ -78,11 +61,11 @@ export class ProductService {
   }
 
   importProducts(data:FormData){
-    return this.http.post(environment.apiUrl + "products/import", data);
-  }
+    return this.http.post(`${this.baseUrl}/import`, data);  }
 
   exportProducts() {
-    return this.http.get(`${environment.apiUrl}products/export`, {responseType: 'blob'});
+    console.log("URL de exportación:", `${this.baseUrl}/export`);
+    return this.http.get(`${this.baseUrl}/export`, { responseType: 'blob' });
   }
 
   updateStock(id: string | number, change: number): boolean {
@@ -96,8 +79,6 @@ export class ProductService {
         }
         return p;
       });
-
-      // IMPORTANTE: Si usas localStorage, debes guardar aquí
       localStorage.setItem('products', JSON.stringify(updated));
 
       return updated;

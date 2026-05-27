@@ -1,4 +1,4 @@
-import {Component, computed, inject, OnInit, signal} from '@angular/core';
+import {Component, computed, inject, OnInit, signal, TemplateRef, ViewChild} from '@angular/core';
 import {ReservationsService} from '../../../../services/reservation-service';
 import {AuthService} from '../../../../services/auth-service';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -8,6 +8,7 @@ import {ApiResponse, DayRule} from '../../../../common/interfaces/interfaces';
 import {UiService} from '../../../../services/ui-service';
 import {TablesService} from '../../../../services/tables_service';
 import {of, switchMap} from 'rxjs';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-reservations-page',
@@ -33,6 +34,18 @@ export class ReservationsPage implements OnInit {
   closedDates = signal<string[]>([]);
   allTables = signal<any[]>([]);
   filteredTables = signal<any[]>([]);
+
+  private modalService = inject(NgbModal);
+
+  @ViewChild('confirmModal') confirmModal!: TemplateRef<any>;
+  public existingReservationSaved: any = null;
+
+  compareFields = [
+    { label: 'Nombre', key: 'name' },
+    { label: 'Fecha', key: 'date', pipe: 'date:dd/MM' },
+    { label: 'Hora', key: 'hour' },
+    { label: 'Personas', key: 'n_people' }
+  ];
 
   dynamicPeopleOptions = computed(() => {
     const min = this.isAdminMode() ? 1 : 2;
@@ -234,8 +247,50 @@ export class ReservationsPage implements OnInit {
     }
 
     this.isSubmitting.set(true);
-
     const formValue = this.reservationForm.value;
+
+    this.reservationService.getReservations().subscribe({
+      next: (allReservations) => {
+        const existing = allReservations.find(res =>
+          res.phone === formValue.phone && res.date === formValue.date && res.status !== 'cancelled'
+        );
+
+        if (existing) {
+          const isSameReserve =
+            existing.hour === formValue.hour &&
+            existing.name === formValue.name &&
+            Number(existing.n_people) === Number(formValue.n_people);
+
+          if (isSameReserve) {
+            this.ui.notify('Ya tienes una reserva confirmada con estos datos.');
+            this.isSubmitting.set(false);
+            return;
+          }
+
+          this.existingReservationSaved = existing;
+          this.modalService.open(this.confirmModal).result
+            .then((result) => {
+              if (result === 'confirm') {
+                this.runUpdate(existing, formValue);
+              } else {
+                this.isSubmitting.set(false);
+              }
+            })
+            .catch(() => this.isSubmitting.set(false));
+
+        } else {
+          this.executeReservationCreation(formValue);
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.isSubmitting.set(false);
+        this.ui.handleError('Error al conectar con el servidor');
+      }
+    });
+  }
+
+  private executeReservationCreation(formValue: any) {
     const payload = {
       ...formValue,
       n_people: Number(formValue.n_people)
@@ -254,9 +309,7 @@ export class ReservationsPage implements OnInit {
             'reserved',
             formValue.date,
             customerInfo
-          ).pipe(
-            switchMap(() => of(res))
-          );
+          ).pipe(switchMap(() => of(res)));
         }
         return of(res);
       })
@@ -264,6 +317,20 @@ export class ReservationsPage implements OnInit {
       next: (res) => this.reservationSent(res),
       error: (err) => this.reservationError(err)
     });
+  }
+
+  private finalizeSubmission(fecha: string) {
+    this.reservationForm.reset({
+      date: fecha,
+      n_people: 2,
+      name: '',
+      phone: '',
+      notes: '',
+      hour: ''
+    });
+    this.selectedDate.set(new Date(fecha));
+    this.checkAvailability(fecha);
+    this.isSubmitting.set(false);
   }
 
   selectHour(time: string) {
@@ -338,6 +405,48 @@ export class ReservationsPage implements OnInit {
         if (currentTable && occupiedTableIds.includes(String(currentTable))) {
           this.reservationForm.get('table_id')?.patchValue(null);
         }
+      }
+    });
+  }
+
+  private runUpdate(oldRes: any, newValues: any) {
+    this.isSubmitting.set(true);
+
+    const payloadActualizado = {
+      ...oldRes,
+      hour: newValues.hour,
+      n_people: Number(newValues.n_people),
+      name: newValues.name,
+      notes: newValues.notes,
+      table_id: newValues.table_id
+    };
+
+    this.reservationService.updateReservation(oldRes.id!, payloadActualizado).pipe(
+      switchMap((resUpdated) => {
+        if (this.isAdminMode() && newValues.table_id) {
+          const customerInfo = {
+            customer_name: newValues.name,
+            customer_phone: newValues.phone,
+            turno: newValues.hour
+          };
+
+          return this.tablesService.updateTableStatusInMap(
+            newValues.table_id,
+            'reserved',
+            newValues.date,
+            customerInfo
+          ).pipe(switchMap(() => of(resUpdated)));
+        }
+        return of(resUpdated);
+      })
+    ).subscribe({
+      next: () => {
+        this.ui.notify('¡Reserva actualizada con éxito!');
+        this.finalizeSubmission(newValues.date);
+      },
+      error: (err) => {
+        console.error('Error al actualizar:', err);
+        this.reservationError(err);
       }
     });
   }

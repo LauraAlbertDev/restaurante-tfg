@@ -58,4 +58,16 @@
   <main class="canvas-wrapper d-flex justify-content-center align-items-center bg-light border overflow-hidden w-100" #container>
     <canvas id="canvasMesas"></canvas>
   </main>
+  <footer class="bg-white border-top px-4 py-3 d-flex flex-wrap justify-content-center align-items-center gap-4 shadow-sm">
+    @for (item of legendItems; track item.text) {
+      <div class="d-flex align-items-center gap-2">
+        <span
+          class="border rounded-circle"
+          [ngStyle]="{ 'background-color': item.color, 'border-color': item.color }"
+          style="width: 16px; height: 16px; display: inline-block;">
+        </span>
+        <span class="small fw-semibold text-secondary">{{ item.text }}</span>
+      </div>
+    }
+  </footer>
 </div>

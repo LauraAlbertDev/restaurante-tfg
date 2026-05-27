@@ -4,6 +4,12 @@
   "author": {
     "name": "Laura Albert Borrell"
   },
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build --configuration production",
+    "test": "ng test"
+  },
   "dependencies": {
     "@angular/animations": "20.3.19",
     "@angular/cdk": "^20.2.14",

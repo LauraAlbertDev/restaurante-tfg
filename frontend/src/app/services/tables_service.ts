@@ -147,47 +147,4 @@ export class TablesService {
       })
     );
   }
-
-
-  setTableAsReservedEmpty(tableId: string | number, date: string): Observable<any> {
-    return this.getFloorPlanByDate(date).pipe(
-      switchMap(plan => {
-        if (!plan?.layout_data) return of(null);
-
-        const data = typeof plan.layout_data === 'string'
-          ? JSON.parse(plan.layout_data)
-          : plan.layout_data;
-
-        let tableFound = false;
-
-        data.objects = data.objects.map((obj: any) => {
-          if (obj.data && String(obj.data.id) === String(tableId)) {
-            tableFound = true;
-
-            // Vaciamos los campos de texto del cliente por completo
-            obj.data.customer_name = '';
-            obj.data.customer_phone = '';
-            obj.data.turno = '';
-            obj.data.notes = '';
-
-            // Forzamos el estado visual estable a Reservado
-            obj.data.status = 'reserved';
-            obj.data.estado = 'reserved';
-
-            // Actualizamos los colores de los vectores del Canvas (Fabric.js) inmediatamente
-            const targetColor = STATUS_COLORS['reserved'] || '#FFC107';
-            if (obj.objects) {
-              obj.objects.forEach((child: any) => {
-                if (child.type !== 'i-text' && child.type !== 'text') child.fill = targetColor;
-              });
-            }
-          }
-          return obj;
-        });
-
-        if (!tableFound) return of(null);
-        return this.saveDailyPlan(plan.area_name || 'Salón principal', data, date);
-      })
-    );
-  }
 }

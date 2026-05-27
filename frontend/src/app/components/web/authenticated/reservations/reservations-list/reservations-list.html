@@ -2,12 +2,18 @@
   <div class="card shadow-sm border-0 p-4">
 
     <div class="d-flex flex-column flex-xl-row justify-content-between align-items-center mb-4 gap-3">
-        <h2 class="h4 fw-bold mb-0 text-uppercase">Panel de Reservas</h2>
-        @let isAdmin = auth.isLeaderOrAdmin();
-        <a [routerLink]="[isAdmin ? '/reservas' : '/auth/mesas']" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm">
-          <i class="bi me-1" [ngClass]="isAdmin ? 'bi-plus-lg' : 'bi-eye'"></i>
-          {{ isAdmin ? 'NUEVA RESERVA' : 'MESAS' }}
+      <h2 class="h4 fw-bold mb-0 text-uppercase">Panel de Reservas</h2>
+
+      @let isAdminOrLeader = auth.isLeaderOrAdmin();
+
+      <div class="d-flex gap-2 align-items-center">
+        <a [routerLink]="[isAdminOrLeader ? '/reservas' : '/auth/mesas']" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm">
+          <i class="bi me-1" [ngClass]="isAdminOrLeader ? 'bi-plus-lg' : 'bi-eye'"></i>
+          {{ isAdminOrLeader ? 'NUEVA RESERVA' : 'MESAS' }}
         </a>
+      </div>
+      @if (isAdminOrLeader){
+
 
       <div class="d-flex flex-wrap align-items-center gap-3 bg-light p-2 rounded-3 border">
         @for (f of dateFilters; track f.label) {
@@ -28,7 +34,7 @@
           </select>
         </div>
       </div>
-
+      }
     </div>
 
     <app-generic-table
@@ -51,12 +57,38 @@
             <i class="bi bi-pencil-square"></i>
           </a>
           <button class="btn btn-sm btn-outline-danger border-0"
-                  (click)="deleteReservation(res.id)">
+                  (click)="openDeleteModal(res.id)">
             <i class="bi bi-trash3-fill"></i>
           </button>
         }
       </div>
     </ng-template>
 
+    @if (isAdminOrLeader) {
+      <div class="d-flex justify-content-center mt-4">
+        <a routerLink="/auth/mesas" class="btn btn-dark btn-sm rounded-pill px-4 py-2 shadow-sm">
+          <i class="bi bi-eye me-1"></i>
+          VER MESAS
+        </a>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold text-danger">Eliminar Reserva</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro de que deseas eliminar esta reserva? Esta acción liberará la mesa asignada y no se puede deshacer.
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()" data-bs-dismiss="modal">Confirmar eliminación</button>
+      </div>
+    </div>
   </div>
 </div>

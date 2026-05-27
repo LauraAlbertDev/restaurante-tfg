@@ -70,7 +70,6 @@
 }
 
 
-/* Día deshabilitado por estar cerrado */
 .day-button:disabled {
   cursor: not-allowed;
   opacity: 0.3;
@@ -78,12 +77,23 @@
   text-decoration: line-through;
 }
 
-/* Opcional: un estilo sutil para diferenciar días pasados de días cerrados */
+.day-button.is-past,
 .day-button.is-closed {
-  color: gray; /* Rojo suave */
+  background-color: #f8f9fa;
+  color: #adb5bd;
+  cursor: not-allowed;
+  border: 1px solid #e9ecef;
+  text-decoration: line-through;
+  opacity: 0.6;
 }
 
-/* Animación para el alert de cerrado */
+.day-button:disabled {
+  cursor: not-allowed;
+}
+
 .alert-warning {
   animation: fadeIn 0.5s ease;
+}
+.modal {
+  z-index: 1055;
 }

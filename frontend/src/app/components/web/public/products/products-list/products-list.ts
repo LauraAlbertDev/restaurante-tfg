@@ -30,10 +30,13 @@ export class ProductsList implements OnInit {
   private readonly ui = inject(UiService);
   private route = inject(ActivatedRoute);
   protected orderService = inject(OrderService);
+  public updateDuplicates = signal(false);
 
-  private imageVersion = '1';
-
+  public imageVersion = new Date().getTime().toString();
   @ViewChild('closeModal') closeModal!: ElementRef;
+
+  public pendingAction: 'delete' | 'duplicate' | null = null;
+  public selectedProductId: number | null = null;
 
   public allProducts = computed(() => this.productService.products());
   categories = signal<Category[]>([]);
@@ -65,8 +68,8 @@ export class ProductsList implements OnInit {
   public currentTableName: string | null = null;
 
   private readonly filterWatcher = effect(() => {
-    const cat = this.selectedCategory();
-    const arch = this.viewArchived();
+    this.selectedCategory();
+    this.viewArchived();
     this.loadProducts();
   });
 
@@ -79,25 +82,23 @@ export class ProductsList implements OnInit {
       error: (err) => this.ui.handleError('Error cargando categorías: ', err)
     });
     this.loadProducts();
-    // ESTO ES LO QUE DEBES CORREGIR
     this.route.queryParams.subscribe(params => {
+      this.imageVersion = new Date().getTime().toString();
+
       const tableId = params['table_id'];
       const tableName = params['tableName'];
 
       if (tableId) {
         const mesaActual = this.orderService.activeTable();
-
-        // CORRECCIÓN: Comparamos cuidadosamente.
-        // Si no hay mesa o el ID es distinto, seteamos.
-        // Si la mesa es la misma, NO llamamos a setActiveTable para no borrar los 'data' (reserva).
         if (!mesaActual || mesaActual.id !== String(tableId)) {
           this.orderService.setActiveTable(String(tableId), tableName);
         }
       }
-
-      // Sincronizamos las variables locales por si se usan en el HTML
       this.currentTableId = tableId;
       this.currentTableName = tableName;
+      if (params['refresh'] || params['t']) {
+        this.loadProducts();
+      }
     });
     this.currentTableId = this.route.snapshot.queryParamMap.get('tableId');
     this.currentTableName = this.route.snapshot.queryParamMap.get('tableName');
@@ -167,7 +168,7 @@ export class ProductsList implements OnInit {
     this.productService.toggleArchive(id).subscribe({
       next: (res) => {
         const modo = res.new_archived_status === 1 ? 'archivado' : 'restaurado';
-        this.ui.handleError(`Producto ${modo} con éxito`);
+        this.ui.notify(`Producto ${modo} con éxito`);
         this.loadProducts()
       },
       error: () => this.ui.handleError('Error al cambiar el estado')
@@ -175,14 +176,9 @@ export class ProductsList implements OnInit {
   }
 
   deleteProduct(id: number) {
-    if (!confirm("¿Eliminar producto definitivamente?")) return;
-    this.productService.deleteProduct(id).subscribe({
-      next: () => {
-        this.ui.notify('Producto eliminado');
-        this.loadProducts(); // Refresca la señal del servicio
-      },
-      error: (err) => this.ui.handleError('Error al eliminar', err)
-    });
+    this.selectedProductId = id;
+    this.pendingAction = 'delete';
+    this.showModal('actionConfirmModal');
   }
 
   resetFilters() {
@@ -195,16 +191,14 @@ export class ProductsList implements OnInit {
   }
 
   getProductImage(imageName: any): string {
-  // Asegúrate de que apiUrl sea 'http://localhost:8000/'
-  const base = environment.apiUrl;
+    const base = environment.apiUrl;
+    const imageStr = String(imageName).trim();
 
-  if (!imageName || ['null', 'None', '', 'placeholder.jpg'].includes(String(imageName).trim())) {
-    return 'assets/images/placeholder.jpg';
+    if (!imageName || ['null', 'None', ''].includes(imageStr) || imageStr.includes('placeholder')) return 'assets/images/placeholder.jpg';
+    if (imageStr.startsWith('assets/images/')) return `${base}${imageStr}?t=${this.imageVersion}`;
+
+    return `${base}assets/images/${imageStr}?t=${this.imageVersion}`;
   }
-
-  // Si base ya termina en '/', no pongas otra barra
-  return `${base}assets/images/${imageName}?t=${this.imageVersion}`;
-}
 
   exportProducts() {
     this.productService.exportProducts().subscribe({
@@ -214,24 +208,39 @@ export class ProductsList implements OnInit {
   }
 
   onFileSelectedForImport(event: any) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
     const formData = new FormData();
+
     formData.append("file", file);
+    // Pasamos el valor como string "true" o "false" para FastAPI
+    formData.append("update_duplicates", this.updateDuplicates() ? "true" : "false");
 
     this.productService.importProducts(formData).subscribe({
       next: () => {
         this.ui.notify("Importación exitosa");
         this.loadProducts();
-        this.closeModal.nativeElement.click();
+        // Reseteamos el valor del input para permitir reintentos
+        input.value = '';
+        if (this.closeModal?.nativeElement) {
+          this.closeModal.nativeElement.click();
+        }
       },
-      error: () => this.ui.handleError("Error en el formato del archivo")
+      error: (err) => {
+        console.error(err);
+        this.ui.handleError("Error en la importación. Revisa el formato del archivo.");
+      }
     });
   }
 
   downloadTemplate() {
-    const headers = 'name,price,category_name,stock,vegan,vegetarian,image';
-    const blob = new Blob([headers], {type: 'text/csv;charset=utf-8;'});
+    const headers = 'name,price,category_name,stock,vegan,vegetarian,lactose_free,allergens_names,description';
+    const allergensExample = '"[\'🥚Huevos\', \'🥛Lácteos\', \'🌾Gluten\', \'🥜Frutos secos\']"';
+    const exampleRow = '\nProducto Ejemplo,12.50,Entrantes,10,0,1,0,' + allergensExample + ',Descripción deliciosa';
+
+    const blob = new Blob([headers + exampleRow], {type: 'text/csv;charset=utf-8;'});
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
     link.download = 'plantilla_productos.csv';
@@ -239,31 +248,49 @@ export class ProductsList implements OnInit {
   }
 
   duplicateProduct(id: number) {
-    this.ui.confirm('¿Estás seguro de que deseas duplicar este producto?').then((confirmed) => {
-      if (confirmed) {
-        this.productService.duplicate(id).subscribe({
-          next: () => {
-            this.loadProducts();
-          },
-          error: (err) => this.ui.handleError('Error al duplicar:', err)
-        });
-      }
-    });
+    this.selectedProductId = id;
+    this.pendingAction = 'duplicate';
+    this.showModal('actionConfirmModal');
   }
 
 
   public agregarAlPedido(producto: Product): void {
-    // Buscamos la versión más reciente del producto en la señal
     const prodEnStock = this.allProducts().find(p => String(p.id) === String(producto.id));
 
     if (!prodEnStock || prodEnStock.stock <= 0) {
       this.ui.notify(`Lo sentimos, no queda stock de ${producto.name}`);
       return;
     }
-
-    // Enviamos al servicio de pedidos
-    // Nota: El servicio de pedidos se encargará de llamar a productService.updateStock(id, -1)
     this.orderService.addItemToOrder(producto);
   }
 
+  executeAction() {
+    if (!this.selectedProductId) return;
+
+    if (this.pendingAction === 'delete') {
+      this.productService.deleteProduct(this.selectedProductId).subscribe({
+        next: () => {
+          this.ui.notify('Producto eliminado');
+          this.loadProducts();
+        },
+        error: (err) => this.ui.handleError('Error al eliminar', err)
+      });
+    } else if (this.pendingAction === 'duplicate') {
+      this.productService.duplicate(this.selectedProductId).subscribe({
+        next: () => {
+          this.ui.notify('Producto duplicado');
+          this.loadProducts();
+        },
+        error: (err) => this.ui.handleError('Error al duplicar:', err)
+      });
+    }
+  }
+
+  private showModal(id: string) {
+    const modalElement = document.getElementById(id);
+    if (modalElement) {
+      const modal = new (window as any).bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  }
 }

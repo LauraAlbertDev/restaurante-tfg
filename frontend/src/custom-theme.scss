@@ -1,6 +1,5 @@
 @use '@angular/material' as mat;
 
-// Configuración del tema de Angular Material
 html {
   @include mat.theme((
     color: (

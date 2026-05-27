@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,27 +7,24 @@ from routers import api_router
 
 PROJECT_NAME = "Restaurante TFG API"
 VERSION = "1.0.0"
-CORS_ORIGINS = ["http://localhost:4200"]
-
-BASE_DIR = Path(__file__).resolve().parent
-IMAGES_DIR = BASE_DIR.parent / "frontend" / "public" / "assets" / "images"
-
+CORS_ORIGINS = ["http://localhost:4200", "http://localhost"]
+ASSETS_PATH = "/app/assets" 
 def setup_middleware(app: FastAPI) -> None:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=CORS_ORIGINS,
+        allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"]
     )
 
 def setup_static_files(app: FastAPI) -> None:
-    ASSETS_FOLDER = IMAGES_DIR.parent
+    ASSETS_FOLDER = "/app/assets"
 
-    if ASSETS_FOLDER.exists():
-        app.mount("/assets", StaticFiles(directory=str(ASSETS_FOLDER)), name="assets")
+    if os.path.exists(ASSETS_FOLDER):
+        app.mount("/assets", StaticFiles(directory="/app/assets"), name="assets")
     else:
-        print(f"ERROR: No se encuentra la carpeta en: {ASSETS_FOLDER}")
+        print(f"ERROR: {ASSETS_FOLDER} no existe.")
 
 def create_application() -> FastAPI:
     application = FastAPI(

@@ -8,13 +8,13 @@
         </h2>
       </div>
 
-      <div class="col-lg-7">
+      <div class="col-lg-7 mb-4">
         <form [formGroup]="formProduct" (ngSubmit)="onSubmit()" class="card shadow-sm p-4">
 
           <div class="form-floating mb-3">
             <input type="text" class="form-control"
                    [class.is-invalid]="p['name'].touched && p['name'].invalid"
-                   [class.is-valid]="p['name'].valid"
+                   [class.is-valid]="p['name'].touched && p['name'].valid"
                    formControlName="name" id="name" placeholder="Nombre">
             <label for="name">Nombre del plato</label>
             @if (p['name'].touched && p['name'].invalid) {
@@ -23,34 +23,40 @@
                   <span>El nombre es obligatorio.</span>
                 }
                 @if (p['name'].errors?.['minlength']) {
-                  <span>El nombre debe tener al menos 5 carácteres.</span>
+                  <span>El nombre debe tener al menos 5 caracteres.</span>
                 }
               </div>
             }
           </div>
+
           <div class="form-floating mb-3">
             <textarea class="form-control"
-            [class.is-invalid]="p['description'].touched && p['description'].invalid"
-            [class.is-valid]="p['description'].valid"
-            formControlName="description"
-              id="desc" style="height: 100px"></textarea>
-            <label for="description">Descripción del plato</label>
+                      [class.is-invalid]="p['description'].touched && p['description'].invalid"
+                      [class.is-valid]="p['description'].touched && p['description'].valid"
+                      formControlName="description"
+                      id="desc" style="height: 100px" placeholder="Descripción"></textarea>
+            <label for="desc">Descripción del plato</label>
             @if (p['description'].touched && p['description'].invalid) {
               <div class="invalid-feedback">
+                @if (p['description'].errors?.['required']) {
+                  <span>La descripción es obligatoria.</span>
+                }
                 @if (p['description'].errors?.['minlength']) {
-                  <span>La descripción debe tener al menos 5 carácteres.</span>
+                  <span>La descripción debe tener al menos 5 caracteres.</span>
                 }
                 @if (p['description'].errors?.['maxlength']) {
-                  <span>La descripción debe tener menos de 450 carácteres.</span>
+                  <span>La descripción debe tener menos de 450 caracteres.</span>
                 }
               </div>
             }
           </div>
+
           <div class="row">
             <div class="col-md-6">
               <div class="form-floating mb-3">
                 <input type="number" class="form-control"
                        [class.is-invalid]="p['price'].touched && p['price'].invalid"
+                       [class.is-valid]="p['price'].touched && p['price'].valid"
                        formControlName="price" id="price" placeholder="Precio">
                 <label for="price">Precio (€)</label>
                 @if (p['price'].touched && p['price'].invalid) {
@@ -67,8 +73,11 @@
           </div>
 
           <div class="form-floating mb-3">
-            <select class="form-select" formControlName="category_id">
-              <option [ngValue]="null" >Selecciona categoría</option>
+            <select class="form-select"
+                    [class.is-invalid]="p['category_id'].touched && p['category_id'].invalid"
+                    [class.is-valid]="p['category_id'].touched && p['category_id'].valid"
+                    formControlName="category_id" id="cat">
+              <option [ngValue]="null">Selecciona categoría</option>
               @for (cat of categories(); track cat.id) {
                 <option [value]="cat.id">{{ cat.name }}</option>
               }
@@ -82,7 +91,7 @@
           <div class="mb-4">
             <label class="fw-bold text-muted small text-uppercase">Imagen del producto</label>
             <div class="d-flex align-items-center gap-3 border rounded p-3 bg-light">
-              <img [src]="imagePreview() || 'assets/images/placeholder.jpg'" width="80" height="80"
+              <img [src]="imagePreviewUrl()" width="80" height="80"
                    class="rounded shadow-sm" style="object-fit: cover;"
                    alt="Previsualización">
               <div>
@@ -99,20 +108,19 @@
             <label class="fw-bold text-muted mb-2 small text-uppercase">Opciones Dietéticas</label>
             <div class="row g-2">
               <div class="col-md-6">
-                <div class="form-check p-2 border rounded d-flex align-items-center cursor-pointer"
+                <div class="form-check p-2 border rounded d-flex align-items-center ps-0"
                      [class.bg-success-subtle]="p['vegan'].value"
                      [class.border-success]="p['vegan'].value">
-                  <input class="form-check-input ms-1" type="checkbox" formControlName="vegan" id="vegan">
-                  <label class="form-check-label ms-2" for="vegan">🌱 Vegano</label>
+                  <input class="form-check-input ms-2 me-2" type="checkbox" formControlName="vegan" id="vegan">
+                  <label class="form-check-label" for="vegan">🌱 Vegano</label>
                 </div>
               </div>
-
               <div class="col-md-6">
-                <div class="form-check p-2 border rounded d-flex align-items-center cursor-pointer"
+                <div class="form-check p-2 border rounded d-flex align-items-center ps-0"
                      [class.bg-success-subtle]="p['vegetarian'].value"
                      [class.border-success]="p['vegetarian'].value">
-                  <input class="form-check-input ms-1" type="checkbox" formControlName="vegetarian" id="vegetarian">
-                  <label class="form-check-label ms-2" for="vegetarian">🥦 Vegetariano</label>
+                  <input class="form-check-input ms-2 me-2" type="checkbox" formControlName="vegetarian" id="vegetarian">
+                  <label class="form-check-label" for="vegetarian">🥦 Vegetariano</label>
                 </div>
               </div>
             </div>
@@ -123,12 +131,12 @@
             <div class="row g-2">
               @for (a of allAllergens(); track a.id) {
                 <div class="col-6 col-md-4">
-                  <div class="form-check card-check p-2 border rounded"
+                  <div class="form-check p-2 border rounded d-flex align-items-center ps-0"
                        [class.bg-light]="selectedAllergenIds().includes(a.id)">
-                    <input class="form-check-input ms-1" type="checkbox"
+                    <input class="form-check-input ms-2 me-2" type="checkbox"
                            [checked]="selectedAllergenIds().includes(a.id)"
                            (change)="toggleAllergen(a.id)" [id]="'alg'+a.id">
-                    <label class="form-check-label ms-2" [for]="'alg'+a.id">{{ a.name }}</label>
+                    <label class="form-check-label text-truncate" [for]="'alg'+a.id">{{ a.name }}</label>
                   </div>
                 </div>
               }
@@ -145,35 +153,51 @@
             </button>
           </div>
         </form>
+
       </div>
 
-      <div class="col-lg-4 offset-lg-1 mt-4 mt-lg-0">
+      <div class="col-lg-5 mb-4">
         <div class="card shadow sticky-top" style="top: 2rem;">
           <div class="position-relative">
-            <img [src]="imagePreviewUrl()" class="card-img-top preview-img"
-                 style="height: 200px; object-fit: cover;" alt="Preview">
-            <span class="badge bg-dark position-absolute top-0 end-0 m-2">{{ p['price'].value | currency:'EUR' }}</span>
+            <img [src]="imagePreviewUrl()" class="card-img-top"
+                 style="height: 230px; object-fit: cover;" alt="Preview">
+            <span class="badge bg-dark position-absolute top-0 end-0 m-3 fs-6">
+              {{ p['price'].value | currency:'EUR' }}
+            </span>
           </div>
-          <div class="card-body">
-            <div class="card-body d-flex flex-column text-center">
-              <h5 class="card-title fw-bold mb-0 text-capitalize ">{{ p['name'].value || 'Nombre del plato' }}</h5>
-            </div>
+          <div class="card-body text-center">
+            <h5 class="card-title fw-bold mb-3 text-capitalize">
+              {{ p['name'].value || 'Nombre del plato' }}
+            </h5>
 
-            <div class="mb-3 d-flex flex-wrap gap-1 justify-content-center">
-              <h6>Alérgenos: </h6>
+            <hr class="text-muted opacity-25">
+
+            <div class="d-flex flex-wrap gap-1 justify-content-center align-items-center">
+              <span class="small fw-bold text-muted me-1">Alérgenos:</span>
               @for (name of selectedAllergenNames(); track name) {
                 <span class="badge rounded-pill bg-light text-dark border small">
                   {{ name }}
                 </span>
               } @empty {
                 <small class="text-success small">
-                  <i class="bi bi-check-circle-fill"></i> Sin alérgenos
+                  <i class="bi bi-check-circle-fill me-1"></i>Sin alérgenos
                 </small>
               }
             </div>
           </div>
+          <div class="card-footer bg-transparent border-0 text-center text-muted small pb-3">
+            <p class="m-0">
+              <i class="bi bi-info-circle me-1"></i>
+              Actualizado por:
+              <strong>
+                {{ p['editor_name']?.value || 'Usuario N° ' + p['updated_by']?.value }}
+              </strong>
+              el día {{ p['updated_at']?.value | date:'dd/MM/yyyy HH:mm':'+0200' }}
+            </p>
+          </div>
         </div>
       </div>
+
     </div>
   </div>
 } @else {

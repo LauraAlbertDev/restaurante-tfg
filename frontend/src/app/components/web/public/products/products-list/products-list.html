@@ -55,6 +55,8 @@
         </div>
       }
 
+
+
       @for (group of groupedProducts(); track group.category) {
         <section class="mb-5">
           <h3 class="h4 border-bottom pb-2 mb-4 fw-bold text-secondary text-uppercase">{{ group.category }}</h3>
@@ -68,9 +70,7 @@
                     <img [src]="getProductImage(prod.image)"
                          [alt]="prod.name"
                          class="image"
-                         [routerLink]="'/product/detail/' + prod.id"
-                         #imgElement
-                         (error)="imgElement.src = 'assets/images/placeholder.jpg'">
+                         [routerLink]="'/product/detail/' + prod.id">
                     <span class="position-absolute top-0 end-0 m-2 badge" [style.background-color]="'var(--color-border-soft)'">
                       {{prod.price | currency: 'EUR'}}
                     </span>
@@ -93,9 +93,8 @@
                           <button class="btn btn-sm btn-outline-info" (click)="duplicateProduct(prod.id)" title="Duplicar">
                             <i class="bi bi-files"></i>
                           </button>
-                          <button class="btn btn-sm btn-outline-secondary" (click)="onToggleArchive(prod.id)" title="Archivar">
-                            <i class="bi bi-archive"></i>
-                          </button>
+                          <button class="btn btn-sm btn-outline-secondary" (click)="onToggleArchive(prod.id)" [title]="prod.archived ? 'Desarchivar' : 'Archivar'">
+                            <i class="bi" [class.bi-archive]="!prod.archived" [class.bi-box-arrow-up]="prod.archived"></i>                          </button>
                           <button class="btn btn-sm btn-outline-danger" (click)="deleteProduct(prod.id)" title="Borrar">
                             <i class="bi bi-trash"></i>
                           </button>
@@ -203,6 +202,11 @@
                 <td class="text-muted">100</td>
               </tr>
               <tr>
+                <td class="ps-3"><code>description</code></td>
+                <td><span class="text-danger">*</span>Texto</td>
+                <td class="text-muted">Pizza con base de...</td>
+              </tr>
+              <tr>
                 <td class="ps-3"><code>vegan/vegetarian</code></td>
                 <td>Booleano (1=Sí, 0=No)</td>
                 <td class="text-muted">1</td>
@@ -223,6 +227,20 @@
 
         <div class="p-4 bg-light rounded-3 border border-dashed text-center">
           <h6 class="fw-bold text-primary mb-3">3. Sube el archivo final</h6>
+
+          <div class="mb-3">
+            <div class="form-check form-switch d-inline-block">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="updateDuplicatesCheck"
+                [checked]="updateDuplicates()"
+                (change)="updateDuplicates.set($any($event.target).checked)">
+              <label class="form-check-label fw-bold" for="updateDuplicatesCheck">
+                Actualizar si ya existen
+              </label>
+            </div>
+          </div>
           <div class="px-md-5">
             <input type="file" class="form-control form-control-lg"
                    accept=".xlsx, .xls, .csv"
@@ -233,8 +251,36 @@
           </div>
         </div>
       </div>
-      <div class="modal-footer bg-light border-top-0">
-        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" #closeModal>Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold" [class.text-danger]="pendingAction === 'delete'" [class.text-warning]="pendingAction === 'duplicate'">
+          {{ pendingAction === 'delete' ? 'Eliminar Producto' : 'Duplicar Producto' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        {{ pendingAction === 'delete'
+        ? '¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.'
+        : '¿Deseas crear una copia de este producto?' }}
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button"
+                class="btn"
+                [class.btn-danger]="pendingAction === 'delete'"
+                [class.btn-warning]="pendingAction === 'duplicate'"
+                (click)="executeAction()"
+                data-bs-dismiss="modal">
+          {{ pendingAction === 'delete' ? 'Confirmar eliminación' : 'Confirmar duplicado' }}
+        </button>
       </div>
     </div>
   </div>

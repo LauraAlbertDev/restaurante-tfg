@@ -51,7 +51,10 @@ export class ReservationsEdit implements OnInit {
     n_people: [2, [Validators.required, Validators.min(2)]],
     notes: [''],
     status: ['unconfirmed', Validators.required],
-    table_id: [null]
+    table_id: [null],
+    updated_by: [null],
+    updated_at: [null],
+    editor_name: [null]
   });
 
   get r() { return this.formReservation.controls; }
@@ -62,7 +65,6 @@ export class ReservationsEdit implements OnInit {
 
     this.setupDynamicValidators();
 
-    // 🔄 ESCUCHADORES REACTIVOS CONTROLADOS
     this.formReservation.get('date')?.valueChanges.subscribe(date => {
       if (date && this.originalReservation) {
         if (date !== this.originalReservation.date) {
@@ -91,7 +93,6 @@ export class ReservationsEdit implements OnInit {
           table_id: data.table_id ? String(data.table_id).trim() : null
         };
 
-        // Cargamos los datos iniciales silenciando eventos mutuos
         this.formReservation.patchValue(sanitizedData, { emitEvent: false });
 
         if (sanitizedData.date) {
@@ -154,17 +155,13 @@ export class ReservationsEdit implements OnInit {
           const mesaIdStr = String(table.id).trim();
           const isOccupied = occupiedIds.includes(mesaIdStr);
 
-          // Si es su propia mesa en su propio turno, DEBE mostrarse siempre
           const isItsOwnTable = isSameSlotAsOriginal && (currentAssignedTableId === mesaIdStr);
 
           return !isOccupied || isItsOwnTable;
         });
 
-        // 1. Rellenamos las mesas del selector
         this.filteredTables.set(available);
 
-        // 2. 🌟 SOLUCIÓN CLAVE: Si la reserva actual tiene una mesa asignada, forzamos a Angular
-        // a re-establecer el valor en el siguiente ciclo de renderizado (macro-task)
         if (currentAssignedTableId) {
           setTimeout(() => {
             this.formReservation.get('table_id')?.setValue(currentAssignedTableId, {
@@ -197,7 +194,6 @@ export class ReservationsEdit implements OnInit {
       return;
     }
 
-    // 🔴 CASO 1: RESERVA CANCELADA (Liberamos usando los datos de la reserva ORIGINAL)
     if (rawData.status === 'cancelled') {
       const confirmCancel = await this.ui.confirm(
         '¿Estás seguro de cancelar? La mesa quedará completamente libre para este turno.'
@@ -205,7 +201,6 @@ export class ReservationsEdit implements OnInit {
       if (!confirmCancel) return;
 
       if (this.originalReservation.table_id) {
-        // 🌟 CLAVE: Usamos el nombre ORIGINAL que está grabado en el mapa
         this.tablesService.releaseTableByCustomer(this.originalReservation.name, this.originalReservation.date).subscribe({
           next: () => {
             rawData.table_id = null;
@@ -220,11 +215,9 @@ export class ReservationsEdit implements OnInit {
       return;
     }
 
-    // 🌟 IDENTIFICADORES DE MESAS (Strings limpios)
     const oldTableId = this.originalReservation.table_id ? String(this.originalReservation.table_id).trim() : null;
     const newTableId = rawData.table_id ? String(rawData.table_id).trim() : null;
 
-    // Información nueva que se pintará en la NUEVA mesa
     const newCustomerInfo = {
       customer_name: rawData.name,
       customer_phone: rawData.phone,
@@ -234,36 +227,30 @@ export class ReservationsEdit implements OnInit {
 
     let mapSync$: Observable<any> = of(null);
 
-    // 🔄 CASO A: Ha cambiado de mesa (Pasamos de una mesa A a una mesa B)
     if (oldTableId !== newTableId) {
       const tasks = [];
 
       if (oldTableId) {
-        // 🌟 CLAVE: Para borrar la mesa vieja, usamos el nombre ORIGINAL que tenía asignado en Fabric
         tasks.push(this.tablesService.releaseTableByCustomer(this.originalReservation.name, this.originalReservation.date));
       }
 
       if (newTableId) {
-        // Para pintar la mesa nueva, usamos los datos NUEVOS del formulario
         tasks.push(this.tablesService.updateTableStatusInMap(newTableId, 'reserved', rawData.date, newCustomerInfo));
       }
 
       if (tasks.length > 0) mapSync$ = forkJoin(tasks);
     }
 
-    // 🔄 CASO B: Mantiene la misma mesa pero cambió algún dato (Nombre, Teléfono o Turno)
     else if (newTableId && (
       this.originalReservation.name !== rawData.name ||
       this.originalReservation.phone !== rawData.phone ||
       this.originalReservation.hour !== rawData.hour
     )) {
-      // 🌟 CLAVE: Borramos el rastro del mapa con el nombre ORIGINAL y repintamos con el NUEVO
       mapSync$ = this.tablesService.releaseTableByCustomer(this.originalReservation.name, this.originalReservation.date).pipe(
         switchMap(() => this.tablesService.updateTableStatusInMap(newTableId, 'reserved', rawData.date, newCustomerInfo))
       );
     }
 
-    // Ejecutamos la sincronización del plano y luego guardamos en la Base de Datos
     mapSync$.subscribe({
       next: () => this.saveUpdatedReservation(rawData),
       error: (err) => this.ui.handleError('Error sincronizando el mapa de mesas', err)

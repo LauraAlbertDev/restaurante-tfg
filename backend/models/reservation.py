@@ -8,6 +8,7 @@ class ReservationStatus(str, Enum):
     UNCONFIRMED = "unconfirmed"
     CONFIRMED = "confirmed"
     CANCELLED = "cancelled"
+    completed = "completed"
 
 class ReservationSchema(BaseModel):
     name: str

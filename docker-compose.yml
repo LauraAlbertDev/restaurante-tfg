@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mariadb:10.11
+    container_name: db_restaurante
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "root_password"
+      MYSQL_DATABASE: "restaurante"
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    container_name: api_python
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./frontend/public/assets:/app/assets
+    environment:
+      DATABASE_URL: "mysql+mysqlconnector://root:root_password@db/restaurante"
+    ports:
+      - "8500:8500"
+    restart: on-failure
+
+  frontend:
+    build: ./frontend
+    container_name: frontend_angular
+    volumes:
+    - ./frontend/public/assets:/usr/share/nginx/html/assets
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  db_data:

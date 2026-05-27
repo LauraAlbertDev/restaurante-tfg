@@ -60,7 +60,7 @@
                 <i class="bi bi-pencil-square me-1"></i> Ver Detalle
               </button>
               <button class="btn btn-primary fw-bold py-2 rounded-3 shadow"
-                      (click)="finalizarPedido(order.table_id, order.tableName)">
+                      (click)="openFinalizarModal(order.table_id, order.tableName)">
                 <i class="bi bi-cash-stack me-1"></i> Finalizar Pedido
               </button>
             </div>
@@ -78,5 +78,25 @@
         </div>
       </div>
     }
+  </div>
+</div>
+
+
+<div class="modal fade" id="finalizeOrderModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold text-danger">Finalizar Pedido</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro de que deseas finalizar el pedido de la <strong>{{ selectedTableName }}</strong>?
+        Esta acción cerrará la cuenta y liberará la mesa.
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" (click)="confirmFinalizar()" data-bs-dismiss="modal">Confirmar Cobro</button>
+      </div>
+    </div>
   </div>
 </div>

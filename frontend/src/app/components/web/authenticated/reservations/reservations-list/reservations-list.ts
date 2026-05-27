@@ -8,8 +8,9 @@ import {UiService} from '../../../../../services/ui-service';
 import {AuthService} from '../../../../../services/auth-service';
 import {GenericTable} from '../../../../shared/generic-table/generic-table';
 import {TablesService} from '../../../../../services/tables_service';
-import {forkJoin, switchMap} from 'rxjs';
+import {forkJoin, of, switchMap} from 'rxjs';
 import {NgClass} from '@angular/common';
+declare var bootstrap: any;
 
 @Component({
   selector: 'app-reservations-list',
@@ -28,6 +29,7 @@ export class ReservationsList implements OnInit {
   private readonly ui = inject(UiService);
   private readonly tablesService = inject(TablesService);
   private tableNamesMap: Record<string, string> = {};
+  private reservationToDeleteId: number | undefined;
 
   startDate = signal<string>(getTodayISO());
   endDate = signal<string>(getTodayISO());
@@ -60,7 +62,7 @@ export class ReservationsList implements OnInit {
       this.statusFilter();
 
       if (start && end && start > end) {
-        this.ui.notify("La fecha 'Desde' no puede ser posterior a la fecha 'Hasta'");
+        this.ui.handleError("La fecha 'Desde' no puede ser posterior a la fecha 'Hasta'");
         untracked(() => this.endDate.set(start));
         return;
       }
@@ -189,31 +191,6 @@ export class ReservationsList implements OnInit {
     });
   }
 
-  async deleteReservation(id: number | undefined) {
-    if (!id) return;
-
-    const confirmed = await this.ui.confirm("¿Estás seguro de que deseas eliminar esta reserva?");
-    if (!confirmed) return;
-
-    const reservationToDelete = this.allReservations().find(res => res.id === id);
-
-    this.reservationService.deleteReservation(id).pipe(
-      switchMap(() => {
-        if (reservationToDelete && reservationToDelete.table_id && reservationToDelete.name) {
-          return this.tablesService.releaseTableByCustomer(reservationToDelete.name, reservationToDelete.date);
-        }
-        return forkJoin([]);
-      })
-    ).subscribe({
-      next: () => {
-        this.allReservations.update(list => list.filter(res => res.id !== id));
-        this.ui.notify("Reserva eliminada y mesa liberada correctamente");
-        this.loadData();
-      },
-      error: (err) => this.ui.handleError("No se pudo eliminar la reserva completamente", err)
-    });
-  }
-
   onStatusFilterChange(event: Event) {
     const selectElement = event.target as HTMLSelectElement;
     this.statusFilter.set(selectElement.value.split(','));
@@ -230,5 +207,38 @@ export class ReservationsList implements OnInit {
     if (status === 'unconfirmed') return 'table-grey-custom';
     if (status === 'cancelled') return 'table-danger-custom';
     return '';
+  }
+
+  openDeleteModal(id: number | undefined) {
+    this.reservationToDeleteId = id;
+    const modalElement = document.getElementById('deleteConfirmModal');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+  }
+
+  async confirmDelete() {
+    const id = this.reservationToDeleteId;
+    if (!id) return;
+
+    const reservationToDelete = this.allReservations().find(res => res.id === id);
+
+    this.reservationService.deleteReservation(id).pipe(
+      switchMap(() => {
+        if (reservationToDelete && reservationToDelete.table_id && reservationToDelete.name) {
+          return this.tablesService.releaseTableByCustomer(
+            reservationToDelete.name,
+            reservationToDelete.date
+          );
+        }
+        return of(null);
+      })
+    ).subscribe({
+      next: () => {
+        this.allReservations.update(list => list.filter(res => res.id !== id));
+        this.ui.notify("Reserva eliminada y mesa liberada correctamente");
+        this.reservationToDeleteId = undefined;
+      },
+      error: (err) => this.ui.handleError("Error al eliminar", err)
+    });
   }
 }

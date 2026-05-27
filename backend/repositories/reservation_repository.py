@@ -6,14 +6,13 @@ class ReservationRepository(BaseRepository, AuditMixin):
     def create(self, data: dict, user_id: int = None):
         sql = """
               INSERT INTO reservations (name, phone, date, hour, n_people, rices, notes, created_by, status, table_id)
-              VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) \
+              VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
               """
         table_id = data.get('table_id')
         if table_id == '' or table_id is None:
             table_id = None
         else:
             table_id = str(table_id).strip()
-
         params = (
             data.get('name'), data.get('phone'), data.get('date'),
             data.get('hour'), data.get('n_people'), data.get('rices'),
@@ -26,15 +25,15 @@ class ReservationRepository(BaseRepository, AuditMixin):
             return cur.lastrowid
 
     def get_by_date_and_hour(self, date: str, hour: str):
-        query = """
-                SELECT id, name, phone, date, hour, n_people, table_id
-                FROM reservations
-                WHERE date = %s
-                  AND hour = %s
+        query = f"""
+                SELECT r.id, r.name, r.phone, r.date, r.hour, r.n_people, r.table_id, r.hour as raw_hour, {self.get_audit_select(alias='r')}
+                FROM reservations r
+                {self.get_audit_joins(alias='r')}
+                WHERE r.date = %s AND r.hour = %s
                 """
         with self._get_cursor() as cursor:
             cursor.execute(query, (date, hour))
-            return cursor.fetchall()
+            return [self._format_row_hour(row) for row in cursor.fetchall()]
 
     def get_all(self):
         query = f"""
@@ -59,12 +58,10 @@ class ReservationRepository(BaseRepository, AuditMixin):
             return self._format_row_hour(cur.fetchone())
 
     def update(self, reservation_id: int, data: dict, editor_id: int = None):
-        # 🌟 CORREGIDO: Añadimos 'table_id' a la lista de campos permitidos
         campos = ['name', 'phone', 'n_people', 'date', 'hour', 'rices', 'notes', 'status', 'table_id']
 
         update_data = {c: data.get(c) for c in campos}
 
-        # Saneamos el table_id en el update también para que soporte la desvinculación (NULL)
         if update_data['table_id'] == '' or update_data['table_id'] is None:
             update_data['table_id'] = None
         else:
@@ -84,8 +81,7 @@ class ReservationRepository(BaseRepository, AuditMixin):
                     notes=%(notes)s,
                     status=%(status)s,
                     table_id=%(table_id)s,
-                    updated_by=%(updated_by)s,
-                    updated_at=NOW()
+                    updated_by=%(updated_by)s
                 WHERE id = %(id)s
                 """
 
@@ -106,7 +102,7 @@ class ReservationRepository(BaseRepository, AuditMixin):
                 SELECT SUM(n_people) as total
                 FROM reservations
                 WHERE date = %s
-                  AND LEFT (hour, 5) = %s
+                  AND LEFT(hour, 5) = %s
                 """
         with self._get_cursor() as cursor:
             cursor.execute(query, (date_str, hour_str))
@@ -117,3 +113,15 @@ class ReservationRepository(BaseRepository, AuditMixin):
         if row is not None and row.get('raw_hour'):
             row['hour'] = str(row['raw_hour'])[:5]
         return row
+
+    def update_status(self, reservation_id: int, status: str, editor_id: int = None):
+        query = """
+                UPDATE reservations
+                SET status     = %s,
+                    updated_by = %s
+                WHERE id = %s
+                """
+        with self._get_cursor() as cur:
+            cur.execute(query, (status, editor_id, reservation_id))
+            self.db.commit()
+            return cur.rowcount > 0

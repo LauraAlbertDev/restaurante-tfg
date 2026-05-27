@@ -79,7 +79,13 @@
                     [class.is-valid]="f['message'].valid"
                     formControlName="message"
                     id="message"
-                    placeholder="Mensaje"></textarea>
+                    placeholder="Mensaje" maxlength="255"></textarea>
+
+          @if (f['message'].touched && f['message'].errors?.['maxlength']) {
+            <div class="text-danger small mt-1">
+              El comentario no puede superar los 255 caracteres.
+            </div>
+          }
 
           <label for="message">
             <i class="bi bi-chat-dots me-1"></i> Mensaje

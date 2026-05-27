@@ -8,7 +8,7 @@ import { TablesService } from '../../../../services/tables_service';
 import { OrderService } from '../../../../services/order-service';
 import { AuthService } from '../../../../services/auth-service';
 import { Subscription } from 'rxjs';
-import { MapTool, STATUS_COLORS, TableStatus } from '../../../../common/interfaces/interfaces';
+import {LegendItem, MapTool, STATUS_COLORS, TableStatus} from '../../../../common/interfaces/interfaces';
 import { formatDateToISO, getTodayISO } from '../../../../common/utils/date-utils';
 import { ReservationsService } from '../../../../services/reservation-service';
 import {UiService} from '../../../../services/ui-service';
@@ -28,6 +28,25 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly ui = inject(UiService);
   protected readonly auth = inject(AuthService);
   private readonly reservationService = inject(ReservationsService);
+
+  legendItems: LegendItem[] = [
+    {
+      color: STATUS_COLORS[TableStatus.Occupied],
+      text: 'Ocupada'
+    },
+    {
+      color: STATUS_COLORS[TableStatus.DoubleReserved],
+      text: 'Reservada (2 turnos)'
+    },
+    {
+      color: STATUS_COLORS[TableStatus.Reserved],
+      text: 'Reservada (1 turno)'
+    },
+    {
+      color: STATUS_COLORS[TableStatus.Available],
+      text: 'Libre'
+    }
+  ];
 
   public isLocked = signal(true);
   public areaName = signal('Salón principal');
@@ -53,14 +72,17 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   constructor() {
-    // 🌟 SEÑALES CONTROLADAS: Usamos 'untracked' para evitar sub-suscripciones cíclicas con Fabric
     effect(() => {
-      this.orderService.allActiveOrders();
+      const orders = this.orderService.allActiveOrders(); // Asegúrate de leer la señal aquí
       const date = this.selectedDate();
+      console.log('🔍 Effect disparado. Órdenes actuales:', orders.length);
 
       if (this.canvas) {
         untracked(() => {
-          setTimeout(() => { this.syncTableColors(); }, 50);
+          setTimeout(() => {
+            console.log('🔄 Ejecutando sincronización manual...');
+            this.syncTableColors();
+          }, 0);
         });
       }
     });
@@ -93,7 +115,6 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initSubscriptions(): void {
-    // Escuchador reactivo para cuando se libera la mesa desde clearOrder
     this.subscriptions.add(
       this.orderService.tableReleased$.subscribe(() => {
         this.syncTableColors();
@@ -180,6 +201,9 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private attachCanvasEvents(): void {
+    this.canvas.on('object:scaling', (e) => {
+      if (e.target instanceof Group) this.preventTextDistortion(e.target);
+    });
     this.canvas.on('object:moving', (e) => this.snapToGrid(e.target));
     this.canvas.on('object:modified', (e) => {
       if (e.target instanceof Group) this.checkForTableCollision(e.target);
@@ -237,7 +261,6 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
         ? JSON.parse(res.layout_data)
         : res.layout_data;
 
-      // Renderizado en el lienzo de Fabric
       this.canvas.loadFromJSON(data).then(() => {
         this.canvas.getObjects().forEach(obj => {
           this.applyLockStateToObj(obj as FabricObject);
@@ -292,13 +315,16 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
     const esHoy = fechaMapa === getTodayISO();
 
     const activeOrders = esHoy ? this.orderService.allActiveOrders() : [];
-    const occupiedTableIds = activeOrders.map(o => String(o.table_id));
+    const occupiedTableIds = activeOrders.map(o => String(o.table_id));3
 
-    // Tomamos una instantánea (suscripción atómica) para evitar bucles asíncronos cruzados
+    console.log('📋 Sincronizando mapa. Fecha:', fechaMapa);
+    console.log('📍 IDs de mesas ocupadas detectados:', occupiedTableIds);
+
     this.reservationService.getReservations().subscribe({
       next: (todasLasReservas) => {
         const reservasActivasDelDia = todasLasReservas.filter(res =>
-          res.date === fechaMapa && res.status !== 'cancelled'
+          res.date === fechaMapa && res.status !== 'cancelled'&&
+          res.status !== 'completed'
         );
 
         let huboMutacionVisual = false;
@@ -318,38 +344,33 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
             if (isOccupied) {
               targetStatus = TableStatus.Occupied;
+              console.log(`✅ La mesa ${data.nombre} (ID: ${tableId}) está OCUPADA.`);
             } else {
-              // 🌟 REGLA TRIPLE: Si se hizo clearOrder (el name viene limpio de origen), forzamos libre
-              if (!data.customer_name || String(data.customer_name).trim() === '') {
+              const reservasDeEstaMesa = reservasActivasDelDia.filter(r =>
+                r.table_id ? String(r.table_id).trim() === tableId : false
+              );
+
+              const totalReservas = reservasDeEstaMesa.length;
+
+              if (totalReservas >= 2) {
+                targetStatus = TableStatus.DoubleReserved;
+                nuevoNombre = reservasDeEstaMesa.map(r => r.name).join(' / ');
+                nuevoTelefono = reservasDeEstaMesa.map(r => r.phone).join(' / ');
+                nuevoTurno = reservasDeEstaMesa.map(r => r.hour).join(' / ');
+              }
+              else if (totalReservas === 1) {
+                const unicaReserva = reservasDeEstaMesa[0];
+                targetStatus = TableStatus.Reserved;
+                nuevoNombre = unicaReserva.name || '';
+                nuevoTelefono = unicaReserva.phone || '';
+                nuevoTurno = unicaReserva.hour || '';
+              }
+              // 3. Libre
+              else {
                 targetStatus = TableStatus.Available;
-              } else {
-                // 🌟 REGLA BIDIRECCIONAL (De 1 a 2 y de 2 a 1 reservas dinámicamente)
-                const reservasDeEstaMesa = reservasActivasDelDia.filter(r =>
-                  r.table_id ? String(r.table_id).trim() === tableId : false
-                );
-
-                const totalReservas = reservasDeEstaMesa.length;
-
-                if (totalReservas === 0) {
-                  targetStatus = TableStatus.Available;
-                }
-                else if (totalReservas === 1) {
-                  const unicaReserva = reservasDeEstaMesa[0];
-                  targetStatus = TableStatus.Reserved;
-                  nuevoNombre = unicaReserva.name || '';
-                  nuevoTelefono = unicaReserva.phone || '';
-                  nuevoTurno = unicaReserva.hour || '';
-                }
-                else {
-                  targetStatus = 'double_reserved';
-                  nuevoNombre = reservasDeEstaMesa.map(r => r.name).join(' / ');
-                  nuevoTelefono = reservasDeEstaMesa.map(r => r.phone).join(' / ');
-                  nuevoTurno = reservasDeEstaMesa.map(r => r.hour).join(' / ');
-                }
               }
             }
 
-            // 🌟 ANTI-LOOP DEFENSIVO: Solo alteramos metadatos si el valor real difiere del actual
             if (data.estado !== targetStatus || (nuevoNombre && data.customer_name !== nuevoNombre)) {
               data.estado = targetStatus;
               data.customer_name = nuevoNombre;
@@ -446,13 +467,45 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const dataMoving = (target as any).data || {};
     const dataStatic = (collisionTarget as any).data || {};
+    const estadosProhibidos = [TableStatus.Reserved, 'double_reserved', TableStatus.Occupied];
+
+    const movingRestringida = estadosProhibidos.includes(dataMoving.estado);
+    const staticRestringida = estadosProhibidos.includes(dataStatic.estado);
+
+    if (movingRestringida && staticRestringida) {
+      const mismoCliente = dataMoving.customer_phone &&
+        dataStatic.customer_phone &&
+        dataMoving.customer_phone === dataStatic.customer_phone;
+
+      if (!mismoCliente) {
+        target.set({
+          left: (target.left || 0) - GRID_SIZE * 2,
+          top: (target.top || 0) - GRID_SIZE * 2
+        });
+        target.setCoords();
+
+        this.canvas.requestRenderAll();
+        this.ui.handleError('No se pueden fusionar mesas de distintas reservas o clientes.');
+        return;
+      }
+    }
+
+    let winnerBaseData: any;
+
+    if (movingRestringida && !staticRestringida) {
+      winnerBaseData = dataMoving;
+    } else if (!movingRestringida && staticRestringida) {
+      winnerBaseData = dataStatic;
+    } else {
+      const numMoving = parseInt(dataMoving.nombre?.match(/\d+/)?.[0] || '999');
+      const numStatic = parseInt(dataStatic.nombre?.match(/\d+/)?.[0] || '999');
+      winnerBaseData = numMoving <= numStatic ? dataMoving : dataStatic;
+    }
 
     const numMoving = parseInt(dataMoving.nombre?.match(/\d+/)?.[0] || '999');
     const numStatic = parseInt(dataStatic.nombre?.match(/\d+/)?.[0] || '999');
-
     const winnerId = Math.min(numMoving, numStatic);
     const winnerName = `Mesa ${winnerId}`;
-    const winnerBaseData = numMoving <= numStatic ? dataMoving : dataStatic;
 
     const shapes1 = await this.extractPersistentShapes(target);
     const shapes2 = await this.extractPersistentShapes(collisionTarget);
@@ -497,10 +550,12 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
       nombre: winnerName,
       isFused: true
     };
-
+    this.preventTextDistortion(mergedGroup);
     this.canvas.add(mergedGroup);
     mergedGroup.setCoords();
     this.canvas.setActiveObject(mergedGroup);
+
+    this.applyStatusVisuals(mergedGroup, winnerBaseData.estado);
     this.canvas.requestRenderAll();
   }
 
@@ -571,5 +626,19 @@ export class TableMapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     return next;
+  }
+
+  private preventTextDistortion(group: Group): void {
+    const scaleX = group.scaleX || 1;
+    const scaleY = group.scaleY || 1;
+
+    group.getObjects().forEach((obj) => {
+      if (obj instanceof IText || obj.type === 'i-text' || obj.type === 'text') {
+        obj.set({
+          scaleX: 1 / scaleX,
+          scaleY: 1 / scaleY
+        });
+      }
+    });
   }
 }
