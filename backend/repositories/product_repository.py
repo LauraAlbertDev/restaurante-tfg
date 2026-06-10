@@ -234,7 +234,7 @@ class ProductRepository(BaseRepository, AuditMixin):
 
     def get_all_for_export(self, archived=0):
         sql = """
-              SELECT p.id, p.name, p.price, c.name AS category_name, p.stock, p.vegan, p.vegetarian,p.image,
+              SELECT p.id, p.name, p.price, c.name AS category_name, p.stock, p.vegan, p.vegetarian,p.image, p.description,
                      GROUP_CONCAT(a.name SEPARATOR ', ') AS allergens_names
               FROM products p
                        LEFT JOIN categories c ON p.category_id = c.id

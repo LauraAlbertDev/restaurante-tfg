@@ -120,14 +120,12 @@ CREATE TABLE `comment` (
 --
 
 INSERT INTO `comment` (`id`, `name`, `email`, `tel`, `message`, `note`, `archived`) VALUES
-(1, 'Laura2', 'alb@alb.com', '888888888', 'asdasdasdasdasdasd', '12', 1),
-(2, 'Laura', 'laura@laura.com', '999999999', 'Laaaaaaaaaaaaaaaa', '', 0),
-(3, 'Prueba', 'ask@asd.om', '111111111', 'asdasdasdasdasd', '', 0),
-(4, 'Prueba', 'albe@asd.com', '111111111', 'Laurasadasdas', '', 0),
-(5, 'sadasdas', 'asdasd@asdasd.com', 'undefined', 'asdasdasdasdas', '', 0),
-(6, 'adsad', 'asdasd@asdasd.com', 'undefined', 'asdasdas', '', 0),
-(7, 'asdasdas', 'asdas@asda.com', 'undefined', 'asdasdas', '', 0),
-(8, 'holasdasdasd', 'asdas@email.com', '123456789', 'asdasdasd\n', '', 0);
+(1, 'Carlos Ruiz', 'carlos.ruiz@email.com', '600123456', 'La paella de marisco estaba espectacular, el punto del arroz perfecto. Volveremos seguro.', '', 0),
+(2, 'Ana Martínez', 'ana.m@email.com', '611987654', 'La comida estuvo bien, pero esperamos demasiado tiempo entre platos. El ambiente es agradable.', '', 0),
+(3, 'Javier Soler', 'jsoler@email.es', '622333444', 'Excelente atención al cliente. Los camareros fueron muy amables y nos recomendaron un vino local fantástico.', '', 0),
+(4, 'Laura G.', 'laura.g@email.com', '633555666', 'El postre de chocolate estaba delicioso, pero la mesa estaba un poco sucia cuando llegamos.', '', 0),
+(5, 'Roberto Vega', 'rvega@email.com', '644777888', 'Poca variedad para personas celíacas. Espero que mejoren las opciones sin gluten en el futuro.', '', 1);
+
 
 -- --------------------------------------------------------
 
@@ -227,34 +225,33 @@ CREATE TABLE `products` (
 --
 -- Volcado de datos para la tabla `products`
 --
-
-INSERT INTO `products` (`id`, `name`, `description`, `image`, `price`, `category_id`, `stock`, `vegan`, `vegetarian`, `gluten_free`, `archived`, `created_by`, `updated_by`, `updated_at`) VALUES
-(3, 'bizcocho zanahoria', '', '1775746209_tarta_de_zanahoria.png', 4.95, 4, 8, 0, 1, 0, 0, NULL, 2, '2026-05-21 12:10:45'),
-(4, 'cerveza turia', '', '1777216835_Turia.webp', 3.00, 7, 10, 1, 1, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(5, 'chuletas de cordero', '', '1775745069_chuletas.png', 17.00, 2, 10, 0, 0, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(6, 'coca-cola', '', 'cocacola.png', 2.50, 3, 10, 0, 0, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(7, 'coulant de chocolate', '', '1775746322_coulant_de_chocolate.png', 4.95, 4, 10, 0, 1, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(8, 'daniel belda pinot', '', '1777216938_daniel-belda-pinot.png', 17.00, 8, 10, 1, 1, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(9, 'ensalada de queso de cabra', '', '1777216864_1775744791_ensalada_queso_de_cabra.webp', 7.95, 1, 10, 0, 1, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(10, 'entrecot', '', '1775745456_entrecot.png', 18.00, 2, 10, 0, 0, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(11, 'fanta limon', '', 'fanta_limon.png', 2.50, 3, 10, 0, 0, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(12, 'Fanta Naranja', '', '1777216928_fanta-naranja.png', 2.50, 3, 10, 0, 0, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(13, 'Marina Alta', '', '1777216949_Marina-Alta.png', 12.00, 8, 10, 1, 1, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(15, 'paella mixta', '', '1777215823_1776869150_1775662419_paella_mixta__2_.webp', 13.50, 5, 0, 0, 1, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(17, 'pechugas', '', '1777217075_pechuga_de_pollo_(2).png', 12.00, 2, 10, 0, 0, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(18, 'solomillo', '', '1775746004_solomillo.png', 19.00, 2, 10, 0, 0, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(20, 'tiramisu', '', '1775746536_tiramisu.png', 4.95, 4, 10, 0, 1, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(83, 'arroz pescado y gambas', 'Arroz marinero de grano redondo, elaborado con un potente fumet de pescado de roca y un sofrito de tomate y pimentón.', '1777217748_1775662223_arroz_pescado_y_gambas.webp', 15.50, 5, 3, 0, 0, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(91, 'tarta de queso con galletas lotus', '', '1775746446_tarta_de_lotus.png', 4.95, 4, 10, 0, 0, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(93, 'nestea', '', 'nestea.jpg', 3.00, 3, 10, 0, 0, 0, 0, NULL, NULL, '2026-05-21 12:15:26'),
-(102, 'Paella valenciana', '', '1777215586_paella_valenciana.webp', 13.95, 5, 6, 0, 0, 0, 0, 1, NULL, '2026-05-21 12:15:26'),
-(103, 'Ensaladilla Rusa', '', '1777216879_Ensaladilla.webp', 9.90, 1, 10, 0, 0, 0, 0, 1, NULL, '2026-05-21 12:15:26'),
-(104, 'Tyris (Sin Gluten)', '', '1777216856_Tyris-sin-gluten-_3_.webp', 3.50, 7, 3, 1, 1, 0, 0, 1, NULL, '2026-05-21 12:15:26'),
-(105, 'Arroz con bogavante', '', '1777216901_Arroz-con-bogavante-_2_.webp', 21.00, 5, 7, 0, 0, 0, 0, 1, NULL, '2026-05-21 12:15:26'),
-(106, 'Corona', '', '1777216847_Corona.png', 3.50, 7, 10, 1, 1, 0, 0, 1, NULL, '2026-05-21 12:15:26'),
-(107, 'Alhambra 1925', '', '1777216828_1925-_3_.webp', 3.25, 7, 10, 1, 1, 0, 0, 1, NULL, '2026-05-21 12:15:26');
+INSERT INTO `products` VALUES (3,'bizcocho zanahoria','Clásica tarta de zanahoria con bizcocho húmedo, especiado y con nueces. Intercalado con un generoso frosting de queso crema, destaca por su textura densa y su equilibrado contraste entre el dulzor del bizcocho y la cremosidad ácida de la cobertura.','1775746209_tarta_de_zanahoria.png',4.95,4,8,0,1,0,0,NULL,2,'2026-05-21 12:10:45');
+INSERT INTO `products` VALUES (4,'cerveza turia','Se caracteriza por su color ámbar con reflejos rojizos y una espuma cremosa. En boca destaca por su equilibrio entre notas tostadas de malta, un toque ligero a caramelo y un amargor suave y refrescante. Es muy apreciada por su cuerpo medio y su excelente maridaje con la gastronomía mediterránea.','1777216835_Turia.webp',3.00,7,10,1,1,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (5,'chuletas de cordero','Jugosas chuletas de cordero a la plancha acompañadas de patatas gajo rústicas y una salsa alioli. Un plato tradicional, tierno y lleno de sabor, ideal para disfrutar de una combinación clásica de carne asada con guarnición crujiente.','1775745069_chuletas.png',17.00,2,10,0,0,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (6,'coca-cola','Refresco de cola icónico y efervescente, reconocido por su sabor dulce único con toques de vainilla y cítricos. Es la bebida carbonatada más consumida a nivel mundial, ideal para acompañar comidas gracias a su carácter refrescante y estimulante.','cocacola.png',2.50,3,10,0,0,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (7,'coulant de chocolate','Exquisito bizcocho de chocolate individual con un corazón líquido y fundente que se desborda al abrirlo. Su textura combina el exterior firme y tierno con un interior intensamente cremoso, ofreciendo una experiencia cálida y pura de chocolate.','1775746322_coulant_de_chocolate.png',4.95,4,10,0,1,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (8,'daniel belda pinot','Destaca por su perfil refinado, aromas a frutos rojos, notas terrosas y una acidez equilibrada. Un vino con personalidad propia que refleja el carácter mediterráneo de su terruño de altura.','1777216938_daniel-belda-pinot.png',17.00,8,10,1,1,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (9,'ensalada de queso de cabra','Ensalada fresca compuesta por una mezcla de lechugas, tomate y frutos secos, coronada con una rodaja de rulo de cabra gratinado. Destaca por el contraste entre el queso fundido, el toque crujiente de los frutos secos y el aliño equilibrado.','1777216864_1775744791_ensalada_queso_de_cabra.webp',7.95,1,10,0,1,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (10,'entrecot','Jugoso entrecot de ternera cortado en láminas, cocinado al punto y servido sobre madera con una fresca guarnición de picadillo de tomate y pimiento. Un plato elegante y equilibrado que combina el sabor intenso de la carne con un toque cítrico.','1775745456_entrecot.png',18.00,2,10,0,0,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (11,'fanta limon','Refresco con gas elaborado con zumo de limón, conocido por su sabor intenso, refrescante y ligeramente ácido. Es una bebida burbujeante ideal para calmar la sed, caracterizada por su carácter vibrante y su toque cítrico característico.','fanta_limon.png',2.50,3,10,0,0,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (12,'Fanta Naranja','Refresco con gas elaborado con zumo de naranja, reconocido por su sabor dulce, cítrico y burbujeante. Una bebida vibrante y refrescante, ideal para acompañar cualquier comida o disfrutarla sola en cualquier momento del día.','1777216928_fanta-naranja.png',2.50,3,10,0,0,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (13,'Marina Alta','Vino blanco mediterráneo, fresco y muy aromático, elaborado con uva Moscatel. Destaca por sus notas a flores blancas, cítricos y fruta tropical. Es ligero, equilibrado y muy refrescante, ideal para maridar con arroces y pescado.','1777216949_Marina-Alta.png',12.00,8,10,1,1,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (15,'paella mixta','Tradicional paella mixta con arroz en su punto, enriquecida con mariscos frescos como gambas y mejillones, junto a trozos de pollo y pimiento rojo. Un plato sabroso, colorido y emblemático que captura toda la esencia del Mediterráneo.','1777215823_1776869150_1775662419_paella_mixta__2_.webp',13.50,5,0,0,1,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (17,'pechugas','','assets/images/1780041188_1779795026_Pechugas.png',12.00,2,10,0,0,0,0,NULL,NULL,'2026-05-21 12:15:26');
+INSERT INTO `products` VALUES (18,'solomillo','Delicioso solomillo de ternera, sellado a la perfección y servido en finas lonchas con un toque de sésamo y cebollino fresco. Acompañado de una salsa especiada y un toque de perejil, es un bocado sofisticado que combina frescura y sabor intenso.','1775746004_solomillo.png',19.00,2,10,0,0,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (20,'tiramisu','Clásico tiramisú artesanal, con capas de suave crema mascarpone y bizcocho impregnado en café, coronado con una fina capa de cacao puro. Un postre tradicional, delicado y equilibrado, perfecto para cerrar cualquier comida con elegancia.','1775746536_tiramisu.png',4.95,4,10,0,1,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (83,'arroz pescado y gambas','Arroz marinero de grano redondo, elaborado con un potente fumet de pescado de roca y un sofrito de tomate y pimentón.','1777217748_1775662223_arroz_pescado_y_gambas.webp',15.50,5,3,0,0,0,0,NULL,NULL,'2026-05-21 12:15:26');
+INSERT INTO `products` VALUES (91,'tarta de queso con galletas lotus','Deliciosa cheesecake con base crujiente y una irresistible capa de crema Lotus. Un postre suave y equilibrado, coronado con un topping de galleta caramelizada que le aporta una textura única. ¡El capricho perfecto para los amantes del dulce!','1775746446_tarta_de_lotus.png',4.95,4,10,0,0,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (93,'nestea','Nestea es una popular marca de té helado que destaca por su refrescante combinación de extracto de té y sabores frutales. Es ideal para disfrutar bien frío, ofreciendo una opción ligera y revitalizante para cualquier momento del día.','nestea.jpg',3.00,3,10,0,0,0,0,NULL,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (102,'Paella valenciana','Auténtica paella valenciana tradicional, cocinada en su punto exacto con arroz, pollo, judías verdes y garrofó. Un plato icónico que captura la esencia de nuestra gastronomía con un sabor profundo y equilibrado. ¡Un auténtico deleite mediterráneo!','1777215586_paella_valenciana.webp',13.95,5,6,0,0,0,0,1,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (103,'Ensaladilla Rusa','Tradicional ensaladilla rusa, cremosa y llena de sabor, elaborada con una cuidada selección de patata, verduras frescas, huevo y un toque de pimiento rojo. Un clásico infalible, fresco y reconfortante, perfecto como entrante para compartir.','1777216879_Ensaladilla.webp',9.90,1,10,0,0,0,0,1,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (104,'Tyris (Sin Gluten)','Cerveza artesana valenciana tipo Märzen, equilibrada y con cuerpo, que destaca por sus notas a malta tostada y caramelo. Es una opción sabrosa, refrescante y, lo más importante, apta para celíacos al no contener gluten. Ideal para disfrutar sola.','1777216856_Tyris-sin-gluten-_3_.webp',3.50,7,3,1,1,0,0,1,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (105,'Arroz con bogavante','Exquisito arroz meloso con bogavante, cocinado a fuego lento con un intenso sofrito que resalta todo el sabor a mar de este crustáceo. Un plato tradicional, elegante y lleno de sabor mediterráneo. ¡Irresistible para los amantes del marisco!','1777216901_Arroz-con-bogavante-_2_.webp',21.00,5,7,0,0,0,0,1,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (106,'Corona','Se caracteriza por su color dorado brillante, un sabor suave y refrescante, y su icónica presentación en botella de vidrio transparente, a menudo servida con una rodaja de lima para resaltar sus notas cítricas.','1777216847_Corona.png',3.50,7,10,1,1,0,0,1,9,'2026-05-28 12:14:01');
+INSERT INTO `products` VALUES (107,'Alhambra 1925','Se caracteriza por un sabor complejo y equilibrado, con notas intensas de cereal tostado, caramelo y un toque amargo que la hace muy apreciada entre los amantes de la cerveza artesana.','1777216828_1925-_3_.webp',3.25,7,10,1,1,0,0,1,9,'2026-05-28 12:14:01');
 
 -- --------------------------------------------------------
+
 
 --
 -- Estructura de tabla para la tabla `product_allergens`
@@ -349,7 +346,7 @@ CREATE TABLE `reservations` (
   `created_by` int(10) UNSIGNED DEFAULT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_by` int(10) UNSIGNED DEFAULT NULL,
-  `status` enum('unconfirmed','confirmed','cancelled') DEFAULT 'unconfirmed',
+  `status` enum('unconfirmed','confirmed','cancelled', 'completed') DEFAULT 'unconfirmed',
   `table_id` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -431,9 +428,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `type`, `active`, `created_at`) VALUES
-(2, 'Laura', 'albertlaura@empresa.com', '$2b$12$LtzxeiKxECReFalC3Uqs9O2RcfkqqChc2FpChbexiIhpYcKi6Bhd.', 'employee', 1, '2026-02-19 12:41:29'),
-(9, 'Laura', 'laura@empresa.com', '$2b$12$DCGXOJHfv0iYC3JG9TE2dOIk0PlmDaPQYzXoy4kEI/TNQ1PybQ6PC', 'admin', 1, '2026-03-06 12:16:32'),
-(10, 'Micky', 'micky@empresa.com', '$2b$12$dSIym1dgS4x4A/hBw0BrDeVFWMCXw1YYy3xYz7SQAjedAuXVZad9q', 'leader', 1, '2026-04-10 12:12:53'),
+(2, 'Laura', 'albertlaura@empresa.com', '$2b$12$yJ658l.VkEj3OvPJ.tVnxObTv2LZe7th/jr9BLZcj6E7zeV0LtHg2', 'employee', 1, '2026-02-19 12:41:29'),
+(9, 'Laura', 'laura@empresa.com', '$2b$12$KtXXKX1/TNcxxRIbCn4NQ.cz/agZfT3rAx5YwBXnObobeeQYTi5Uy', 'admin', 1, '2026-03-06 12:16:32'),
+(10, 'Micky', 'micky@empresa.com', '$2b$12$tn8p5vVv0jXyDWcl0q9.WubnQSFmdGcuznDKdAeMrzuiG01Q3Tb1W', 'leader', 1, '2026-04-10 12:12:53'),
 (14, 'Vicent', 'vicent@empresa.com', '$2b$12$lSZR4pk85s59G9lEqgA23uhRkzu3xowXhHi8QpohP9ZmW4oFKd89m', 'leader', 0, '2026-04-22 07:12:12'),
 (15, 'Prueba', 'ad@empresa.com', '$2b$12$IJmvfe0onuO.I8a0hwDYW.m0WivFRWU1DCCgrhVlzxUYIpw6BZMUG', 'admin', 0, '2026-05-02 11:45:37');
 

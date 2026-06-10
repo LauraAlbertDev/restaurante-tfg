@@ -64,6 +64,6 @@ def update_perfil(data: dict, db=Depends(get_db), current_user=Depends(get_curre
     hashed = hash_password(password) if password and password.strip() else None
 
     user_actual = repo.get_by_id(user_id)
-    repo.update(user_id, data.get("name"), data.get("email"), user_actual["type"], hashed)
+    repo.update(user_id, user_actual["name"], data.get("email"), user_actual["type"], hashed)
 
     return {"ok": True}

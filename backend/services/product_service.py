@@ -25,6 +25,8 @@ class ProductService:
     @staticmethod
     def prepare_export_data(products: list) -> io.BytesIO:
         df = pd.DataFrame(products)
+        if 'description' not in df.columns:
+            df['description'] = ''
         if not df.empty and 'allergens' in df.columns:
             df['allergens'] = df['allergens'].apply(
                 lambda x: ", ".join([a['name'] for a in x]) if x else ""

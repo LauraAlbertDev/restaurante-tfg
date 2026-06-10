@@ -12,28 +12,35 @@
           {{ isAdminOrLeader ? 'NUEVA RESERVA' : 'MESAS' }}
         </a>
       </div>
-      @if (isAdminOrLeader){
+      @if (isAdminOrLeader) {
+        <div class="w-100 bg-light p-3 rounded-3 border mt-3 mt-xl-0">
+          <div class="row g-3 align-items-center">
 
-
-      <div class="d-flex flex-wrap align-items-center gap-3 bg-light p-2 rounded-3 border">
-        @for (f of dateFilters; track f.label) {
-          <div class="d-flex align-items-center gap-2">
-            <label class="small fw-bold text-muted text-uppercase">{{ f.label }}:</label>
-            <input type="date" class="form-control form-control-sm"
-                   [ngModel]="f.signal()" (ngModelChange)="f.signal.set($event)">
-          </div>
-        }
-        <div class="d-flex gap-2 align-items-center">
-          <label class="small fw-bold text-muted text-uppercase">Estado:</label>
-          <select (change)="onStatusFilterChange($event)" class="form-select form-select-sm shadow-none border-2">
-            @for (opt of FILTER_OPTIONS; track opt.value) {
-              <option [value]="opt.value" [selected]="statusFilter().join(',') === opt.value">
-                {{ opt.label }}
-              </option>
+            @for (f of dateFilters; track f.label) {
+              <div class="col-12 col-sm-6 col-md-4">
+                <div class="d-flex align-items-center gap-2">
+                  <label class="small fw-bold text-muted text-uppercase text-nowrap mb-0">{{ f.label }}:</label>
+                  <input type="date" class="form-control form-control-sm w-100"
+                         [ngModel]="f.signal()" (ngModelChange)="f.signal.set($event)">
+                </div>
+              </div>
             }
-          </select>
+
+            <div class="col-12 col-md-4">
+              <div class="d-flex align-items-center gap-2">
+                <label class="small fw-bold text-muted text-uppercase text-nowrap mb-0">Estado:</label>
+                <select (change)="onStatusFilterChange($event)" class="form-select form-select-sm shadow-none border-2 w-100">
+                  @for (opt of FILTER_OPTIONS; track opt.value) {
+                    <option [value]="opt.value" [selected]="statusFilter().join(',') === opt.value">
+                      {{ opt.label }}
+                    </option>
+                  }
+                </select>
+              </div>
+            </div>
+
+          </div>
         </div>
-      </div>
       }
     </div>
 
